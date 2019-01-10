@@ -2,7 +2,7 @@
 #include "y.tab.h"
 
 int parse_integer(char *s, size_t base) {
-    int value = 0;
+    size_t value = 0;
     int sign = 1;
     if (*s == '+') {
         s++;
@@ -13,24 +13,16 @@ int parse_integer(char *s, size_t base) {
     if (base != 10) {
         s += 2;
     }
-    if (base <= 10) {
-        while (*s != '\0') {
-            value *= base;
+    while (*s != '\0') {
+        value *= base;
+        if (value >= '0' && value <= '9') {
             value += *s - '0';
-            s++;
+        } else if (value >= 'a' && value <= 'z') {
+            value += *s - 'a';
+        } else if (value >= 'A' && value <= 'Z') {
+            value += *s - 'A';
         }
-    } else {
-        while (*s != '\0') {
-            value *= base;
-            if (value >= '0' && value <= '9') {
-                value += *s - '0';
-            } else if (value >= 'a' && value <= 'z') {
-                value += *s - 'a';
-            } else if (value >= 'A' && value <= 'Z') {
-                value += *s - 'A';
-            }
-            s++;
-        }
+        s++;
     }
     return sign * value;
 }
