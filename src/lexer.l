@@ -28,15 +28,14 @@ int parse_integer(char *s, size_t base) {
 }
 %}
 
-NATURAL     ([0-9_]+|0[xX][0-9a-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+)
-
 %x COMMENT
 
 %%
 
 [ \t\r\n]* ;
 ; { return SEMICOLON; }
-[+-]?{NATURAL}\.{NATURAL} { yylval = atof(yytext); return LITERAL_FLOAT; }
+
+[+-]?[0-9]+\.[0-9]+ { yylval = atof(yytext); return LITERAL_FLOAT; }
 [+-]?[0-9_]+ { yylval = parse_integer(yytext, 10); return LITERAL_INTEGER; }
 [+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_integer(yytext, 16); return LITERAL_INTEGER; }
 [+-]?0[oO][0-7_]+ { yylval = parse_integer(yytext, 8); return LITERAL_INTEGER; }
