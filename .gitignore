@@ -1,4 +1,1 @@
-*.c
-*.h
-*.o
-compiler
+/out/

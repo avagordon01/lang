@@ -4,10 +4,10 @@ YACC = bison -y
 YFLAGS = -d
 LDFLAGS = -lfl
 
-compiler: lexer.l parser.y
-	$(YACC) $(YFLAGS) parser.y
-	$(LEX) $(LFLAGS) lexer.l
-	$(CC) $(LDFLAGS) -o $@ y.tab.c lex.yy.c
+out/compiler: src/lexer.l src/parser.y
+	$(YACC) $(YFLAGS) -o out/y.tab.c src/parser.y
+	$(LEX) $(LFLAGS) -o out/lex.yy.c src/lexer.l
+	$(CC) $(LDFLAGS) -o $@ out/y.tab.c out/lex.yy.c
 
 clean:
-	git clean -Xfd
+	rm -rf out
