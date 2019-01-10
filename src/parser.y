@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 int yylex (void);
+void print_symbols();
 
 int yyerror(char *s) {
     fprintf(stderr, "parse error: %s\n", s);
@@ -50,12 +51,15 @@ expr_30: NUMBER
        | OPEN_R_BRACKET expr_10 CLOSE_R_BRACKET { $$ = $2; }
        ;
 
-NUMBER: LITERAL_FLOAT
+NUMBER: IDENTIFIER
+      | LITERAL_FLOAT
       | LITERAL_INTEGER
       ;
 
 %%
 
 int main() {
-    return yyparse();
+    yyparse();
+    print_symbols();
+    return 0;
 }

@@ -1,5 +1,32 @@
+%option noyywrap nodefault yylineno
+
 %{
 #include "y.tab.h"
+
+struct symbol {
+    char* name;
+};
+static struct symbol symboltable[1024] = {0};
+size_t lookup_or_insert(char* s) {
+    for (size_t i = 0; i < 1024; i++) {
+        if (symboltable[i].name == NULL) {
+            symboltable[i].name = strdup(s);
+            return i;
+        }
+        if (strcmp(s, symboltable[i].name) == 0)
+            return i;
+    }
+    fprintf(stderr, "error: symboltable full!\n");
+    exit(1);
+};
+void print_symbols() {
+    printf("symboltable:\n");
+    for (size_t i = 0; i < 1024; i++) {
+        if (symboltable[i].name == NULL)
+            break;
+        printf("%i: %s\n", i, symboltable[i].name);
+    }
+};
 
 int parse_integer(char *s, size_t base) {
     size_t value = 0;
@@ -86,7 +113,7 @@ f16 { return TYPE_F16; }
 f32 { return TYPE_F32; }
 f64 { return TYPE_F64; }
 
-[a-zA-Z_][a-zA-Z0-9_]* { /*yylval = yytext; */return IDENTIFIER/*symbol_table[yytext]*/; }
+[a-zA-Z_][a-zA-Z0-9_]* { yylval = lookup_or_insert(yytext); return IDENTIFIER; }
 
 "(" { return OPEN_R_BRACKET; }
 ")" { return CLOSE_R_BRACKET; }
