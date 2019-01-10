@@ -1,7 +1,7 @@
 %{
 #include "y.tab.h"
 
-int parse_natural(char *s, size_t base) {
+int parse_integer(char *s, size_t base) {
     int value = 0;
     int sign = 1;
     if (*s == '+') {
@@ -13,19 +13,21 @@ int parse_natural(char *s, size_t base) {
     if (base != 10) {
         s += 2;
     }
-    if (base == 10 || base == 2 || base == 8) {
+    if (base <= 10) {
         while (*s != '\0') {
             value *= base;
             value += *s - '0';
             s++;
         }
-    } else if (base == 16) {
+    } else {
         while (*s != '\0') {
             value *= base;
-            if (value >= 'a' && value <= 'f' || value >= 'A' && value <= 'F') {
-                value += *s - 'a';
-            } else {
+            if (value >= '0' && value <= '9') {
                 value += *s - '0';
+            } else if (value >= 'a' && value <= 'z') {
+                value += *s - 'a';
+            } else if (value >= 'A' && value <= 'Z') {
+                value += *s - 'A';
             }
             s++;
         }
@@ -43,10 +45,10 @@ NATURAL     ([0-9_]+|0[xX][0-9a-fA-F_]+|0[oO][0-7_]+|0[bB][01_]+)
 [ \t\r\n]* ;
 ; { return SEMICOLON; }
 [+-]?{NATURAL}\.{NATURAL} { yylval = atof(yytext); return LITERAL_FLOAT; }
-[+-]?[0-9_]+ { yylval = parse_natural(yytext, 10); return LITERAL_INTEGER; }
-[+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_natural(yytext, 16); return LITERAL_INTEGER; }
-[+-]?0[oO][0-7_]+ { yylval = parse_natural(yytext, 8); return LITERAL_INTEGER; }
-[+-]?0[bB][0-1_]+ { yylval = parse_natural(yytext, 2); return LITERAL_INTEGER; }
+[+-]?[0-9_]+ { yylval = parse_integer(yytext, 10); return LITERAL_INTEGER; }
+[+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_integer(yytext, 16); return LITERAL_INTEGER; }
+[+-]?0[oO][0-7_]+ { yylval = parse_integer(yytext, 8); return LITERAL_INTEGER; }
+[+-]?0[bB][0-1_]+ { yylval = parse_integer(yytext, 2); return LITERAL_INTEGER; }
 
 "+" { return OP_A_ADD; }
 "-" { return OP_A_SUB; }
