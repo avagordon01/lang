@@ -15,11 +15,11 @@ int parse_integer(char *s, size_t base) {
     }
     while (*s != '\0') {
         value *= base;
-        if (value >= '0' && value <= '9') {
+        if (*s >= '0' && *s <= '9') {
             value += *s - '0';
-        } else if (value >= 'a' && value <= 'z') {
+        } else if (*s >= 'a' && *s <= 'z') {
             value += *s - 'a';
-        } else if (value >= 'A' && value <= 'Z') {
+        } else if (*s >= 'A' && *s <= 'Z') {
             value += *s - 'A';
         }
         s++;
