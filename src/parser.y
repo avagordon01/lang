@@ -65,11 +65,29 @@ statement:
 
 exp: IDENTIFIER { $$ = read($1); }
    | IDENTIFIER OP_ASSIGN exp { assign($1, $3); $$ = $3; }
+
    | exp OP_A_ADD exp { $$ = $1 + $3; }
    | exp OP_A_SUB exp { $$ = $1 - $3; }
    | exp OP_A_MUL exp { $$ = $1 * $3; }
    | exp OP_A_DIV exp { $$ = $1 / $3; }
    | exp OP_A_MOD exp { $$ = $1 % $3; }
+
+   | exp OP_B_AND exp { $$ = $1 & $3; }
+   | exp OP_B_OR  exp { $$ = $1 | $3; }
+   | exp OP_B_XOR exp { $$ = $1 ^ $3; }
+   | exp OP_B_SHL exp { $$ = $1 << $3; }
+   | exp OP_B_SHR exp { $$ = $1 >> $3; }
+
+   | exp OP_C_EQ exp { $$ = $1 == $3; }
+   | exp OP_C_NE exp { $$ = $1 != $3; }
+   | exp OP_C_GT exp { $$ = $1 >  $3; }
+   | exp OP_C_GE exp { $$ = $1 >= $3; }
+   | exp OP_C_LT exp { $$ = $1 <  $3; }
+   | exp OP_C_LE exp { $$ = $1 <= $3; }
+
+   | exp OP_L_AND exp { $$ = $1 && $3; }
+   | exp OP_L_OR  exp { $$ = $1 || $3; }
+
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
    | NUMBER { $$ = $1; }
    ;
