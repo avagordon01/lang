@@ -4,10 +4,11 @@ int yylex (void);
 void print_symbols();
 
 #include <vector>
+#include <string>
 #include <cassert>
 
-void yyerror(char *s) {
-    fprintf(stderr, "parse error: %s\n", s);
+void yyerror(std::string s) {
+    fprintf(stderr, "parse error: %s\n", s.c_str());
 }
 
 std::vector<int> values;
