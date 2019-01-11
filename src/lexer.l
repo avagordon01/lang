@@ -1,9 +1,14 @@
 %option noyywrap nodefault yylineno
 
 %{
+
 #include "y.tab.h"
 #include <string>
 #include <unordered_map>
+
+void error_unrecognised_token(char* yytext) {
+    fprintf(stderr, "unexpected token: \"%s\" on line %i\n", yytext, yylineno);
+}
 
 static std::unordered_map<std::string, size_t> symbols;
 size_t lookup_or_insert(char* c) {
@@ -43,6 +48,7 @@ int parse_integer(char *s, size_t base) {
     }
     return sign * value;
 }
+
 %}
 
 %x COMMENT
@@ -119,5 +125,7 @@ f64 { return TYPE_F64; }
 "/*" { BEGIN(COMMENT); }
 <COMMENT>"*/" { BEGIN(INITIAL); }
 <COMMENT>. {}
+
+. { error_unrecognised_token(yytext); }
 
 %%

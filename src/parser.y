@@ -1,4 +1,5 @@
 %{
+
 #include <stdio.h>
 int yylex (void);
 
@@ -17,6 +18,7 @@ void assign(size_t i, int x) {
     }
     values[i] = x;
 };
+
 int read(size_t i) {
     assert(i < values.size());
     return values[i];
