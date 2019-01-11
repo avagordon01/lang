@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 void error_unrecognised_token(char* yytext) {
-    fprintf(stderr, "unexpected token: \"%s\" on line %i\n", yytext, yylineno);
+    fprintf(stderr, "line %i: unexpected token: \"%s\"\n", yylineno, yytext);
 }
 
 static std::unordered_map<std::string, size_t> symbols;

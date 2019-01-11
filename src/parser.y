@@ -1,6 +1,9 @@
+%error-verbose
+
 %{
 
 #include <stdio.h>
+extern int yylineno;
 int yylex (void);
 
 #include <vector>
@@ -8,7 +11,7 @@ int yylex (void);
 #include <cassert>
 
 void yyerror(std::string s) {
-    fprintf(stderr, "parse error: %s\n", s.c_str());
+    fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
 }
 
 std::vector<int> values;
