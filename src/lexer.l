@@ -4,27 +4,22 @@
 #include "y.tab.h"
 #include <unordered_map>
 
-struct symbol {
-    size_t num;
-};
-static std::unordered_map<std::string, struct symbol> symboltable;
-static std::vector<struct symbol> symboltable;
-size_t lookup_or_insert(char* s) {
-    auto s = symboltable.find(std::string(s));
-    if (s != symboltable.end()) {
-        return s->second.num;
+static std::unordered_map<std::string, size_t> symbols;
+size_t lookup_or_insert(char* c) {
+    auto str = std::string(c);
+    auto s = symbols.find(str);
+    if (s != symbols.end()) {
+        return s->second;
+    } else {
+        size_t n = symbols.size();
+        symbols.insert({str, n});
+        return n;
     }
-    for (size_t i = 0; i < symboltable.size(); i++) {
-        if (strcmp(s, symboltable[i].name) == 0)
-            return i;
-    }
-    symboltable.push_back({strdup(s)});
-    return symboltable.size();
 };
 void print_symbols() {
-    printf("symboltable:\n");
-    for (auto& symbol: symboltable) {
-        printf("%s\n", symbol.name);
+    printf("symbols:\n");
+    for (auto& s: symbols) {
+        printf("%s: %i\n", s.first.c_str(), s.second);
     }
 };
 
