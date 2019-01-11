@@ -3,9 +3,25 @@
 int yylex (void);
 void print_symbols();
 
+#include <vector>
+#include <cassert>
+
 void yyerror(char *s) {
     fprintf(stderr, "parse error: %s\n", s);
 }
+
+std::vector<int> values;
+void assign(size_t i, int x) {
+    if (i >= values.size()) {
+        values.resize(i + 1);
+    }
+    values[i] = x;
+};
+int read(size_t i) {
+    assert(i < values.size());
+    return values[i];
+};
+
 %}
 
 %token LITERAL_FLOAT
@@ -30,29 +46,35 @@ void yyerror(char *s) {
 %token TYPE_F8 TYPE_F16 TYPE_F32 TYPE_F64
 %token SEMICOLON
 
+%right OP_ASSIGN
+%left OP_L_OR
+%left OP_L_AND
+%left OP_C_EQ OP_C_NE OP_C_GT OP_C_LT OP_C_GE OP_C_LE
+%left OP_B_OR
+%left OP_B_XOR
+%left OP_B_AND
+%left OP_B_SHL OP_B_SHR
+%left OP_A_ADD OP_A_SUB
+%left OP_A_MUL OP_A_DIV OP_A_MOD
+
 %%
 
 statement:
-         | statement expr_10 SEMICOLON { printf("= %d\n", $2); }
+         | statement exp SEMICOLON { printf("= %d\n", $2); }
          ;
 
-expr_10: expr_20
-       | expr_10 OP_A_ADD expr_10 { $$ = $1 + $3; }
-       | expr_10 OP_A_SUB expr_20 { $$ = $1 - $3; }
-       ;
+exp: IDENTIFIER { $$ = read($1); }
+   | IDENTIFIER OP_ASSIGN exp { assign($1, $3); $$ = $3; }
+   | exp OP_A_ADD exp { $$ = $1 + $3; }
+   | exp OP_A_SUB exp { $$ = $1 - $3; }
+   | exp OP_A_MUL exp { $$ = $1 * $3; }
+   | exp OP_A_DIV exp { $$ = $1 / $3; }
+   | exp OP_A_MOD exp { $$ = $1 % $3; }
+   | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
+   | NUMBER { $$ = $1; }
+   ;
 
-expr_20: expr_30
-       | expr_20 OP_A_MUL expr_30 { $$ = $1 * $3; }
-       | expr_20 OP_A_DIV expr_30 { $$ = $1 / $3; }
-       | expr_20 OP_A_MOD expr_30 { $$ = $1 % $3; }
-       ;
-
-expr_30: NUMBER
-       | OPEN_R_BRACKET expr_10 CLOSE_R_BRACKET { $$ = $2; }
-       ;
-
-NUMBER: IDENTIFIER
-      | LITERAL_FLOAT
+NUMBER: LITERAL_FLOAT
       | LITERAL_INTEGER
       ;
 

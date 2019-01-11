@@ -2,6 +2,7 @@
 
 %{
 #include "y.tab.h"
+#include <string>
 #include <unordered_map>
 
 static std::unordered_map<std::string, size_t> symbols;
@@ -62,6 +63,8 @@ int parse_integer(char *s, size_t base) {
 [+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_integer(yytext, 16); return LITERAL_INTEGER; }
 [+-]?0[oO][0-7_]+ { yylval = parse_integer(yytext, 8); return LITERAL_INTEGER; }
 [+-]?0[bB][0-1_]+ { yylval = parse_integer(yytext, 2); return LITERAL_INTEGER; }
+
+"=" { return OP_ASSIGN; }
 
 "+" { return OP_A_ADD; }
 "-" { return OP_A_SUB; }
