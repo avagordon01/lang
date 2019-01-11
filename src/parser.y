@@ -1,7 +1,6 @@
 %{
 #include <stdio.h>
 int yylex (void);
-void print_symbols();
 
 #include <vector>
 #include <string>
@@ -83,6 +82,5 @@ NUMBER: LITERAL_FLOAT
 
 int main() {
     yyparse();
-    print_symbols();
     return 0;
 }

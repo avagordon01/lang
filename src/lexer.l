@@ -17,12 +17,6 @@ size_t lookup_or_insert(char* c) {
         return n;
     }
 };
-void print_symbols() {
-    printf("symbols:\n");
-    for (auto& s: symbols) {
-        printf("%s: %i\n", s.first.c_str(), s.second);
-    }
-};
 
 int parse_integer(char *s, size_t base) {
     size_t value = 0;
