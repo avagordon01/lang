@@ -2,29 +2,29 @@
 
 %{
 #include "y.tab.h"
+#include <unordered_map>
 
 struct symbol {
-    char* name;
+    size_t num;
 };
-static struct symbol symboltable[1024] = {0};
+static std::unordered_map<std::string, struct symbol> symboltable;
+static std::vector<struct symbol> symboltable;
 size_t lookup_or_insert(char* s) {
-    for (size_t i = 0; i < 1024; i++) {
-        if (symboltable[i].name == NULL) {
-            symboltable[i].name = strdup(s);
-            return i;
-        }
+    auto s = symboltable.find(std::string(s));
+    if (s != symboltable.end()) {
+        return s->second.num;
+    }
+    for (size_t i = 0; i < symboltable.size(); i++) {
         if (strcmp(s, symboltable[i].name) == 0)
             return i;
     }
-    fprintf(stderr, "error: symboltable full!\n");
-    exit(1);
+    symboltable.push_back({strdup(s)});
+    return symboltable.size();
 };
 void print_symbols() {
     printf("symboltable:\n");
-    for (size_t i = 0; i < 1024; i++) {
-        if (symboltable[i].name == NULL)
-            break;
-        printf("%i: %s\n", i, symboltable[i].name);
+    for (auto& symbol: symboltable) {
+        printf("%s\n", symbol.name);
     }
 };
 

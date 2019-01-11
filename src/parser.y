@@ -3,7 +3,7 @@
 int yylex (void);
 void print_symbols();
 
-int yyerror(char *s) {
+void yyerror(char *s) {
     fprintf(stderr, "parse error: %s\n", s);
 }
 %}
