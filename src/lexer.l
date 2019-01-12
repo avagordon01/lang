@@ -57,13 +57,13 @@ int parse_integer(char *s, size_t base) {
 ; { return SEMICOLON; }
 , { return COMMA; }
 
-[+-]?[0-9]+\.[0-9]+ { yylval = atof(yytext); return LITERAL_FLOAT; }
-[+-]?[0-9_]+ { yylval = parse_integer(yytext, 10); return LITERAL_INTEGER; }
-[+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_integer(yytext, 16); return LITERAL_INTEGER; }
-[+-]?0[oO][0-7_]+ { yylval = parse_integer(yytext, 8); return LITERAL_INTEGER; }
-[+-]?0[bB][0-1_]+ { yylval = parse_integer(yytext, 2); return LITERAL_INTEGER; }
-true { yylval = 0; return LITERAL_BOOL_T; }
-false { yylval = 1; return LITERAL_BOOL_F; }
+[+-]?[0-9]+\.[0-9]+ { yylval.x = (int)atof(yytext); return LITERAL_FLOAT; }
+[+-]?[0-9_]+ { yylval.x = parse_integer(yytext, 10); return LITERAL_INTEGER; }
+[+-]?0[xX][0-9a-fA-F_]+ { yylval.x = parse_integer(yytext, 16); return LITERAL_INTEGER; }
+[+-]?0[oO][0-7_]+ { yylval.x = parse_integer(yytext, 8); return LITERAL_INTEGER; }
+[+-]?0[bB][0-1_]+ { yylval.x = parse_integer(yytext, 2); return LITERAL_INTEGER; }
+true { yylval.x = 0; return LITERAL_BOOL_T; }
+false { yylval.x = 1; return LITERAL_BOOL_F; }
 
 "=" { return OP_ASSIGN; }
 
@@ -112,7 +112,7 @@ f16 { return TYPE_F16; }
 f32 { return TYPE_F32; }
 f64 { return TYPE_F64; }
 
-[a-zA-Z_][a-zA-Z0-9_]* { yylval = lookup_or_insert(yytext); return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9_]* { yylval.id = lookup_or_insert(yytext); return IDENTIFIER; }
 
 "(" { return OPEN_R_BRACKET; }
 ")" { return CLOSE_R_BRACKET; }

@@ -31,17 +31,26 @@ int read(size_t i) {
 
 %}
 
-%token LITERAL_FLOAT
-%token LITERAL_INTEGER
-%token LITERAL_BOOL_T LITERAL_BOOL_F
-%token IDENTIFIER
-%token OP_A_ADD OP_A_SUB OP_A_MUL OP_A_DIV OP_A_MOD
-%token OP_B_AND OP_B_OR OP_B_XOR OP_B_NOT
-%token OP_B_SHR OP_B_SHL
-%token OP_L_AND OP_L_OR OP_L_NOT
-%token OP_C_EQ OP_C_NE
-%token OP_C_GT OP_C_GE
-%token OP_C_LT OP_C_LE
+%union {
+    int x;
+    size_t id;
+}
+
+%token <x> LITERAL_FLOAT
+%token <x> LITERAL_INTEGER
+%token <x> LITERAL_BOOL_T LITERAL_BOOL_F
+%token <id> IDENTIFIER
+%right OP_ASSIGN
+%left OP_L_OR
+%left OP_L_AND
+%left OP_C_EQ OP_C_NE OP_C_GT OP_C_LT OP_C_GE OP_C_LE
+%left OP_B_OR
+%left OP_B_XOR
+%left OP_B_AND
+%left OP_B_SHL OP_B_SHR
+%left OP_A_ADD OP_A_SUB
+%left OP_A_MUL OP_A_DIV OP_A_MOD
+%right OP_B_NOT OP_L_NOT
 %token OPEN_R_BRACKET CLOSE_R_BRACKET
 %token OPEN_C_BRACKET CLOSE_C_BRACKET
 %token OPEN_S_BRACKET CLOSE_S_BRACKET
@@ -55,16 +64,7 @@ int read(size_t i) {
 %token SEMICOLON
 %token COMMA
 
-%right OP_ASSIGN
-%left OP_L_OR
-%left OP_L_AND
-%left OP_C_EQ OP_C_NE OP_C_GT OP_C_LT OP_C_GE OP_C_LE
-%left OP_B_OR
-%left OP_B_XOR
-%left OP_B_AND
-%left OP_B_SHL OP_B_SHR
-%left OP_A_ADD OP_A_SUB
-%left OP_A_MUL OP_A_DIV OP_A_MOD
+%type <x> literal exp
 
 %%
 
