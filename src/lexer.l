@@ -63,6 +63,8 @@ int parse_integer(char *s, size_t base) {
 [+-]?0[xX][0-9a-fA-F_]+ { yylval = parse_integer(yytext, 16); return LITERAL_INTEGER; }
 [+-]?0[oO][0-7_]+ { yylval = parse_integer(yytext, 8); return LITERAL_INTEGER; }
 [+-]?0[bB][0-1_]+ { yylval = parse_integer(yytext, 2); return LITERAL_INTEGER; }
+true { yylval = 0; return LITERAL_BOOL_T; }
+false { yylval = 1; return LITERAL_BOOL_F; }
 
 "=" { return OP_ASSIGN; }
 

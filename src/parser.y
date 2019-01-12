@@ -31,6 +31,7 @@ int read(size_t i) {
 
 %token LITERAL_FLOAT
 %token LITERAL_INTEGER
+%token LITERAL_BOOL_T LITERAL_BOOL_F
 %token IDENTIFIER
 %token OP_A_ADD OP_A_SUB OP_A_MUL OP_A_DIV OP_A_MOD
 %token OP_B_AND OP_B_OR OP_B_XOR OP_B_NOT
@@ -68,8 +69,14 @@ statement:
          | statement exp SEMICOLON { printf("= %d\n", $2); }
          ;
 
+type: TYPE_BOOL
+    | TYPE_U8 | TYPE_U16 | TYPE_U32 | TYPE_U64
+    | TYPE_I8 | TYPE_I16 | TYPE_I32 | TYPE_I64
+    | TYPE_F8 | TYPE_F16 | TYPE_F32 | TYPE_F64
+    ;
+
 exp: IDENTIFIER { $$ = read($1); }
-   | IDENTIFIER OP_ASSIGN exp { assign($1, $3); $$ = $3; }
+   | type IDENTIFIER OP_ASSIGN exp { assign($2, $4); $$ = $4; }
 
    | exp OP_A_ADD exp { $$ = $1 + $3; }
    | exp OP_A_SUB exp { $$ = $1 - $3; }
@@ -94,12 +101,14 @@ exp: IDENTIFIER { $$ = read($1); }
    | exp OP_L_OR  exp { $$ = $1 || $3; }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
-   | NUMBER { $$ = $1; }
+   | literal { $$ = $1; }
    ;
 
-NUMBER: LITERAL_FLOAT
-      | LITERAL_INTEGER
-      ;
+literal: LITERAL_FLOAT
+       | LITERAL_INTEGER
+       | LITERAL_BOOL_T
+       | LITERAL_BOOL_F
+       ;
 
 %%
 
