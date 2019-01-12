@@ -6,9 +6,7 @@
 #include <string>
 #include <unordered_map>
 
-void error_unrecognised_token(char* yytext) {
-    fprintf(stderr, "line %i: unexpected token: \"%s\"\n", yylineno, yytext);
-}
+void yyerror(std::string s);
 
 static std::unordered_map<std::string, size_t> symbols;
 size_t lookup_or_insert(char* c) {
@@ -129,6 +127,6 @@ f64 { return TYPE_F64; }
 <COMMENT>"*/" { BEGIN(INITIAL); }
 <COMMENT>. {}
 
-. { error_unrecognised_token(yytext); }
+. { yyerror("unexpected token: " + std::string(yytext)); }
 
 %%

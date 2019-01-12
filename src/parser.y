@@ -8,10 +8,10 @@ int yylex (void);
 
 #include <vector>
 #include <string>
-#include <cassert>
 
 void yyerror(std::string s) {
     fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
+    exit(1);
 }
 
 std::vector<int> values;
@@ -23,7 +23,9 @@ void assign(size_t i, int x) {
 };
 
 int read(size_t i) {
-    assert(i < values.size());
+    if (i >= values.size()) {
+        yyerror("variable used before being defined");
+    }
     return values[i];
 };
 
@@ -73,7 +75,7 @@ statement_list: /*empty*/
               | statement_list statement
               ;
 
-statement: exp SEMICOLON { printf("%d\n", $2); }
+statement: exp SEMICOLON { printf("%d\n", $1); }
          | IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
            else_if_list
            optional_else
