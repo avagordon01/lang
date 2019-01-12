@@ -69,6 +69,10 @@ int read(size_t i) {
 program: statement_list
        ;
 
+statement_list: /*empty*/
+              | statement_list statement
+              ;
+
 statement: exp SEMICOLON { printf("%d\n", $2); }
          | IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
            else_if_list
@@ -91,10 +95,6 @@ parameter_list: /*empty*/
               | parameter_list COMMA type IDENTIFIER
               ;
 
-statement_list: /*empty*/
-              | statement_list statement
-              ;
-
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET;
 
 type: TYPE_BOOL
@@ -102,6 +102,12 @@ type: TYPE_BOOL
     | TYPE_I8 | TYPE_I16 | TYPE_I32 | TYPE_I64
     | TYPE_F8 | TYPE_F16 | TYPE_F32 | TYPE_F64
     ;
+
+literal: LITERAL_FLOAT
+       | LITERAL_INTEGER
+       | LITERAL_BOOL_T
+       | LITERAL_BOOL_F
+       ;
 
 exp: IDENTIFIER { $$ = read($1); }
    | type IDENTIFIER OP_ASSIGN exp { assign($2, $4); $$ = $4; }
@@ -131,12 +137,6 @@ exp: IDENTIFIER { $$ = read($1); }
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
    | literal { $$ = $1; }
    ;
-
-literal: LITERAL_FLOAT
-       | LITERAL_INTEGER
-       | LITERAL_BOOL_T
-       | LITERAL_BOOL_F
-       ;
 
 %%
 
