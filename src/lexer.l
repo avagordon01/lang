@@ -57,6 +57,7 @@ int parse_integer(char *s, size_t base) {
 
 [ \t\r\n]* ;
 ; { return SEMICOLON; }
+, { return COMMA; }
 
 [+-]?[0-9]+\.[0-9]+ { yylval = atof(yytext); return LITERAL_FLOAT; }
 [+-]?[0-9_]+ { yylval = parse_integer(yytext, 10); return LITERAL_INTEGER; }
@@ -92,12 +93,12 @@ false { yylval = 1; return LITERAL_BOOL_F; }
 "<" { return OP_C_LT; }
 "<=" { return OP_C_LE; }
 
-if { return K_IF; }
-else { return K_ELSE; }
-for { return K_FOR; }
-while { return K_WHILE; }
-function { return K_FUNCTION; }
-return { return K_RETURN; }
+if { return IF; }
+else { return ELSE; }
+for { return FOR; }
+while { return WHILE; }
+fn { return FUNCTION; }
+return { return RETURN; }
 
 bool { return TYPE_BOOL; }
 u8 { return TYPE_U8; }

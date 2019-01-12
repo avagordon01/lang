@@ -41,16 +41,17 @@ int read(size_t i) {
 %token OP_C_GT OP_C_GE
 %token OP_C_LT OP_C_LE
 %token OPEN_R_BRACKET CLOSE_R_BRACKET
-%token OPEN_S_BRACKET CLOSE_S_BRACKET
 %token OPEN_C_BRACKET CLOSE_C_BRACKET
-%token K_IF K_ELSE
-%token K_FOR K_WHILE
-%token K_FUNCTION K_RETURN
+%token OPEN_S_BRACKET CLOSE_S_BRACKET
+%token IF ELSE
+%token FOR WHILE
+%token FUNCTION RETURN
 %token TYPE_BOOL
 %token TYPE_U8 TYPE_U16 TYPE_U32 TYPE_U64
 %token TYPE_I8 TYPE_I16 TYPE_I32 TYPE_I64
 %token TYPE_F8 TYPE_F16 TYPE_F32 TYPE_F64
 %token SEMICOLON
+%token COMMA
 
 %right OP_ASSIGN
 %left OP_L_OR
@@ -65,9 +66,36 @@ int read(size_t i) {
 
 %%
 
-statement:
-         | statement exp SEMICOLON { printf("%d\n", $2); }
+program: statement_list
+       ;
+
+statement: exp SEMICOLON { printf("%d\n", $2); }
+         | IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
+           else_if_list
+           optional_else
+         | FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block
+         | WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block
+         | FUNCTION type IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block
          ;
+
+optional_else: /*empty*/
+             | ELSE block
+             ;
+
+else_if_list: /*empty*/
+            | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
+            ;
+
+parameter_list: /*empty*/
+              | type IDENTIFIER
+              | parameter_list COMMA type IDENTIFIER
+              ;
+
+statement_list: /*empty*/
+              | statement_list statement
+              ;
+
+block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET;
 
 type: TYPE_BOOL
     | TYPE_U8 | TYPE_U16 | TYPE_U32 | TYPE_U64
