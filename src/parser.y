@@ -66,7 +66,7 @@ int read(size_t i) {
 %%
 
 statement:
-         | statement exp SEMICOLON { printf("= %d\n", $2); }
+         | statement exp SEMICOLON { printf("%d\n", $2); }
          ;
 
 type: TYPE_BOOL
