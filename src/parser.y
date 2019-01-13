@@ -97,7 +97,6 @@ ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_ope
 %type <block> block
 %type <optional_else> optional_else
 %type <else_if_list> else_if_list
-%type <type> type
 %type <statement_list> statement_list
 %type <parameter_list> parameter_list
 
@@ -143,7 +142,7 @@ statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
             $$->while_loop->condition = $3;
             $$->while_loop->block = $5;
          }
-         | FUNCTION type IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block
+         | FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block
          {
             $$ = new ast::_statement;
             $$->statement_type = ast::_statement::S_FUNCTION;
@@ -151,7 +150,7 @@ statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
             $$->function->return_type = $2;
             $$->function->parameter_list = *$5;
          }
-         | type IDENTIFIER OP_ASSIGN exp SEMICOLON
+         | TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON
          {
             $$ = new ast::_statement;
             $$->statement_type = ast::_statement::S_ASSIGNMENT;
@@ -179,11 +178,11 @@ else_if_list: %empty {
 parameter_list: %empty {
               $$ = new std::vector<std::pair<ast::_type, size_t>>;
               }
-              | type IDENTIFIER {
+              | TYPE IDENTIFIER {
               $$ = new std::vector<std::pair<ast::_type, size_t>>;
               $$->push_back(std::make_pair($1, $2));
               }
-              | parameter_list COMMA type IDENTIFIER {
+              | parameter_list COMMA TYPE IDENTIFIER {
               $1->push_back(std::make_pair($3, $4));
               }
               ;
@@ -193,8 +192,6 @@ block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
         $$->statements = *$2;
      }
      ;
-
-type: TYPE;
 
 literal: LITERAL_FLOAT
        | LITERAL_INTEGER
