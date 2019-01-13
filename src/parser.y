@@ -82,6 +82,7 @@ statement: exp SEMICOLON { printf("%d\n", $1); }
          | FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block
          | WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block
          | FUNCTION type IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block
+         | type IDENTIFIER OP_ASSIGN exp { assign($2, $4); }
          ;
 
 optional_else: /*empty*/
@@ -112,8 +113,7 @@ literal: LITERAL_FLOAT
        ;
 
 exp: IDENTIFIER { $$ = read($1); }
-   | type IDENTIFIER OP_ASSIGN exp { assign($2, $4); $$ = $4; }
-
+   | literal { $$ = $1; }
    | exp OP_A_ADD exp { $$ = $1 + $3; }
    | exp OP_A_SUB exp { $$ = $1 - $3; }
    | exp OP_A_MUL exp { $$ = $1 * $3; }
@@ -137,7 +137,6 @@ exp: IDENTIFIER { $$ = read($1); }
    | exp OP_L_OR  exp { $$ = $1 || $3; }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
-   | literal { $$ = $1; }
    ;
 
 %%
