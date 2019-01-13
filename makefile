@@ -1,10 +1,13 @@
 LEX = flex
 LFLAGS =
 YACC = bison -y
-YFLAGS = -d
+YFLAGS = -d -Werror=all
 CXXFLAGS = -std=c++17 \
+		   -g \
 		   -Isrc \
-		   $(llvm-config --libs core jit native --cxxflags --ldflags)
+		   $(llvm-config --libs core jit native --cxxflags --ldflags) \
+		   -Werror -Wall -Wextra -Wpedantic \
+		   -Wno-unused-function -Wno-unused-parameter
 
 out/compiler: out/y.tab.c out/lex.yy.c src/codegen.hh src/ast.hh
 	@mkdir -p out
