@@ -172,7 +172,7 @@ else_if_list: %empty {
             $$ = new std::vector<std::pair<ast::_expression, ast::_block>>;
             }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-            $$ = new std::vector<std::pair<ast::_expression, ast::_block>>;
+            $1->push_back(std::make_pair(*$5, *$7));
             }
             ;
 
