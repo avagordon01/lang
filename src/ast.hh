@@ -29,12 +29,9 @@ namespace ast {
     struct _block {
         std::vector<_statement> statements;
     };
-    struct _if_statement {
-        std::vector<_expression> conditions;
-        std::vector<_block> blocks;
-    };
+    using _if_statement = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
     using optional_else = std::optional<ast::_block>;
-    using else_if_list = std::vector<std::pair<ast::_expression, ast::_block>>;
+    using else_if_list = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
     struct _for_loop {
         _expression *initial;
         _expression *condition;
@@ -90,7 +87,6 @@ namespace ast {
         _expression *l, *r;
     };
 
-    using else_if_list = std::vector<std::pair<_expression, _block>>;
     using statement_list = std::vector<_statement>;
     using parameter_list = std::vector<std::pair<_type, size_t>>;
 }

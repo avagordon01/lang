@@ -70,7 +70,6 @@ program: statement_list { program_ast = $$; };
 
 statement_list: %empty {
               $$ = new std::vector<ast::_statement>;
-              $$->push_back(ast::_statement{});
               }
               | statement_list statement {
               $1->push_back(*$2);
@@ -89,9 +88,14 @@ statement: assignment
          { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_FUNCTION; $$->function = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
-            $$= new ast::_if_statement;
-            $$->conditions.push_back(*$3);
-            $$->blocks.push_back(*$5);
+            $$ = new ast::_if_statement;
+            $$->first.push_back(*$3);
+            $$->second.push_back(*$5);
+            $$->first.insert($$->first.end(), $6->first.begin(), $6->first.end());
+            $$->second.insert($$->second.end(), $6->second.begin(), $6->second.end());
+            if ($7->has_value()) {
+                $$->second.push_back($7->value());
+            }
             }
 for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
         $$ = new ast::_for_loop;
@@ -127,10 +131,11 @@ optional_else: %empty {
              ;
 
 else_if_list: %empty {
-            $$ = new std::vector<std::pair<ast::_expression, ast::_block>>;
+            $$ = new std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
             }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-            $1->push_back(std::make_pair(*$5, *$7));
+            $1->first.push_back(*$5);
+            $1->second.push_back(*$7);
             }
             ;
 
