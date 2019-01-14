@@ -198,10 +198,3 @@ exp: IDENTIFIER {
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
    ;
-
-%%
-
-int main() {
-    yyparse();
-    return 0;
-}
