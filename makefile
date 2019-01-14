@@ -15,7 +15,7 @@ c_files := out/*.c src/*.cc
 
 all: out/compiler
 
-out/compiler: $(sources)
+out/compiler: $(sources) makefile
 	@mkdir -p out
 	$(LEX) $(LFLAGS) -o out/lex.yy.c src/lexer.l
 	$(YACC) $(YFLAGS) -o out/y.tab.c src/parser.y
