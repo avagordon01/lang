@@ -51,6 +51,7 @@ ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_ope
     ast::_for_loop *for_loop;
     ast::_while_loop *while_loop;
     ast::_function *function;
+    ast::_assignment *assignment;
     ast::_statement *statement;
     ast::_program *program;
     ast::_literal *literal;
@@ -99,6 +100,11 @@ ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_ope
 %type <else_if_list> else_if_list
 %type <statement_list> statement_list
 %type <parameter_list> parameter_list
+%type <assignment> assignment
+%type <if_statement> if_statement
+%type <for_loop> for_loop
+%type <while_loop> while_loop
+%type <function> function
 
 %%
 
@@ -114,48 +120,44 @@ statement_list: %empty {
               }
               ;
 
-statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block
-           else_if_list
-           optional_else
-         {
-            $$ = new ast::_statement;
-            $$->statement_type = ast::_statement::S_IF;
-            $$->if_statement = new ast::_if_statement;
-            $$->if_statement->conditions.push_back(*$3);
-            $$->if_statement->blocks.push_back(*$5);
-         }
-         | FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block
-         {
-            $$ = new ast::_statement;
-            $$->statement_type = ast::_statement::S_FOR;
-            $$->for_loop = new ast::_for_loop;
-            $$->for_loop->initial = $3;
-            $$->for_loop->condition = $5;
-            $$->for_loop->step = $7;
-            $$->for_loop->block = $9;
-         }
-         | WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block
-         {
-            $$ = new ast::_statement;
-            $$->statement_type = ast::_statement::S_WHILE;
-            $$->while_loop = new ast::_while_loop;
-            $$->while_loop->condition = $3;
-            $$->while_loop->block = $5;
-         }
-         | FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block
-         {
-            $$ = new ast::_statement;
-            $$->statement_type = ast::_statement::S_FUNCTION;
-            $$->function = new ast::_function;
-            $$->function->return_type = $2;
-            $$->function->parameter_list = *$5;
-         }
-         | TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON
-         {
-            $$ = new ast::_statement;
-            $$->statement_type = ast::_statement::S_ASSIGNMENT;
-         }
+statement: assignment
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_ASSIGNMENT; $$->assignment = $1; }
+         | if_statement
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_IF; $$->if_statement = $1; }
+         | for_loop
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_FOR; $$->for_loop = $1; }
+         | while_loop
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_WHILE; $$->while_loop = $1; }
+         | function
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_FUNCTION; $$->function = $1; }
          ;
+if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
+            $$= new ast::_if_statement;
+            $$->conditions.push_back(*$3);
+            $$->blocks.push_back(*$5);
+            }
+for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
+        $$ = new ast::_for_loop;
+        $$->initial = $3;
+        $$->condition = $5;
+        $$->step = $7;
+        $$->block = $9;
+        }
+while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
+          $$ = new ast::_while_loop;
+          $$->condition = $3;
+          $$->block = $5;
+          }
+function: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+        $$ = new ast::_function;
+        $$->return_type = $2;
+        $$->parameter_list = *$5;
+        }
+assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
+          $$ = new ast::_assignment;
+          $$->identifier = $1;
+          $$->expression = $4;
+          }
 
 optional_else: %empty
              { $$ = new std::optional<ast::_block>;
