@@ -2,13 +2,15 @@ LEX = flex
 LFLAGS =
 YACC = bison -y
 YFLAGS = -d -Werror=all
-CXXFLAGS = -std=c++17 \
-		   -g \
-		   -Isrc -Iout \
-		   -Werror -Wall -Wextra -Wpedantic \
-		   -Wno-unused-function -Wno-unused-parameter \
-		   $(llvm-config --libs core jit native --cxxflags)
-LDFLAGS = $(llvm-config --libs core jit native --ldflags)
+CXXFLAGS = \
+	-std=c++17 \
+	-g \
+	-Isrc -Iout \
+	-Werror -Wall -Wextra -Wpedantic \
+	-Wno-unused-function -Wno-unused-parameter \
+	$(llvm-config --libs core jit native --cxxflags)
+LDFLAGS = \
+	$(llvm-config --libs core jit native --ldflags)
 
 sources := src/lexer.l src/parser.y src/*.cc src/*.hh
 c_files := out/*.c src/*.cc
