@@ -25,11 +25,6 @@
     ast::parameter_list *parameter_list;
 }
 
-%token <literal> LITERAL_FLOAT
-%token <literal> LITERAL_INTEGER
-%token <literal> LITERAL_BOOL_T LITERAL_BOOL_F
-%token <id> IDENTIFIER
-
 %left OP_L_OR
 %left OP_L_AND
 %left OP_C_EQ OP_C_NE OP_C_GT OP_C_LT OP_C_GE OP_C_LE
@@ -48,9 +43,11 @@
 %token IF ELSE
 %token FOR WHILE
 %token FUNCTION RETURN
-%token <type> TYPE
 %token SEMICOLON
 %token COMMA
+%token <type> TYPE
+%token <literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
+%token <id> IDENTIFIER
 
 %type <literal> literal
 %type <expression> exp
