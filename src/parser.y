@@ -1,47 +1,7 @@
 %error-verbose
 
 %{
-
-#include "ast.hh"
-
-#include <stdio.h>
-extern int yylineno;
-extern int yylex (void);
-
-#include <optional>
-#include <utility>
-#include <vector>
-#include <string>
-
-void yyerror(std::string s) {
-    fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
-    exit(1);
-}
-
-std::vector<int> values;
-void assign(size_t i, int x) {
-    if (i >= values.size()) {
-        values.resize(i + 1);
-    }
-    values[i] = x;
-}
-
-int read(size_t i) {
-    if (i >= values.size()) {
-        yyerror("variable used before being defined");
-    }
-    return values[i];
-}
-
-ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_operator::op) {
-    auto x = new ast::_expression;
-    x->expression_type = ast::_expression::OPERATOR;
-    x->op = new ast::_operator;
-    x->op->l = l;
-    x->op->r = r;
-    return x;
-}
-
+#include "utils.hh"
 %}
 
 %union {
