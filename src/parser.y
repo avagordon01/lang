@@ -108,8 +108,7 @@ ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_ope
 
 %%
 
-program: statement_list { printf("correct program\n"); }
-       ;
+program: statement_list;
 
 statement_list: %empty {
               $$ = new std::vector<ast::_statement>;
@@ -159,16 +158,16 @@ assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           $$->expression = $4;
           }
 
-optional_else: %empty
-             { $$ = new std::optional<ast::_block>;
+optional_else: %empty {
+             $$ = new std::optional<ast::_block>;
              *$$ = std::nullopt;
              }
-             | ELSE block
-             { $$ = new std::optional<ast::_block>;
-             *$$ = *$2; }
+             | ELSE block {
+             $$ = new std::optional<ast::_block>;
+             *$$ = *$2;
+             }
              ;
 
-//std::pair<std::vector<ast::_expression>, std::vector<ast::_block>> *else_if_list;
 else_if_list: %empty {
             $$ = new std::vector<std::pair<ast::_expression, ast::_block>>;
             }
@@ -190,8 +189,8 @@ parameter_list: %empty {
               ;
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
-        $$ = new ast::_block;
-        $$->statements = *$2;
+     $$ = new ast::_block;
+     $$->statements = *$2;
      }
      ;
 
