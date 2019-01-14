@@ -5,6 +5,8 @@
 #include <string>
 #include <stdio.h>
 
+extern ast::_program *program_ast;
+
 extern int yylineno;
 extern int yylex(void);
 void yyerror(std::string s);

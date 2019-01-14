@@ -49,6 +49,7 @@
 %token <literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
 %token <id> IDENTIFIER
 
+%type <program> program
 %type <literal> literal
 %type <expression> exp
 %type <statement> statement
@@ -65,7 +66,7 @@
 
 %%
 
-program: statement_list;
+program: statement_list { program_ast = $$; };
 
 statement_list: %empty {
               $$ = new std::vector<ast::_statement>;
