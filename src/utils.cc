@@ -51,7 +51,7 @@ int parse_integer(char *s, size_t base) {
 
 ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_operator::op) {
     auto x = new ast::_expression;
-    x->expression_type = ast::_expression::OPERATOR;
+    x->type = ast::_expression::OPERATOR;
     x->op = new ast::_operator;
     x->op->l = l;
     x->op->r = r;

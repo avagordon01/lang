@@ -19,7 +19,7 @@ namespace ast {
     struct _expression {
         enum {
             VARIABLE, LITERAL, OPERATOR,
-        } expression_type;
+        } type;
         union {
             size_t variable;
             _literal *literal;
@@ -42,7 +42,7 @@ namespace ast {
             B_SHL, B_SHR, B_AND, B_XOR, B_OR, B_NOT,
             L_AND, L_OR, L_NOT,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
-        };
+        } _operator;
         _expression *l, *r;
     };
 

@@ -76,17 +76,17 @@ statement_list: %empty {
               ;
 
 statement: block
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_BLOCK; $$->block = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_BLOCK; $$->block = $1; }
          | assignment
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_ASSIGNMENT; $$->assignment = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_ASSIGNMENT; $$->assignment = $1; }
          | if_statement
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_IF; $$->if_statement = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_IF; $$->if_statement = $1; }
          | for_loop
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_FOR; $$->for_loop = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_FOR; $$->for_loop = $1; }
          | while_loop
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_WHILE; $$->while_loop = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_WHILE; $$->while_loop = $1; }
          | function
-         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_FUNCTION; $$->function = $1; }
+         { $$ = new ast::_statement; $$->type = ast::_statement::S_FUNCTION; $$->function = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
             $$ = new ast::_if_statement;
@@ -166,12 +166,12 @@ literal: LITERAL_FLOAT
 
 exp: IDENTIFIER {
    $$ = new ast::_expression;
-   $$->expression_type = ast::_expression::VARIABLE;
+   $$->type = ast::_expression::VARIABLE;
    $$->variable = $1;
    }
    | literal {
    $$ = new ast::_expression;
-   $$->expression_type = ast::_expression::LITERAL;
+   $$->type = ast::_expression::LITERAL;
    $$->literal = $1; }
    | exp OP_A_ADD exp { $$ = new_bin_op($1, $3, ast::_operator::A_ADD); }
    | exp OP_A_SUB exp { $$ = new_bin_op($1, $3, ast::_operator::A_SUB); }

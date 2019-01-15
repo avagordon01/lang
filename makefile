@@ -17,9 +17,9 @@ out/lex.yy.c: src/lexer.l
 out/y.tab.c out/y.tab.h: src/parser.y
 	@mkdir -p out
 	$(YACC) $(YFLAGS) -o $@ $^
-out/compiler: out/lex.yy.c out/y.tab.c src/*.cc
+out/compiler: out/lex.yy.c out/y.tab.c src/*.cc src/*.hh
 	@mkdir -p out
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ out/*.c src/*.cc
 
 clean:
 	rm -rf out
