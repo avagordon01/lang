@@ -8,20 +8,31 @@ CXXFLAGS = \
 	-Isrc -Iout \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter \
-	$(llvm-config --libs core jit native --cxxflags)
-LDFLAGS = \
-	$(llvm-config --libs core jit native --ldflags)
-
-sources := src/lexer.l src/parser.y src/*.cc src/*.hh
-c_files := out/*.c src/*.cc
+	$(shell llvm-config --cxxflags) -std=c++17
+LDFLAGS = $(shell llvm-config --ldflags)
+LDLIBS = $(shell llvm-config --libs)
 
 all: out/compiler
 
-out/compiler: $(sources) makefile
+out/lex.yy.c: src/lexer.l
 	@mkdir -p out
 	$(LEX) $(LFLAGS) -o out/lex.yy.c src/lexer.l
+out/y.tab.c out/y.tab.h: src/parser.y
+	@mkdir -p out
 	$(YACC) $(YFLAGS) -o out/y.tab.c src/parser.y
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o out/compiler $(c_files)
+
+out/%.o: out/%.c out/y.tab.h
+	@mkdir -p out
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+out/%.o: src/%.cc out/y.tab.h
+	@mkdir -p out
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+sources := $(wildcard src/*.cc)
+cxx_objects := $(addprefix out/,$(notdir $(sources:.cc=.o)))
+out/compiler: out/lex.yy.o out/y.tab.o $(cxx_objects)
+	@mkdir -p out
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:
 	rm -rf out
