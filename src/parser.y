@@ -19,10 +19,10 @@
     ast::_operator *op;
     ast::_expression *expression;
     ast::_type type;
-    ast::optional_else *optional_else;
-    ast::else_if_list *else_if_list;
-    ast::statement_list *statement_list;
-    ast::parameter_list *parameter_list;
+    ast::_optional_else *optional_else;
+    ast::_else_if_list *else_if_list;
+    ast::_statement_list *statement_list;
+    ast::_parameter_list *parameter_list;
 }
 
 %left OP_L_OR
@@ -69,7 +69,7 @@
 program: statement_list { program_ast = $$; };
 
 statement_list: %empty {
-              $$ = new std::vector<ast::_statement>;
+              $$ = new ast::_statement_list;
               }
               | statement_list statement {
               $1->push_back(*$2);
@@ -121,7 +121,7 @@ assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           }
 
 optional_else: %empty {
-             $$ = new std::optional<ast::_block>;
+             $$ = new ast::_optional_else;
              *$$ = std::nullopt;
              }
              | ELSE block {
@@ -131,7 +131,7 @@ optional_else: %empty {
              ;
 
 else_if_list: %empty {
-            $$ = new std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
+            $$ = new ast::_else_if_list;
             }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
             $1->first.push_back(*$5);
@@ -140,10 +140,10 @@ else_if_list: %empty {
             ;
 
 parameter_list: %empty {
-              $$ = new std::vector<std::pair<ast::_type, size_t>>;
+              $$ = new ast::_parameter_list;
               }
               | TYPE IDENTIFIER {
-              $$ = new std::vector<std::pair<ast::_type, size_t>>;
+              $$ = new ast::_parameter_list;
               $$->push_back(std::make_pair($1, $2));
               }
               | parameter_list COMMA TYPE IDENTIFIER {

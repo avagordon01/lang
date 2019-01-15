@@ -27,13 +27,33 @@ namespace ast {
         _literal *literal;
         _operator *op;
     };
+    struct _literal {
+        enum {
+            FLOAT, INTEGER, BOOL,
+        } type;
+        union {
+            double _float;
+            uint64_t _integer;
+            bool _bool;
+        };
+    };
+    struct _operator {
+        enum op {
+            A_ADD, A_SUB, A_MUL, A_DIV, A_MOD,
+            B_SHL, B_SHR, B_AND, B_XOR, B_OR, B_NOT,
+            L_AND, L_OR, L_NOT,
+            C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
+        };
+        _expression *l, *r;
+    };
+
     struct _statement;
     struct _block {
         std::vector<_statement> statements;
     };
     using _if_statement = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
-    using optional_else = std::optional<ast::_block>;
-    using else_if_list = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
+    using _optional_else = std::optional<ast::_block>;
+    using _else_if_list = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
     struct _for_loop {
         _expression *initial;
         _expression *condition;
@@ -44,9 +64,10 @@ namespace ast {
         _expression *condition;
         _block *block;
     };
+    using _parameter_list = std::vector<std::pair<_type, size_t>>;
     struct _function {
         _type return_type;
-        std::vector<std::pair<_type, size_t>> parameter_list;
+        _parameter_list parameter_list;
         _block *block;
     };
     struct _assignment {
@@ -65,30 +86,8 @@ namespace ast {
             _assignment *assignment;
         };
     };
+    using _statement_list = std::vector<_statement>;
     struct _program {
-        std::vector<_statement> statements;
+        _statement_list statements;
     };
-    struct _literal {
-        enum {
-            FLOAT, INTEGER, BOOL,
-        } type;
-        union {
-            double _float;
-            uint64_t _integer;
-            bool _bool;
-        };
-    };
-
-    struct _operator {
-        enum op {
-            A_ADD, A_SUB, A_MUL, A_DIV, A_MOD,
-            B_SHL, B_SHR, B_AND, B_XOR, B_OR, B_NOT,
-            L_AND, L_OR, L_NOT,
-            C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
-        };
-        _expression *l, *r;
-    };
-
-    using statement_list = std::vector<_statement>;
-    using parameter_list = std::vector<std::pair<_type, size_t>>;
 }
