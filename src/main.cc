@@ -1,5 +1,5 @@
 #include "utils.hh"
-#include "y.tab.h"
+#include "codegen_llvm.hh"
 
 ast::_program *program_ast;
 int main() {
