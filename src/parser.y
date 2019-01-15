@@ -15,7 +15,6 @@
     ast::_statement *statement;
     ast::_program *program;
     ast::_literal *literal;
-    ast::_variable *variable;
     ast::_operator *op;
     ast::_expression *expression;
     ast::_type type;
@@ -166,8 +165,7 @@ literal: LITERAL_FLOAT
 exp: IDENTIFIER {
    $$ = new ast::_expression;
    $$->expression_type = ast::_expression::VARIABLE;
-   $$->variable = new ast::_variable;
-   $$->variable->id = $1;
+   $$->variable = $1;
    }
    | literal {
    $$ = new ast::_expression;

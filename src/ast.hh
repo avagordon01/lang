@@ -14,18 +14,17 @@ namespace ast {
         f8, f16, f32, f64,
     };
 
-    struct _variable {
-        size_t id;
-    };
     struct _literal;
     struct _operator;
     struct _expression {
         enum {
             VARIABLE, LITERAL, OPERATOR,
         } expression_type;
-        _variable *variable;
-        _literal *literal;
-        _operator *op;
+        union {
+            size_t variable;
+            _literal *literal;
+            _operator *op;
+        };
     };
     struct _literal {
         enum {
