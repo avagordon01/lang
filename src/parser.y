@@ -75,7 +75,9 @@ statement_list: %empty {
               }
               ;
 
-statement: assignment
+statement: block
+         { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_BLOCK; $$->block = $1; }
+         | assignment
          { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_ASSIGNMENT; $$->assignment = $1; }
          | if_statement
          { $$ = new ast::_statement; $$->statement_type = ast::_statement::S_IF; $$->if_statement = $1; }

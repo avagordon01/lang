@@ -75,9 +75,10 @@ namespace ast {
     };
     struct _statement {
         enum {
-            S_IF, S_FOR, S_WHILE, S_FUNCTION, S_ASSIGNMENT,
-        } statement_type;
+            S_BLOCK, S_IF, S_FOR, S_WHILE, S_FUNCTION, S_ASSIGNMENT,
+        } type;
         union {
+            _block *block;
             _if_statement *if_statement;
             _for_loop *for_loop;
             _while_loop *while_loop;
