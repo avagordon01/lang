@@ -1,3 +1,5 @@
+#include "ast.hh"
+#include "y.tab.hh"
 #include "utils.hh"
 #include "codegen_llvm.hh"
 

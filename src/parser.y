@@ -1,6 +1,11 @@
 %error-verbose
 
+%code requires {
+#include "ast.hh"
+}
+
 %{
+#include "lex.yy.hh"
 #include "utils.hh"
 %}
 

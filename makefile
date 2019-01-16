@@ -1,25 +1,31 @@
+CXX = clang++
 LEX = flex
 LFLAGS =
 YACC = bison -y
 YFLAGS = -d -Werror=all
-CXXFLAGS = $(shell llvm-config --cxxflags --ldflags --libs) \
-	-std=c++17 \
-	-g \
-	-Isrc -Iout \
+CPPFLAGS = -Isrc -Iout
+CXXFLAGS = -g -std=c++17 \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
+LDFLAGS =
+LDLIBS = -lLLVM-7
 
 all: out/compiler
 
-out/lex.yy.c: src/lexer.l
+out/lex.yy.cc out/lex.yy.hh: src/lexer.l
 	@mkdir -p out
-	$(LEX) $(LFLAGS) -o $@ $^
-out/y.tab.c out/y.tab.h: src/parser.y
+	$(LEX) $(LFLAGS) --header-file=out/lex.yy.hh -o out/lex.yy.cc src/lexer.l
+out/y.tab.cc out/y.tab.hh: src/parser.y
 	@mkdir -p out
-	$(YACC) $(YFLAGS) -o $@ $^
-out/compiler: out/lex.yy.c out/y.tab.c src/*.cc src/*.hh
-	@mkdir -p out
-	$(CXX) $(CXXFLAGS) -o $@ out/*.c src/*.cc
+	$(YACC) $(YFLAGS) -o out/y.tab.cc src/parser.y
+
+out/%.o: out/%.cc out/y.tab.hh out/lex.yy.hh
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+out/%.o: src/%.cc out/y.tab.hh
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+out/compiler: out/lex.yy.o out/y.tab.o out/main.o out/utils.o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:
 	rm -rf out

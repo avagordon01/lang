@@ -1,14 +1,11 @@
 #pragma once
 
 #include "ast.hh"
-#include "y.tab.h"
 #include <string>
 #include <stdio.h>
 
 extern ast::_program *program_ast;
 
-extern int yylineno;
-extern int yylex(void);
 void yyerror(std::string s);
 size_t lookup_or_insert(char* c);
 int parse_integer(char *s, size_t base);

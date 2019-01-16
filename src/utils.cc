@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <unordered_map>
 
-
+extern int yylineno;
 void yyerror(std::string s) {
     fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
     exit(1);
