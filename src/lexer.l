@@ -109,6 +109,6 @@ f64  { yylval.type = ast::_type::f64;    return TYPE; }
 
 "/*" { BEGIN(COMMENT); }
 <COMMENT>"*/" { BEGIN(INITIAL); }
-<COMMENT>. {}
+<COMMENT>.|\n {}
 
 . { yyerror("unexpected token: " + std::string(yytext)); }
