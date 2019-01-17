@@ -5,7 +5,7 @@
 }
 
 %{
-#include "lex.yy.hh"
+#include "lexer.hh"
 #include "utils.hh"
 %}
 

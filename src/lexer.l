@@ -1,7 +1,7 @@
 %option noyywrap nodefault yylineno
 
 %{
-#include "y.tab.hh"
+#include "parser.hh"
 #include "utils.hh"
 %}
 
