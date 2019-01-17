@@ -1,8 +1,5 @@
-#pragma once
-
 #include "ast.hh"
 #include <string>
-#include <stdio.h>
 
 extern ast::_program *program_ast;
 
