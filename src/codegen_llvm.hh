@@ -7,7 +7,12 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/DIBuilder.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Support/TargetSelect.h>
 
 #include "ast.hh"
 
@@ -80,11 +85,61 @@ llvm::Value* codegen_llvm_expression(codegen_context_llvm &context, ast::_expres
 }
 
 void codegen_llvm_statement(codegen_context_llvm &context, ast::_statement statement) {
+    switch (statement.type) {
+        case ast::_statement::S_BLOCK: {
+        } break;
+        case ast::_statement::S_IF: {
+        } break;
+        case ast::_statement::S_FOR: {
+        } break;
+        case ast::_statement::S_WHILE: {
+        } break;
+        case ast::_statement::S_FUNCTION: {
+        } break;
+        case ast::_statement::S_ASSIGNMENT: {
+            ast::_assignment& assign = *(statement.assignment);
+            llvm::Value* value = codegen_llvm_expression(context, *(assign.expression));
+            llvm::Value* variable = context.named_values[assign.identifier];
+            context.builder.CreateStore(value, variable);
+        } break;
+    }
 }
 
 void codegen_llvm_program(codegen_context_llvm &context, ast::_program *program) {
     printf("beginning codegen\n");
+    context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
+
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+    auto TargetTriple = llvm::sys::getDefaultTargetTriple();
+    context.module->setTargetTriple(TargetTriple);
+
+    std::string Error;
+    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+    if (!Target) {
+        llvm::errs() << Error;
+        exit(1);
+    }
+
+    auto CPU = "generic";
+    auto Features = "";
+
+    llvm::TargetOptions opt;
+    auto RM = llvm::Optional<llvm::Reloc::Model>();
+    auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+
+    context.module->setDataLayout(TheTargetMachine->createDataLayout());
+
+
+    context.module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
+    std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
     for (auto& statement: program->statements) {
         codegen_llvm_statement(context, statement);
     }
+    DBuilder->finalize();
+    context.module->print(llvm::errs(), nullptr);
 }
