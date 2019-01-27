@@ -16,14 +16,16 @@ namespace ast {
 
     struct literal;
     struct binary_operator;
+    struct unary_operator;
     struct expression {
         enum {
-            VARIABLE, LITERAL, OPERATOR,
+            VARIABLE, LITERAL, BINARY_OPERATOR, UNARY_OPERATOR,
         } type;
         union {
             size_t variable;
             literal *literal;
-            binary_operator *op;
+            binary_operator *binary_operator;
+            unary_operator *unary_operator;
         };
     };
     struct literal {
@@ -39,11 +41,17 @@ namespace ast {
     struct binary_operator {
         enum op {
             A_ADD, A_SUB, A_MUL, A_DIV, A_MOD,
-            B_SHL, B_SHR, B_AND, B_XOR, B_OR, B_NOT,
-            L_AND, L_OR, L_NOT,
+            B_SHL, B_SHR, B_AND, B_XOR, B_OR,
+            L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
         expression *l, *r;
+    };
+    struct unary_operator {
+        enum op {
+            B_NOT, L_NOT,
+        } unary_operator;
+        expression *r;
     };
 
     struct statement;

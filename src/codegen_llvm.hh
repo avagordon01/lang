@@ -46,11 +46,21 @@ llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expressi
                 default: ;
             }
         } break;
-        case ast::expression::OPERATOR: {
+        case ast::expression::UNARY_OPERATOR: {
+            llvm::Value *r;
+            r = codegen_llvmexpression(context, *expression.unary_operator->r);
+            switch (expression.unary_operator->unary_operator) {
+                case ast::unary_operator::B_NOT:
+                    break;
+                case ast::unary_operator::L_NOT:
+                    break;
+            }
+        } break;
+        case ast::expression::BINARY_OPERATOR: {
             llvm::Value *l, *r;
-            l = codegen_llvmexpression(context, *expression.op->l);
-            r = codegen_llvmexpression(context, *expression.op->r);
-            switch (expression.op->binary_operator) {
+            l = codegen_llvmexpression(context, *expression.binary_operator->l);
+            r = codegen_llvmexpression(context, *expression.binary_operator->r);
+            switch (expression.binary_operator->binary_operator) {
                 case ast::binary_operator::A_ADD:
                     return context.builder.CreateFAdd(l, r, "addtmp");
                     break;
@@ -67,10 +77,8 @@ llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expressi
                 case ast::binary_operator::B_AND:
                 case ast::binary_operator::B_XOR:
                 case ast::binary_operator::B_OR:
-                case ast::binary_operator::B_NOT:
                 case ast::binary_operator::L_AND:
                 case ast::binary_operator::L_OR:
-                case ast::binary_operator::L_NOT:
                 case ast::binary_operator::C_EQ:
                 case ast::binary_operator::C_NE:
                 case ast::binary_operator::C_GT:

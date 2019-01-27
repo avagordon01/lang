@@ -20,7 +20,8 @@
     ast::statement *statement;
     ast::program *program;
     ast::literal *literal;
-    ast::binary_operator *op;
+    ast::binary_operator *binary_operator;
+    ast::unary_operator *unary_operator;
     ast::expression *expression;
     ast::type type;
     ast::optional_else *optional_else;
@@ -187,8 +188,7 @@ exp: IDENTIFIER {
    | exp OP_B_AND exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_AND); }
    | exp OP_B_OR  exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_OR ); }
    | exp OP_B_XOR exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_XOR); }
-   | OP_B_NOT exp { $$ = new ast::expression; //TODO
-   }
+   | OP_B_NOT exp { $$ = new_unary_op($2, ast::unary_operator::B_NOT); }
    | exp OP_B_SHL exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_SHL); }
    | exp OP_B_SHR exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_SHR); }
 
@@ -201,8 +201,7 @@ exp: IDENTIFIER {
 
    | exp OP_L_AND exp { $$ = new_bin_op($1, $3, ast::binary_operator::L_AND); }
    | exp OP_L_OR  exp { $$ = new_bin_op($1, $3, ast::binary_operator::L_OR ); }
-   | OP_L_NOT exp     { $$ = new ast::expression; //TODO
-   }
+   | OP_L_NOT exp     { $$ = new_unary_op($2, ast::unary_operator::L_NOT); }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
    ;
