@@ -103,7 +103,7 @@ f16  { yylval.type = ast::type::f16;    return TYPE; }
 f32  { yylval.type = ast::type::f32;    return TYPE; }
 f64  { yylval.type = ast::type::f64;    return TYPE; }
 
-[a-zA-Z_][a-zA-Z0-9_]* { yylval.id = lookup_or_insert(yytext); return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9_]* { yylval.identifier = lookup_or_insert(yytext); return IDENTIFIER; }
 
 "//".* {}
 

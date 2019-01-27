@@ -1,4 +1,5 @@
 #include "utils.hh"
+#include "ast.hh"
 
 #include <string>
 #include <stdio.h>
@@ -10,8 +11,8 @@ void yyerror(std::string s) {
     exit(1);
 }
 
-static std::unordered_map<std::string, size_t> symbols;
-size_t lookup_or_insert(char* c) {
+static std::unordered_map<std::string, ast::identifier> symbols;
+ast::identifier lookup_or_insert(char* c) {
     auto str = std::string(c);
     auto s = symbols.find(str);
     if (s != symbols.end()) {
@@ -23,7 +24,7 @@ size_t lookup_or_insert(char* c) {
     }
 }
 
-int parse_integer(char *s, size_t base) {
+uint64_t parse_integer(char *s, size_t base) {
     size_t value = 0;
     int sign = 1;
     if (*s == '+') {

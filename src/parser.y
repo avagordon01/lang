@@ -10,7 +10,7 @@
 %}
 
 %union {
-    size_t id;
+    ast::identifier identifier;
     ast::block *block;
     ast::if_statement *if_statement;
     ast::for_loop *for_loop;
@@ -52,7 +52,7 @@
 %token COMMA
 %token <type> TYPE
 %token <literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
-%token <id> IDENTIFIER
+%token <identifier> IDENTIFIER
 
 %type <program> program
 %type <literal> literal

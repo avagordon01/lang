@@ -7,6 +7,8 @@
 #include <optional>
 
 namespace ast {
+    using identifier = size_t;
+
     enum type {
         t_bool,
         u8, u16, u32, u64,
