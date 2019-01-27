@@ -14,38 +14,38 @@
 , { return COMMA; }
 
 true {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::BOOL;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::BOOL;
     yylval.literal->_bool = 1;
     return LITERAL_BOOL_T; }
 false {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::BOOL;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::BOOL;
     yylval.literal->_bool = 0;
     return LITERAL_BOOL_F; }
 [+-]?[0-9_]+ {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::INTEGER;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::INTEGER;
     yylval.literal->_integer = parse_integer(yytext, 10);
     return LITERAL_INTEGER; }
 [+-]?0[xX][0-9a-fA-F_]+ {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::INTEGER;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::INTEGER;
     yylval.literal->_integer = parse_integer(yytext, 16);
     return LITERAL_INTEGER; }
 [+-]?0[oO][0-7_]+ {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::INTEGER;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::INTEGER;
     yylval.literal->_integer = parse_integer(yytext, 8);
     return LITERAL_INTEGER; }
 [+-]?0[bB][0-1_]+ {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::INTEGER;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::INTEGER;
     yylval.literal->_integer = parse_integer(yytext, 2);
     return LITERAL_INTEGER; }
 [+-]?[0-9]+\.[0-9]+ {
-    yylval.literal = new ast::_literal;
-    yylval.literal->type = ast::_literal::FLOAT;
+    yylval.literal = new ast::literal;
+    yylval.literal->type = ast::literal::FLOAT;
     yylval.literal->_float = atof(yytext);
     return LITERAL_FLOAT; }
 
@@ -89,19 +89,19 @@ while { return WHILE; }
 fn { return FUNCTION; }
 return { return RETURN; }
 
-bool { yylval.type = ast::_type::t_bool; return TYPE; }
-u8   { yylval.type = ast::_type::u8;     return TYPE; }
-u16  { yylval.type = ast::_type::u16;    return TYPE; }
-u32  { yylval.type = ast::_type::u32;    return TYPE; }
-u64  { yylval.type = ast::_type::u64;    return TYPE; }
-i8   { yylval.type = ast::_type::i8;     return TYPE; }
-i16  { yylval.type = ast::_type::i16;    return TYPE; }
-i32  { yylval.type = ast::_type::i32;    return TYPE; }
-i64  { yylval.type = ast::_type::i64;    return TYPE; }
-f8   { yylval.type = ast::_type::f8;     return TYPE; }
-f16  { yylval.type = ast::_type::f16;    return TYPE; }
-f32  { yylval.type = ast::_type::f32;    return TYPE; }
-f64  { yylval.type = ast::_type::f64;    return TYPE; }
+bool { yylval.type = ast::type::t_bool; return TYPE; }
+u8   { yylval.type = ast::type::u8;     return TYPE; }
+u16  { yylval.type = ast::type::u16;    return TYPE; }
+u32  { yylval.type = ast::type::u32;    return TYPE; }
+u64  { yylval.type = ast::type::u64;    return TYPE; }
+i8   { yylval.type = ast::type::i8;     return TYPE; }
+i16  { yylval.type = ast::type::i16;    return TYPE; }
+i32  { yylval.type = ast::type::i32;    return TYPE; }
+i64  { yylval.type = ast::type::i64;    return TYPE; }
+f8   { yylval.type = ast::type::f8;     return TYPE; }
+f16  { yylval.type = ast::type::f16;    return TYPE; }
+f32  { yylval.type = ast::type::f32;    return TYPE; }
+f64  { yylval.type = ast::type::f64;    return TYPE; }
 
 [a-zA-Z_][a-zA-Z0-9_]* { yylval.id = lookup_or_insert(yytext); return IDENTIFIER; }
 

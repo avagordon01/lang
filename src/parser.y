@@ -11,22 +11,22 @@
 
 %union {
     size_t id;
-    ast::_block *block;
-    ast::_if_statement *if_statement;
-    ast::_for_loop *for_loop;
-    ast::_while_loop *while_loop;
-    ast::_function *function;
-    ast::_assignment *assignment;
-    ast::_statement *statement;
-    ast::_program *program;
-    ast::_literal *literal;
-    ast::_operator *op;
-    ast::_expression *expression;
-    ast::_type type;
-    ast::_optional_else *optional_else;
-    ast::_else_if_list *else_if_list;
-    ast::_statement_list *statement_list;
-    ast::_parameter_list *parameter_list;
+    ast::block *block;
+    ast::if_statement *if_statement;
+    ast::for_loop *for_loop;
+    ast::while_loop *while_loop;
+    ast::function *function;
+    ast::assignment *assignment;
+    ast::statement *statement;
+    ast::program *program;
+    ast::literal *literal;
+    ast::binary_operator *op;
+    ast::expression *expression;
+    ast::type type;
+    ast::optional_else *optional_else;
+    ast::else_if_list *else_if_list;
+    ast::statement_list *statement_list;
+    ast::parameter_list *parameter_list;
 }
 
 %left OP_L_OR
@@ -73,7 +73,7 @@
 program: statement_list { program_ast = $$; };
 
 statement_list: %empty {
-              $$ = new ast::_statement_list;
+              $$ = new ast::statement_list;
               }
               | statement_list statement {
               $1->push_back(*$2);
@@ -81,20 +81,20 @@ statement_list: %empty {
               ;
 
 statement: block
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_BLOCK; $$->block = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_BLOCK; $$->block = $1; }
          | assignment
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_ASSIGNMENT; $$->assignment = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_ASSIGNMENT; $$->assignment = $1; }
          | if_statement
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_IF; $$->if_statement = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_IF; $$->if_statement = $1; }
          | for_loop
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_FOR; $$->for_loop = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_FOR; $$->for_loop = $1; }
          | while_loop
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_WHILE; $$->while_loop = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_WHILE; $$->while_loop = $1; }
          | function
-         { $$ = new ast::_statement; $$->type = ast::_statement::S_FUNCTION; $$->function = $1; }
+         { $$ = new ast::statement; $$->type = ast::statement::S_FUNCTION; $$->function = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
-            $$ = new ast::_if_statement;
+            $$ = new ast::if_statement;
             $$->first.push_back(*$3);
             $$->second.push_back(*$5);
             $$->first.insert($$->first.end(), $6->first.begin(), $6->first.end());
@@ -104,40 +104,40 @@ if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_
             }
             }
 for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
-        $$ = new ast::_for_loop;
+        $$ = new ast::for_loop;
         $$->initial = $3;
         $$->condition = $5;
         $$->step = $7;
         $$->block = $9;
         }
 while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-          $$ = new ast::_while_loop;
+          $$ = new ast::while_loop;
           $$->condition = $3;
           $$->block = $5;
           }
 function: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
-        $$ = new ast::_function;
-        $$->return_type = $2;
+        $$ = new ast::function;
+        $$->returntype = $2;
         $$->parameter_list = *$5;
         }
 assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
-          $$ = new ast::_assignment;
+          $$ = new ast::assignment;
           $$->identifier = $1;
           $$->expression = $4;
           }
 
 optional_else: %empty {
-             $$ = new ast::_optional_else;
+             $$ = new ast::optional_else;
              *$$ = std::nullopt;
              }
              | ELSE block {
-             $$ = new std::optional<ast::_block>;
+             $$ = new std::optional<ast::block>;
              *$$ = *$2;
              }
              ;
 
 else_if_list: %empty {
-            $$ = new ast::_else_if_list;
+            $$ = new ast::else_if_list;
             }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
             $1->first.push_back(*$5);
@@ -146,10 +146,10 @@ else_if_list: %empty {
             ;
 
 parameter_list: %empty {
-              $$ = new ast::_parameter_list;
+              $$ = new ast::parameter_list;
               }
               | TYPE IDENTIFIER {
-              $$ = new ast::_parameter_list;
+              $$ = new ast::parameter_list;
               $$->push_back(std::make_pair($1, $2));
               }
               | parameter_list COMMA TYPE IDENTIFIER {
@@ -158,7 +158,7 @@ parameter_list: %empty {
               ;
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
-     $$ = new ast::_block;
+     $$ = new ast::block;
      $$->statements = *$2;
      }
      ;
@@ -170,38 +170,38 @@ literal: LITERAL_FLOAT
        ;
 
 exp: IDENTIFIER {
-   $$ = new ast::_expression;
-   $$->type = ast::_expression::VARIABLE;
+   $$ = new ast::expression;
+   $$->type = ast::expression::VARIABLE;
    $$->variable = $1;
    }
    | literal {
-   $$ = new ast::_expression;
-   $$->type = ast::_expression::LITERAL;
+   $$ = new ast::expression;
+   $$->type = ast::expression::LITERAL;
    $$->literal = $1; }
-   | exp OP_A_ADD exp { $$ = new_bin_op($1, $3, ast::_operator::A_ADD); }
-   | exp OP_A_SUB exp { $$ = new_bin_op($1, $3, ast::_operator::A_SUB); }
-   | exp OP_A_MUL exp { $$ = new_bin_op($1, $3, ast::_operator::A_MUL); }
-   | exp OP_A_DIV exp { $$ = new_bin_op($1, $3, ast::_operator::A_DIV); }
-   | exp OP_A_MOD exp { $$ = new_bin_op($1, $3, ast::_operator::A_MOD); }
+   | exp OP_A_ADD exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_ADD); }
+   | exp OP_A_SUB exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_SUB); }
+   | exp OP_A_MUL exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_MUL); }
+   | exp OP_A_DIV exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_DIV); }
+   | exp OP_A_MOD exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_MOD); }
 
-   | exp OP_B_AND exp { $$ = new_bin_op($1, $3, ast::_operator::B_AND); }
-   | exp OP_B_OR  exp { $$ = new_bin_op($1, $3, ast::_operator::B_OR ); }
-   | exp OP_B_XOR exp { $$ = new_bin_op($1, $3, ast::_operator::B_XOR); }
-   | OP_B_NOT exp { $$ = new ast::_expression; //TODO
+   | exp OP_B_AND exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_AND); }
+   | exp OP_B_OR  exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_OR ); }
+   | exp OP_B_XOR exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_XOR); }
+   | OP_B_NOT exp { $$ = new ast::expression; //TODO
    }
-   | exp OP_B_SHL exp { $$ = new_bin_op($1, $3, ast::_operator::B_SHL); }
-   | exp OP_B_SHR exp { $$ = new_bin_op($1, $3, ast::_operator::B_SHR); }
+   | exp OP_B_SHL exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_SHL); }
+   | exp OP_B_SHR exp { $$ = new_bin_op($1, $3, ast::binary_operator::B_SHR); }
 
-   | exp OP_C_EQ  exp { $$ = new_bin_op($1, $3, ast::_operator::C_EQ ); }
-   | exp OP_C_NE  exp { $$ = new_bin_op($1, $3, ast::_operator::C_NE ); }
-   | exp OP_C_GT  exp { $$ = new_bin_op($1, $3, ast::_operator::C_GT ); }
-   | exp OP_C_GE  exp { $$ = new_bin_op($1, $3, ast::_operator::C_GE ); }
-   | exp OP_C_LT  exp { $$ = new_bin_op($1, $3, ast::_operator::C_LT ); }
-   | exp OP_C_LE  exp { $$ = new_bin_op($1, $3, ast::_operator::C_LE ); }
+   | exp OP_C_EQ  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_EQ ); }
+   | exp OP_C_NE  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_NE ); }
+   | exp OP_C_GT  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_GT ); }
+   | exp OP_C_GE  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_GE ); }
+   | exp OP_C_LT  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_LT ); }
+   | exp OP_C_LE  exp { $$ = new_bin_op($1, $3, ast::binary_operator::C_LE ); }
 
-   | exp OP_L_AND exp { $$ = new_bin_op($1, $3, ast::_operator::L_AND); }
-   | exp OP_L_OR  exp { $$ = new_bin_op($1, $3, ast::_operator::L_OR ); }
-   | OP_L_NOT exp     { $$ = new ast::_expression; //TODO
+   | exp OP_L_AND exp { $$ = new_bin_op($1, $3, ast::binary_operator::L_AND); }
+   | exp OP_L_OR  exp { $$ = new_bin_op($1, $3, ast::binary_operator::L_OR ); }
+   | OP_L_NOT exp     { $$ = new ast::expression; //TODO
    }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }

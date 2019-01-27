@@ -24,9 +24,9 @@ struct codegen_context_llvm {
     std::map<size_t, llvm::Value *> named_values;
 };
 
-llvm::Value* codegen_llvm_expression(codegen_context_llvm &context, ast::_expression expression) {
+llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expression expression) {
     switch (expression.type) {
-        case ast::_expression::VARIABLE: {
+        case ast::expression::VARIABLE: {
             auto x = context.named_values.find(expression.variable);
             if (x != context.named_values.end()) {
                 return x->second;
@@ -34,49 +34,49 @@ llvm::Value* codegen_llvm_expression(codegen_context_llvm &context, ast::_expres
                 yyerror("variable used before being defined");
             }
         } break;
-        case ast::_expression::LITERAL: {
+        case ast::expression::LITERAL: {
             switch (expression.literal->type) {
-                case ast::_literal::FLOAT:
+                case ast::literal::FLOAT:
                     //return llvm::ConstantFP::get(context.context, llvm::APFloat(expression.literal->_float));
-                case ast::_literal::INTEGER:
+                case ast::literal::INTEGER:
                     //return llvm::ConstantInt::get(context.context, expression.literal->_integer);
-                case ast::_literal::BOOL:
+                case ast::literal::BOOL:
                     //return llvm::ConstantInt::get(context.context, expression.literal->_bool);
                     ;
                 default: ;
             }
         } break;
-        case ast::_expression::OPERATOR: {
+        case ast::expression::OPERATOR: {
             llvm::Value *l, *r;
-            l = codegen_llvm_expression(context, *expression.op->l);
-            r = codegen_llvm_expression(context, *expression.op->r);
-            switch (expression.op->_operator) {
-                case ast::_operator::A_ADD:
+            l = codegen_llvmexpression(context, *expression.op->l);
+            r = codegen_llvmexpression(context, *expression.op->r);
+            switch (expression.op->binary_operator) {
+                case ast::binary_operator::A_ADD:
                     return context.builder.CreateFAdd(l, r, "addtmp");
                     break;
-                case ast::_operator::A_SUB:
+                case ast::binary_operator::A_SUB:
                     return context.builder.CreateFSub(l, r, "subtmp");
                     break;
-                case ast::_operator::A_MUL:
+                case ast::binary_operator::A_MUL:
                     return context.builder.CreateFMul(l, r, "multmp");
                     break;
-                case ast::_operator::A_DIV:
-                case ast::_operator::A_MOD:
-                case ast::_operator::B_SHL:
-                case ast::_operator::B_SHR:
-                case ast::_operator::B_AND:
-                case ast::_operator::B_XOR:
-                case ast::_operator::B_OR:
-                case ast::_operator::B_NOT:
-                case ast::_operator::L_AND:
-                case ast::_operator::L_OR:
-                case ast::_operator::L_NOT:
-                case ast::_operator::C_EQ:
-                case ast::_operator::C_NE:
-                case ast::_operator::C_GT:
-                case ast::_operator::C_GE:
-                case ast::_operator::C_LT:
-                case ast::_operator::C_LE:
+                case ast::binary_operator::A_DIV:
+                case ast::binary_operator::A_MOD:
+                case ast::binary_operator::B_SHL:
+                case ast::binary_operator::B_SHR:
+                case ast::binary_operator::B_AND:
+                case ast::binary_operator::B_XOR:
+                case ast::binary_operator::B_OR:
+                case ast::binary_operator::B_NOT:
+                case ast::binary_operator::L_AND:
+                case ast::binary_operator::L_OR:
+                case ast::binary_operator::L_NOT:
+                case ast::binary_operator::C_EQ:
+                case ast::binary_operator::C_NE:
+                case ast::binary_operator::C_GT:
+                case ast::binary_operator::C_GE:
+                case ast::binary_operator::C_LT:
+                case ast::binary_operator::C_LE:
                     ;
             }
         } break;
@@ -84,28 +84,28 @@ llvm::Value* codegen_llvm_expression(codegen_context_llvm &context, ast::_expres
     return NULL;
 }
 
-void codegen_llvm_statement(codegen_context_llvm &context, ast::_statement statement) {
+void codegen_llvmstatement(codegen_context_llvm &context, ast::statement statement) {
     switch (statement.type) {
-        case ast::_statement::S_BLOCK: {
+        case ast::statement::S_BLOCK: {
         } break;
-        case ast::_statement::S_IF: {
+        case ast::statement::S_IF: {
         } break;
-        case ast::_statement::S_FOR: {
+        case ast::statement::S_FOR: {
         } break;
-        case ast::_statement::S_WHILE: {
+        case ast::statement::S_WHILE: {
         } break;
-        case ast::_statement::S_FUNCTION: {
+        case ast::statement::S_FUNCTION: {
         } break;
-        case ast::_statement::S_ASSIGNMENT: {
-            ast::_assignment& assign = *(statement.assignment);
-            llvm::Value* value = codegen_llvm_expression(context, *(assign.expression));
+        case ast::statement::S_ASSIGNMENT: {
+            ast::assignment& assign = *(statement.assignment);
+            llvm::Value* value = codegen_llvmexpression(context, *(assign.expression));
             llvm::Value* variable = context.named_values[assign.identifier];
             context.builder.CreateStore(value, variable);
         } break;
     }
 }
 
-void codegen_llvm_program(codegen_context_llvm &context, ast::_program *program) {
+void codegen_llvmprogram(codegen_context_llvm &context, ast::program *program) {
     printf("beginning codegen\n");
     context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
 
@@ -138,7 +138,7 @@ void codegen_llvm_program(codegen_context_llvm &context, ast::_program *program)
     context.module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
     std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
     for (auto& statement: program->statements) {
-        codegen_llvm_statement(context, statement);
+        codegen_llvmstatement(context, statement);
     }
     DBuilder->finalize();
     context.module->print(llvm::errs(), nullptr);

@@ -49,10 +49,10 @@ int parse_integer(char *s, size_t base) {
     return sign * value;
 }
 
-ast::_expression* new_bin_op(ast::_expression* l, ast::_expression* r, ast::_operator::op) {
-    auto x = new ast::_expression;
-    x->type = ast::_expression::OPERATOR;
-    x->op = new ast::_operator;
+ast::expression* new_bin_op(ast::expression* l, ast::expression* r, ast::binary_operator::op) {
+    auto x = new ast::expression;
+    x->type = ast::expression::OPERATOR;
+    x->op = new ast::binary_operator;
     x->op->l = l;
     x->op->r = r;
     return x;

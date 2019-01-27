@@ -7,26 +7,26 @@
 #include <optional>
 
 namespace ast {
-    enum _type {
+    enum type {
         t_bool,
         u8, u16, u32, u64,
         i8, i16, i32, i64,
         f8, f16, f32, f64,
     };
 
-    struct _literal;
-    struct _operator;
-    struct _expression {
+    struct literal;
+    struct binary_operator;
+    struct expression {
         enum {
             VARIABLE, LITERAL, OPERATOR,
         } type;
         union {
             size_t variable;
-            _literal *literal;
-            _operator *op;
+            literal *literal;
+            binary_operator *op;
         };
     };
-    struct _literal {
+    struct literal {
         enum {
             FLOAT, INTEGER, BOOL,
         } type;
@@ -36,58 +36,58 @@ namespace ast {
             bool _bool;
         };
     };
-    struct _operator {
+    struct binary_operator {
         enum op {
             A_ADD, A_SUB, A_MUL, A_DIV, A_MOD,
             B_SHL, B_SHR, B_AND, B_XOR, B_OR, B_NOT,
             L_AND, L_OR, L_NOT,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
-        } _operator;
-        _expression *l, *r;
+        } binary_operator;
+        expression *l, *r;
     };
 
-    struct _statement;
-    struct _block {
-        std::vector<_statement> statements;
+    struct statement;
+    struct block {
+        std::vector<statement> statements;
     };
-    using _if_statement = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
-    using _optional_else = std::optional<ast::_block>;
-    using _else_if_list = std::pair<std::vector<ast::_expression>, std::vector<ast::_block>>;
-    struct _for_loop {
-        _expression *initial;
-        _expression *condition;
-        _expression *step;
-        _block *block;
+    using if_statement = std::pair<std::vector<ast::expression>, std::vector<ast::block>>;
+    using optional_else = std::optional<ast::block>;
+    using else_if_list = std::pair<std::vector<ast::expression>, std::vector<ast::block>>;
+    struct for_loop {
+        expression *initial;
+        expression *condition;
+        expression *step;
+        block *block;
     };
-    struct _while_loop {
-        _expression *condition;
-        _block *block;
+    struct while_loop {
+        expression *condition;
+        block *block;
     };
-    using _parameter_list = std::vector<std::pair<_type, size_t>>;
-    struct _function {
-        _type return_type;
-        _parameter_list parameter_list;
-        _block *block;
+    using parameter_list = std::vector<std::pair<type, size_t>>;
+    struct function {
+        type returntype;
+        parameter_list parameter_list;
+        block *block;
     };
-    struct _assignment {
+    struct assignment {
         size_t identifier;
-        _expression *expression;
+        expression *expression;
     };
-    struct _statement {
+    struct statement {
         enum {
             S_BLOCK, S_IF, S_FOR, S_WHILE, S_FUNCTION, S_ASSIGNMENT,
         } type;
         union {
-            _block *block;
-            _if_statement *if_statement;
-            _for_loop *for_loop;
-            _while_loop *while_loop;
-            _function *function;
-            _assignment *assignment;
+            block *block;
+            if_statement *if_statement;
+            for_loop *for_loop;
+            while_loop *while_loop;
+            function *function;
+            assignment *assignment;
         };
     };
-    using _statement_list = std::vector<_statement>;
-    struct _program {
-        _statement_list statements;
+    using statement_list = std::vector<statement>;
+    struct program {
+        statement_list statements;
     };
 }
