@@ -10,105 +10,107 @@
 %%
 
 [ \t\r\n]* ;
-; { return SEMICOLON; }
-, { return COMMA; }
+; { return yy::parser::make_SEMICOLON(); }
+, { return yy::parser::make_COMMA(); }
 
 true {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::BOOL;
-    yylval.literal->_bool = 1;
-    return LITERAL_BOOL_T; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::BOOL;
+    literal->_bool = 1;
+    return yy::parser::make_LITERAL_BOOL_T(*literal); }
 false {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::BOOL;
-    yylval.literal->_bool = 0;
-    return LITERAL_BOOL_F; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::BOOL;
+    literal->_bool = 0;
+    return yy::parser::make_LITERAL_BOOL_F(*literal); }
 [+-]?[0-9_]+ {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::INTEGER;
-    yylval.literal->_integer = parse_integer(yytext, 10);
-    return LITERAL_INTEGER; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::INTEGER;
+    literal->_integer = parse_integer(yytext, 10);
+    return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[xX][0-9a-fA-F_]+ {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::INTEGER;
-    yylval.literal->_integer = parse_integer(yytext, 16);
-    return LITERAL_INTEGER; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::INTEGER;
+    literal->_integer = parse_integer(yytext, 16);
+    return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[oO][0-7_]+ {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::INTEGER;
-    yylval.literal->_integer = parse_integer(yytext, 8);
-    return LITERAL_INTEGER; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::INTEGER;
+    literal->_integer = parse_integer(yytext, 8);
+    return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[bB][0-1_]+ {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::INTEGER;
-    yylval.literal->_integer = parse_integer(yytext, 2);
-    return LITERAL_INTEGER; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::INTEGER;
+    literal->_integer = parse_integer(yytext, 2);
+    return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?[0-9]+\.[0-9]+ {
-    yylval.literal = new ast::literal;
-    yylval.literal->type = ast::literal::FLOAT;
-    yylval.literal->_float = atof(yytext);
-    return LITERAL_FLOAT; }
+    auto literal = new ast::literal;
+    literal->type = ast::literal::FLOAT;
+    literal->_float = atof(yytext);
+    return yy::parser::make_LITERAL_FLOAT(*literal); }
 
-"=" { return OP_ASSIGN; }
+"=" { return yy::parser::make_OP_ASSIGN(); }
 
-"+" { return OP_A_ADD; }
-"-" { return OP_A_SUB; }
-"*" { return OP_A_MUL; }
-"/" { return OP_A_DIV; }
-"%" { return OP_A_MOD; }
+"+" { return yy::parser::make_OP_A_ADD(); }
+"-" { return yy::parser::make_OP_A_SUB(); }
+"*" { return yy::parser::make_OP_A_MUL(); }
+"/" { return yy::parser::make_OP_A_DIV(); }
+"%" { return yy::parser::make_OP_A_MOD(); }
 
-"&" { return OP_B_AND; }
-"|" { return OP_B_OR; }
-"^" { return OP_B_XOR; }
-"~" { return OP_B_NOT; }
-"<<" { return OP_B_SHL; }
-">>" { return OP_B_SHR; }
+"&" { return yy::parser::make_OP_B_AND(); }
+"|" { return yy::parser::make_OP_B_OR(); }
+"^" { return yy::parser::make_OP_B_XOR(); }
+"~" { return yy::parser::make_OP_B_NOT(); }
+"<<" { return yy::parser::make_OP_B_SHL(); }
+">>" { return yy::parser::make_OP_B_SHR(); }
 
-"&&" { return OP_L_AND; }
-"||" { return OP_L_OR; }
-"!" { return OP_L_NOT; }
+"&&" { return yy::parser::make_OP_L_AND(); }
+"||" { return yy::parser::make_OP_L_OR(); }
+"!" { return yy::parser::make_OP_L_NOT(); }
 
-"==" { return OP_C_EQ; }
-"!=" { return OP_C_NE; }
-">" { return OP_C_GT; }
-">=" { return OP_C_GE; }
-"<" { return OP_C_LT; }
-"<=" { return OP_C_LE; }
+"==" { return yy::parser::make_OP_C_EQ(); }
+"!=" { return yy::parser::make_OP_C_NE(); }
+">" { return yy::parser::make_OP_C_GT(); }
+">=" { return yy::parser::make_OP_C_GE(); }
+"<" { return yy::parser::make_OP_C_LT(); }
+"<=" { return yy::parser::make_OP_C_LE(); }
 
-"(" { return OPEN_R_BRACKET; }
-")" { return CLOSE_R_BRACKET; }
-"[" { return OPEN_S_BRACKET; }
-"]" { return CLOSE_S_BRACKET; }
-"{" { return OPEN_C_BRACKET; }
-"}" { return CLOSE_C_BRACKET; }
+"(" { return yy::parser::make_OPEN_R_BRACKET(); }
+")" { return yy::parser::make_CLOSE_R_BRACKET(); }
+"[" { return yy::parser::make_OPEN_S_BRACKET(); }
+"]" { return yy::parser::make_CLOSE_S_BRACKET(); }
+"{" { return yy::parser::make_OPEN_C_BRACKET(); }
+"}" { return yy::parser::make_CLOSE_C_BRACKET(); }
 
-if { return IF; }
-else { return ELSE; }
-for { return FOR; }
-while { return WHILE; }
-fn { return FUNCTION; }
-return { return RETURN; }
+if { return yy::parser::make_IF(); }
+else { return yy::parser::make_ELSE(); }
+for { return yy::parser::make_FOR(); }
+while { return yy::parser::make_WHILE(); }
+fn { return yy::parser::make_FUNCTION(); }
+return { return yy::parser::make_RETURN(); }
 
-bool { yylval.type = ast::type::t_bool; return TYPE; }
-u8   { yylval.type = ast::type::u8;     return TYPE; }
-u16  { yylval.type = ast::type::u16;    return TYPE; }
-u32  { yylval.type = ast::type::u32;    return TYPE; }
-u64  { yylval.type = ast::type::u64;    return TYPE; }
-i8   { yylval.type = ast::type::i8;     return TYPE; }
-i16  { yylval.type = ast::type::i16;    return TYPE; }
-i32  { yylval.type = ast::type::i32;    return TYPE; }
-i64  { yylval.type = ast::type::i64;    return TYPE; }
-f8   { yylval.type = ast::type::f8;     return TYPE; }
-f16  { yylval.type = ast::type::f16;    return TYPE; }
-f32  { yylval.type = ast::type::f32;    return TYPE; }
-f64  { yylval.type = ast::type::f64;    return TYPE; }
+bool { return yy::parser::make_TYPE(ast::type::t_bool); }
+u8   { return yy::parser::make_TYPE(ast::type::u8); }
+u16  { return yy::parser::make_TYPE(ast::type::u16); }
+u32  { return yy::parser::make_TYPE(ast::type::u32); }
+u64  { return yy::parser::make_TYPE(ast::type::u64); }
+i8   { return yy::parser::make_TYPE(ast::type::i8); }
+i16  { return yy::parser::make_TYPE(ast::type::i16); }
+i32  { return yy::parser::make_TYPE(ast::type::i32); }
+i64  { return yy::parser::make_TYPE(ast::type::i64); }
+f8   { return yy::parser::make_TYPE(ast::type::f8); }
+f16  { return yy::parser::make_TYPE(ast::type::f16); }
+f32  { return yy::parser::make_TYPE(ast::type::f32); }
+f64  { return yy::parser::make_TYPE(ast::type::f64); }
 
-[a-zA-Z_][a-zA-Z0-9_]* { yylval.identifier = lookup_or_insert(yytext); return IDENTIFIER; }
+[a-zA-Z_][a-zA-Z0-9_]* { return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext)); }
 
 "//".* {}
 
 "/*" { BEGIN(COMMENT); }
 <COMMENT>"*/" { BEGIN(INITIAL); }
 <COMMENT>.|\n {}
+
+<<EOF>> { return yy::parser::make_T_EOF(); }
 
 . { yyerror("unexpected token: " + std::string(yytext)); }

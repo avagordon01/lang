@@ -60,9 +60,15 @@ namespace ast {
     struct block {
         std::vector<statement> statements;
     };
-    using if_statement = std::pair<std::vector<ast::expression>, std::vector<ast::block>>;
+    struct if_statement {
+        std::vector<ast::expression>* conditions;
+        std::vector<ast::block>* blocks;
+    };
     using optional_else = std::optional<ast::block>;
-    using else_if_list = std::pair<std::vector<ast::expression>, std::vector<ast::block>>;
+    struct else_if_list {
+        std::vector<ast::expression>* conditions;
+        std::vector<ast::block>* blocks;
+    };
     struct for_loop {
         expression *initial;
         expression *condition;

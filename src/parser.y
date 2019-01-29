@@ -1,3 +1,10 @@
+%require "3.2"
+%language "c++"
+
+%define api.token.constructor
+%define api.value.type variant
+%define parse.assert
+
 %error-verbose
 
 %code requires {
@@ -8,27 +15,6 @@
 #include "lexer.hh"
 #include "utils.hh"
 %}
-
-%union {
-    ast::identifier identifier;
-    ast::block *block;
-    ast::if_statement *if_statement;
-    ast::for_loop *for_loop;
-    ast::while_loop *while_loop;
-    ast::function *function;
-    ast::assignment *assignment;
-    ast::statement *statement;
-    ast::program *program;
-    ast::literal *literal;
-    ast::binary_operator *binary_operator;
-    ast::unary_operator *unary_operator;
-    ast::expression *expression;
-    ast::type type;
-    ast::optional_else *optional_else;
-    ast::else_if_list *else_if_list;
-    ast::statement_list *statement_list;
-    ast::parameter_list *parameter_list;
-}
 
 %left OP_L_OR
 %left OP_L_AND
@@ -48,26 +34,29 @@
 %token IF ELSE
 %token FOR WHILE
 %token FUNCTION RETURN
+
 %token SEMICOLON
 %token COMMA
-%token <type> TYPE
-%token <literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
-%token <identifier> IDENTIFIER
+%token T_EOF 0
 
-%type <program> program
-%type <literal> literal
-%type <expression> exp
-%type <statement> statement
-%type <block> block
-%type <optional_else> optional_else
-%type <else_if_list> else_if_list
-%type <statement_list> statement_list
-%type <parameter_list> parameter_list
-%type <assignment> assignment
-%type <if_statement> if_statement
-%type <for_loop> for_loop
-%type <while_loop> while_loop
-%type <function> function
+%token <ast::type> TYPE
+%token <ast::literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
+%token <ast::identifier> IDENTIFIER
+
+%type <ast::program> program
+%type <ast::literal> literal
+%type <ast::expression> exp
+%type <ast::statement> statement
+%type <ast::block> block
+%type <ast::optional_else> optional_else
+%type <ast::else_if_list> else_if_list
+%type <ast::statement_list> statement_list
+%type <ast::parameter_list> parameter_list
+%type <ast::assignment> assignment
+%type <ast::if_statement> if_statement
+%type <ast::for_loop> for_loop
+%type <ast::while_loop> while_loop
+%type <ast::function> function
 
 %%
 
@@ -96,12 +85,12 @@ statement: block
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
             $$ = new ast::if_statement;
-            $$->first.push_back(*$3);
-            $$->second.push_back(*$5);
-            $$->first.insert($$->first.end(), $6->first.begin(), $6->first.end());
-            $$->second.insert($$->second.end(), $6->second.begin(), $6->second.end());
+            $$->conditions.push_back(*$3);
+            $$->blocks.push_back(*$5);
+            $$->conditions.insert($$->conditions.end(), $6->conditions.begin(), $6->conditions.end());
+            $$->blocks.insert($$->blocks.end(), $6->blocks.begin(), $6->blocks.end());
             if ($7->has_value()) {
-                $$->second.push_back($7->value());
+                $$->blocks.push_back($7->value());
             }
             }
 for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
@@ -141,8 +130,8 @@ else_if_list: %empty {
             $$ = new ast::else_if_list;
             }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-            $1->first.push_back(*$5);
-            $1->second.push_back(*$7);
+            $1->conditions.push_back(*$5);
+            $1->blocks.push_back(*$7);
             }
             ;
 
