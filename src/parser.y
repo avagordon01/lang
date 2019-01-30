@@ -60,96 +60,81 @@
 
 %%
 
-program: statement_list { program_ast = $$; };
+program: statement_list { *program_ast = $$; };
 
-statement_list: %empty {
-              $$ = new ast::statement_list;
-              }
+statement_list: %empty { }
               | statement_list statement {
-              $1->push_back(*$2);
+              $1.push_back($2);
               }
               ;
 
 statement: block
-         { $$ = new ast::statement; $$->type = ast::statement::S_BLOCK; $$->block = $1; }
+         { $$.type = ast::statement::S_BLOCK; *$$.block = $1; }
          | assignment
-         { $$ = new ast::statement; $$->type = ast::statement::S_ASSIGNMENT; $$->assignment = $1; }
+         { $$.type = ast::statement::S_ASSIGNMENT; *$$.assignment = $1; }
          | if_statement
-         { $$ = new ast::statement; $$->type = ast::statement::S_IF; $$->if_statement = $1; }
+         { $$.type = ast::statement::S_IF; *$$.if_statement = $1; }
          | for_loop
-         { $$ = new ast::statement; $$->type = ast::statement::S_FOR; $$->for_loop = $1; }
+         { $$.type = ast::statement::S_FOR; *$$.for_loop = $1; }
          | while_loop
-         { $$ = new ast::statement; $$->type = ast::statement::S_WHILE; $$->while_loop = $1; }
+         { $$.type = ast::statement::S_WHILE; *$$.while_loop = $1; }
          | function
-         { $$ = new ast::statement; $$->type = ast::statement::S_FUNCTION; $$->function = $1; }
+         { $$.type = ast::statement::S_FUNCTION; *$$.function = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
-            $$ = new ast::if_statement;
-            $$->conditions.push_back(*$3);
-            $$->blocks.push_back(*$5);
-            $$->conditions.insert($$->conditions.end(), $6->conditions.begin(), $6->conditions.end());
-            $$->blocks.insert($$->blocks.end(), $6->blocks.begin(), $6->blocks.end());
-            if ($7->has_value()) {
-                $$->blocks.push_back($7->value());
+            $$.conditions->push_back($3);
+            $$.blocks->push_back($5);
+            $$.conditions->insert($$.conditions->end(), $6.conditions->begin(), $6.conditions->end());
+            $$.blocks->insert($$.blocks->end(), $6.blocks->begin(), $6.blocks->end());
+            if ($7.has_value()) {
+                $$.blocks->push_back($7.value());
             }
             }
 for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
-        $$ = new ast::for_loop;
-        $$->initial = $3;
-        $$->condition = $5;
-        $$->step = $7;
-        $$->block = $9;
+        $$.initial = &$3;
+        $$.condition = &$5;
+        $$.step = &$7;
+        $$.block = &$9;
         }
 while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-          $$ = new ast::while_loop;
-          $$->condition = $3;
-          $$->block = $5;
+          $$.condition = &$3;
+          $$.block = &$5;
           }
 function: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
-        $$ = new ast::function;
-        $$->returntype = $2;
-        $$->parameter_list = *$5;
+        $$.returntype = $2;
+        $$.parameter_list = $5;
         }
 assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
-          $$ = new ast::assignment;
-          $$->identifier = $1;
-          $$->expression = $4;
+          $$.identifier = $1;
+          $$.expression = &$4;
           }
 
 optional_else: %empty {
-             $$ = new ast::optional_else;
              *$$ = std::nullopt;
              }
              | ELSE block {
-             $$ = new std::optional<ast::block>;
-             *$$ = *$2;
+             *$$ = $2;
              }
              ;
 
-else_if_list: %empty {
-            $$ = new ast::else_if_list;
-            }
+else_if_list: %empty { }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-            $1->conditions.push_back(*$5);
-            $1->blocks.push_back(*$7);
+            $1.conditions->push_back($5);
+            $1.blocks->push_back($7);
             }
             ;
 
-parameter_list: %empty {
-              $$ = new ast::parameter_list;
-              }
+parameter_list: %empty { }
               | TYPE IDENTIFIER {
-              $$ = new ast::parameter_list;
-              $$->push_back(std::make_pair($1, $2));
+              $$.push_back(std::make_pair($1, $2));
               }
               | parameter_list COMMA TYPE IDENTIFIER {
-              $1->push_back(std::make_pair($3, $4));
+              $1.push_back(std::make_pair($3, $4));
               }
               ;
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
-     $$ = new ast::block;
-     $$->statements = *$2;
+     $$.statements = $2;
      }
      ;
 
@@ -160,14 +145,12 @@ literal: LITERAL_FLOAT
        ;
 
 exp: IDENTIFIER {
-   $$ = new ast::expression;
-   $$->type = ast::expression::VARIABLE;
-   $$->variable = $1;
+   $$.type = ast::expression::VARIABLE;
+   $$.variable = $1;
    }
    | literal {
-   $$ = new ast::expression;
-   $$->type = ast::expression::LITERAL;
-   $$->literal = $1; }
+   $$.type = ast::expression::LITERAL;
+   *$$.literal = $1; }
    | exp OP_A_ADD exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_ADD); }
    | exp OP_A_SUB exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_SUB); }
    | exp OP_A_MUL exp { $$ = new_bin_op($1, $3, ast::binary_operator::A_MUL); }
