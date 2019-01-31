@@ -64,7 +64,7 @@ new_unary_op(ast::expression r, ast::unary_operator::op op) {
     return x;
 }
 std::unique_ptr<ast::binary_operator>
-new_bin_op(ast::expression l, ast::expression r, ast::binary_operator::op op) {
+new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op) {
     auto x = std::make_unique<ast::binary_operator>();
     x->l = std::move(l);
     x->r = std::move(r);

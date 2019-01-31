@@ -142,28 +142,28 @@ literal: LITERAL_FLOAT
 
 exp: IDENTIFIER { $$.expression = $1; }
    | literal { $$.expression = $1; }
-   | exp OP_A_ADD exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::A_ADD); }
-   | exp OP_A_SUB exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::A_SUB); }
-   | exp OP_A_MUL exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::A_MUL); }
-   | exp OP_A_DIV exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::A_DIV); }
-   | exp OP_A_MOD exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::A_MOD); }
+   | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD); }
+   | exp OP_A_SUB exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_SUB); }
+   | exp OP_A_MUL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MUL); }
+   | exp OP_A_DIV exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_DIV); }
+   | exp OP_A_MOD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MOD); }
 
-   | exp OP_B_AND exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_AND); }
-   | exp OP_B_OR  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_OR ); }
-   | exp OP_B_XOR exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_XOR); }
+   | exp OP_B_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_AND); }
+   | exp OP_B_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_OR ); }
+   | exp OP_B_XOR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_XOR); }
    | OP_B_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::B_NOT); }
-   | exp OP_B_SHL exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_SHL); }
-   | exp OP_B_SHR exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_SHR); }
+   | exp OP_B_SHL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHL); }
+   | exp OP_B_SHR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHR); }
 
-   | exp OP_C_EQ  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_EQ ); }
-   | exp OP_C_NE  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_NE ); }
-   | exp OP_C_GT  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_GT ); }
-   | exp OP_C_GE  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_GE ); }
-   | exp OP_C_LT  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_LT ); }
-   | exp OP_C_LE  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::C_LE ); }
+   | exp OP_C_EQ  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_EQ ); }
+   | exp OP_C_NE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_NE ); }
+   | exp OP_C_GT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GT ); }
+   | exp OP_C_GE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GE ); }
+   | exp OP_C_LT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LT ); }
+   | exp OP_C_LE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LE ); }
 
-   | exp OP_L_AND exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::L_AND); }
-   | exp OP_L_OR  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::L_OR ); }
+   | exp OP_L_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_AND); }
+   | exp OP_L_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_OR ); }
    | OP_L_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::L_NOT); }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
