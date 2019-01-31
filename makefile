@@ -1,8 +1,8 @@
-CXX = clang++
 LEX = flex
 LFLAGS =
 YACC = bison -y
 YFLAGS = -d -Werror=all
+CXX = clang++
 CPPFLAGS = -Isrc -Iout
 CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \

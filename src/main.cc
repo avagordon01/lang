@@ -5,8 +5,8 @@
 
 ast::program program_ast;
 int main() {
-    yy::parser parse{};
-    parse();
+    yy::parser parser;
+    parser.parse();
     //codegen_context_llvm codegen_context_llvm;
     //codegen_llvmprogram(codegen_context_llvm, program_ast);
     return 0;
