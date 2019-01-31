@@ -64,23 +64,15 @@
 program: statement_list { program_ast = std::move($$); };
 
 statement_list: %empty { }
-              | statement_list statement {
-              $1.push_back($2);
-              }
+              | statement_list statement { $1.push_back($2); }
               ;
 
-statement: block
-         { $$.statement = $1; }
-         | assignment
-         { $$.statement = $1; }
-         | if_statement
-         { $$.statement = $1; }
-         | for_loop
-         { $$.statement = $1; }
-         | while_loop
-         { $$.statement = $1; }
-         | function
-         { $$.statement = $1; }
+statement: block         { $$.statement = $1; }
+         | assignment    { $$.statement = $1; }
+         | if_statement  { $$.statement = $1; }
+         | for_loop      { $$.statement = $1; }
+         | while_loop    { $$.statement = $1; }
+         | function      { $$.statement = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
             $$.conditions.push_back($3);
@@ -159,7 +151,7 @@ exp: IDENTIFIER { $$.expression = $1; }
    | exp OP_B_AND exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_AND); }
    | exp OP_B_OR  exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_OR ); }
    | exp OP_B_XOR exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_XOR); }
-   | OP_B_NOT exp { $$.expression = new_unary_op($2, ast::unary_operator::B_NOT); }
+   | OP_B_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::B_NOT); }
    | exp OP_B_SHL exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_SHL); }
    | exp OP_B_SHR exp { $$.expression = new_bin_op($1, $3, ast::binary_operator::B_SHR); }
 
