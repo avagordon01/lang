@@ -1,7 +1,5 @@
 # lang
-
 ## depends
-
 Flex and Bison are used for tokenising and parsing the language. Many distros will provide flex and bison by default, in Arch they are in package group base-devel.
 
 ```# pacman -S flex bison```
@@ -11,7 +9,6 @@ LLVM (for LLVM IR backend) and glslang (for SPIR-V backend) for code generation.
 ```# pacman -S llvm-libs glslang```
 
 ## usage
-
 ```
 $ make
 $ ./out/compiler
@@ -22,7 +19,6 @@ $ ./out/compiler
 ```
 
 ## ideas
-
 - halide and futhark inspiration
   - futhark is a language compiler written in haskell generating opencl
   - halide is an eDSL in C++ using LLVM as a backend, then generating x86, ARM, CUDA
