@@ -5,6 +5,8 @@
 #include <vector>
 #include <utility>
 #include <optional>
+#include <memory>
+#include <variant>
 
 namespace ast {
     using identifier = size_t;
@@ -16,29 +18,18 @@ namespace ast {
         f8, f16, f32, f64,
     };
 
-    struct literal;
+    struct literal {
+        std::variant<double, uint64_t, bool> literal;
+    };
     struct binary_operator;
     struct unary_operator;
     struct expression {
-        enum {
-            VARIABLE, LITERAL, BINARY_OPERATOR, UNARY_OPERATOR,
-        } type;
-        union {
-            size_t variable;
-            literal *literal;
-            binary_operator *binary_operator;
-            unary_operator *unary_operator;
-        };
-    };
-    struct literal {
-        enum {
-            FLOAT, INTEGER, BOOL,
-        } type;
-        union {
-            double _float;
-            uint64_t _integer;
-            bool _bool;
-        };
+        std::variant<
+            size_t,
+            literal,
+            std::unique_ptr<binary_operator>,
+            std::unique_ptr<unary_operator>
+        > expression;
     };
     struct binary_operator {
         enum op {
@@ -47,60 +38,57 @@ namespace ast {
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        expression *l, *r;
+        expression l, r;
     };
     struct unary_operator {
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
-        expression *r;
+        expression r;
     };
 
     struct statement;
     struct block {
-        std::vector<statement> statements;
+        std::unique_ptr<std::vector<statement>> statements;
     };
     struct if_statement {
-        std::vector<ast::expression>* conditions;
-        std::vector<ast::block>* blocks;
+        std::vector<ast::expression> conditions;
+        std::vector<ast::block> blocks;
     };
     using optional_else = std::optional<ast::block>;
     struct else_if_list {
-        std::vector<ast::expression>* conditions;
-        std::vector<ast::block>* blocks;
+        std::vector<ast::expression> conditions;
+        std::vector<ast::block> blocks;
     };
     struct for_loop {
-        expression *initial;
-        expression *condition;
-        expression *step;
-        block *block;
+        expression initial;
+        expression condition;
+        expression step;
+        block block;
     };
     struct while_loop {
-        expression *condition;
-        block *block;
+        expression condition;
+        block block;
     };
     using parameter_list = std::vector<std::pair<type, size_t>>;
     struct function {
         type returntype;
         parameter_list parameter_list;
-        block *block;
+        block block;
     };
     struct assignment {
         size_t identifier;
-        expression *expression;
+        expression expression;
     };
     struct statement {
-        enum {
-            S_BLOCK, S_IF, S_FOR, S_WHILE, S_FUNCTION, S_ASSIGNMENT,
-        } type;
-        union {
-            block *block;
-            if_statement *if_statement;
-            for_loop *for_loop;
-            while_loop *while_loop;
-            function *function;
-            assignment *assignment;
-        };
+        std::variant<
+            block,
+            if_statement,
+            for_loop,
+            while_loop,
+            function,
+            assignment
+        > statement;
     };
     using statement_list = std::vector<statement>;
     struct program {

@@ -15,38 +15,31 @@
 
 true {
     auto literal = new ast::literal;
-    literal->type = ast::literal::BOOL;
-    literal->_bool = 1;
+    literal->literal = true;
     return yy::parser::make_LITERAL_BOOL_T(*literal); }
 false {
     auto literal = new ast::literal;
-    literal->type = ast::literal::BOOL;
-    literal->_bool = 0;
+    literal->literal = false;
     return yy::parser::make_LITERAL_BOOL_F(*literal); }
 [+-]?[0-9_]+ {
     auto literal = new ast::literal;
-    literal->type = ast::literal::INTEGER;
-    literal->_integer = parse_integer(yytext, 10);
+    literal->literal = parse_integer(yytext, 10);
     return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[xX][0-9a-fA-F_]+ {
     auto literal = new ast::literal;
-    literal->type = ast::literal::INTEGER;
-    literal->_integer = parse_integer(yytext, 16);
+    literal->literal = parse_integer(yytext, 16);
     return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[oO][0-7_]+ {
     auto literal = new ast::literal;
-    literal->type = ast::literal::INTEGER;
-    literal->_integer = parse_integer(yytext, 8);
+    literal->literal = parse_integer(yytext, 8);
     return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?0[bB][0-1_]+ {
     auto literal = new ast::literal;
-    literal->type = ast::literal::INTEGER;
-    literal->_integer = parse_integer(yytext, 2);
+    literal->literal = parse_integer(yytext, 2);
     return yy::parser::make_LITERAL_INTEGER(*literal); }
 [+-]?[0-9]+\.[0-9]+ {
     auto literal = new ast::literal;
-    literal->type = ast::literal::FLOAT;
-    literal->_float = atof(yytext);
+    literal->literal = atof(yytext);
     return yy::parser::make_LITERAL_FLOAT(*literal); }
 
 "=" { return yy::parser::make_OP_ASSIGN(); }

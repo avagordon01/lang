@@ -4,6 +4,7 @@
 #include <string>
 #include <stdio.h>
 #include <unordered_map>
+#include <memory>
 
 extern int yylineno;
 void yyerror(std::string s) {
@@ -55,20 +56,18 @@ uint64_t parse_integer(char *s, size_t base) {
     return sign * value;
 }
 
-ast::expression new_unary_op(ast::expression& r, ast::unary_operator::op op) {
-    ast::expression x;
-    x.type = ast::expression::UNARY_OPERATOR;
-    x.unary_operator = new ast::unary_operator;
-    x.unary_operator->r = &r;
-    x.unary_operator->unary_operator = op;
+std::unique_ptr<ast::unary_operator>
+new_unary_op(ast::expression r, ast::unary_operator::op op) {
+    auto x = std::make_unique<ast::unary_operator>();
+    x->r = std::move(r);
+    x->unary_operator = op;
     return x;
 }
-ast::expression new_bin_op(ast::expression& l, ast::expression& r, ast::binary_operator::op op) {
-    ast::expression x;
-    x.type = ast::expression::BINARY_OPERATOR;
-    x.binary_operator = new ast::binary_operator;
-    x.binary_operator->l = &l;
-    x.binary_operator->r = &r;
-    x.binary_operator->binary_operator = op;
+std::unique_ptr<ast::binary_operator>
+new_bin_op(ast::expression l, ast::expression r, ast::binary_operator::op op) {
+    auto x = std::make_unique<ast::binary_operator>();
+    x->l = std::move(l);
+    x->r = std::move(r);
+    x->binary_operator = op;
     return x;
 }
