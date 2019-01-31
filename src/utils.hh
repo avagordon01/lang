@@ -1,3 +1,7 @@
+#include "parser.hh"
+#define YY_DECL yy::parser::symbol_type yylex ()
+YY_DECL;
+
 #include "ast.hh"
 #include <string>
 
@@ -8,6 +12,3 @@ ast::identifier lookup_or_insert(char* c);
 uint64_t parse_integer(char *s, size_t base);
 ast::expression new_bin_op(ast::expression& l, ast::expression& r, ast::binary_operator::op op);
 ast::expression new_unary_op(ast::expression& r, ast::unary_operator::op op);
-
-#define YY_DECL yy::parser::symbol_type yylex()
-YY_DECL;

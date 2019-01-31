@@ -12,8 +12,8 @@
 }
 
 %{
-#include "lexer.hh"
 #include "utils.hh"
+#include "lexer.hh"
 %}
 
 %left OP_L_OR

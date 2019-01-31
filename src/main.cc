@@ -1,6 +1,6 @@
+#include "utils.hh"
 #include "ast.hh"
 #include "parser.hh"
-#include "utils.hh"
 #include "codegen_llvm.hh"
 
 ast::program *program_ast;

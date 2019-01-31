@@ -1,8 +1,8 @@
 %option noyywrap nodefault yylineno
 
 %{
-#include "parser.hh"
 #include "utils.hh"
+#include "parser.hh"
 %}
 
 %x COMMENT
