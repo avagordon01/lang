@@ -138,7 +138,7 @@ parameter_list: %empty { }
               ;
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
-     $$.statements = std::make_unique<std::vector<ast::statement>>($2);
+     $$.statements = $2;
      }
      ;
 

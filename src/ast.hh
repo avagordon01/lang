@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include <vector>
-#include <utility>
 #include <optional>
 #include <memory>
 #include <variant>
@@ -49,16 +48,16 @@ namespace ast {
 
     struct statement;
     struct block {
-        std::unique_ptr<std::vector<statement>> statements;
+        std::vector<statement> statements;
     };
     struct if_statement {
-        std::vector<ast::expression> conditions;
-        std::vector<ast::block> blocks;
+        std::vector<expression> conditions;
+        std::vector<block> blocks;
     };
-    using optional_else = std::optional<ast::block>;
+    using optional_else = std::optional<block>;
     struct else_if_list {
-        std::vector<ast::expression> conditions;
-        std::vector<ast::block> blocks;
+        std::vector<expression> conditions;
+        std::vector<block> blocks;
     };
     struct for_loop {
         expression initial;
