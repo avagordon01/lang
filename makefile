@@ -15,10 +15,10 @@ all: dirs out/compiler
 objects := out/lexer.o out/parser.o out/main.o out/utils.o
 depends := $(objects:.o=.d)
 
-out/lexer.cc out/lexer.hh: src/lexer.l
-	$(LEX) $(LFLAGS) --header-file=out/lexer.hh -o out/lexer.cc src/lexer.l
-out/parser.cc out/parser.hh: src/parser.y
-	$(YACC) $(YFLAGS) -o out/parser.cc src/parser.y
+out/lexer.cc out/lexer.hh: src/lexer.ll
+	$(LEX) $(LFLAGS) --header-file=out/lexer.hh -o out/lexer.cc src/lexer.ll
+out/parser.cc out/parser.hh: src/parser.yy
+	$(YACC) $(YFLAGS) -o out/parser.cc src/parser.yy
 out/%.o: out/%.cc out/lexer.hh out/parser.hh
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 out/%.o: src/%.cc out/lexer.hh out/parser.hh
