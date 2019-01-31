@@ -110,7 +110,7 @@ assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           }
 
 optional_else: %empty {
-             *$$ = std::nullopt;
+             $$ = std::nullopt;
              }
              | ELSE block {
              *$$ = $2;
