@@ -21,7 +21,7 @@ struct codegen_context_llvm {
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
-    std::map<size_t, llvm::Value *> named_values;
+    std::map<ast::identifier, llvm::Value *> named_values;
 };
 
 llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expression expression) {

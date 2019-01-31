@@ -24,7 +24,7 @@ namespace ast {
     struct unary_operator;
     struct expression {
         std::variant<
-            size_t,
+            identifier,
             literal,
             std::unique_ptr<binary_operator>,
             std::unique_ptr<unary_operator>
@@ -69,14 +69,14 @@ namespace ast {
         expression condition;
         block block;
     };
-    using parameter_list = std::vector<std::pair<type, size_t>>;
+    using parameter_list = std::vector<std::pair<type, identifier>>;
     struct function {
         type returntype;
         parameter_list parameter_list;
         block block;
     };
     struct assignment {
-        size_t identifier;
+        identifier identifier;
         expression expression;
     };
     struct statement {

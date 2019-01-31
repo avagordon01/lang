@@ -24,9 +24,9 @@ ast::identifier lookup_or_insert(char* c) {
     if (s != symbols.end()) {
         return s->second;
     } else {
-        size_t n = symbols.size();
-        symbols.insert({str, n});
-        return n;
+        ast::identifier id = symbols.size();
+        symbols.insert({str, id});
+        return id;
     }
 }
 
