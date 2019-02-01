@@ -1,6 +1,8 @@
 #include <stack>
 #include <unordered_map>
 #include <memory>
+#include <variant>
+#include <functional>
 
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Module.h>
@@ -23,6 +25,49 @@ struct codegen_context_llvm {
     std::unique_ptr<llvm::Module> module;
     std::map<ast::identifier, llvm::Value *> named_values;
 };
+
+struct llvm_codegen_fn {
+    codegen_context_llvm& ctx;
+    void operator()(ast::program& program) {
+        for (auto& statement: program.statements) {
+            std::invoke(*this, statement);
+        }
+    }
+    void operator()(ast::statement& statement) {
+        std::visit(*this, statement.statement);
+    }
+    void operator()(ast::block& block) {
+        for (auto& statement: block.statements) {
+            std::invoke(*this, statement);
+        }
+    }
+    void operator()(ast::if_statement& if_statement) {
+        for (auto& condition: if_statement.conditions) {
+            std::invoke(*this, condition);
+        }
+    }
+    void operator()(ast::for_loop& for_loop) {}
+    void operator()(ast::while_loop& while_loop) {}
+    void operator()(ast::function& function) {}
+    void operator()(ast::assignment& assignment) {}
+
+    void operator()(ast::expression& expression) {
+        std::visit(*this, expression.expression);
+    }
+    void operator()(ast::identifier& identifier) {}
+    void operator()(ast::literal& literal) {}
+    void operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
+        std::invoke(*this, binary_operator->l);
+        std::invoke(*this, binary_operator->r);
+    }
+    void operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
+        std::invoke(*this, unary_operator->r);
+    }
+};
+
+void codegen_llvm(codegen_context_llvm &ctx, ast::program &program) {
+    std::invoke(llvm_codegen_fn{ctx}, program);
+}
 
 llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expression expression) {
     switch (expression.type) {

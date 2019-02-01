@@ -129,10 +129,7 @@ parameter_list: %empty { }
               }
               ;
 
-block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET {
-     $$.statements = $2;
-     }
-     ;
+block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 
 literal: LITERAL_FLOAT
        | LITERAL_INTEGER
