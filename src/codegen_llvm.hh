@@ -27,138 +27,114 @@ struct codegen_context_llvm {
 };
 
 struct llvm_codegen_fn {
-    codegen_context_llvm& ctx;
-    void operator()(ast::program& program) {
+    codegen_context_llvm& context;
+    llvm::Value* operator()(ast::program& program) {
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
+        return NULL;
     }
-    void operator()(ast::statement& statement) {
-        std::visit(*this, statement.statement);
+    llvm::Value* operator()(ast::statement& statement) {
+        return std::visit(*this, statement.statement);
     }
-    void operator()(ast::block& block) {
+    llvm::Value* operator()(ast::block& block) {
         for (auto& statement: block.statements) {
             std::invoke(*this, statement);
         }
+        return NULL;
     }
-    void operator()(ast::if_statement& if_statement) {
+    llvm::Value* operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
             std::invoke(*this, condition);
         }
+        return NULL;
     }
-    void operator()(ast::for_loop& for_loop) {}
-    void operator()(ast::while_loop& while_loop) {}
-    void operator()(ast::function& function) {}
-    void operator()(ast::assignment& assignment) {}
+    llvm::Value* operator()(ast::for_loop& for_loop) {
+        return NULL;
+    }
+    llvm::Value* operator()(ast::while_loop& while_loop) {
+        return NULL;
+    }
+    llvm::Value* operator()(ast::function& function) {
+        return NULL;
+    }
+    llvm::Value* operator()(ast::assignment& assignment) {
+        llvm::Value* value = std::invoke(*this, assignment.expression);
+        llvm::Value* variable = context.named_values[assignment.identifier];
+        return context.builder.CreateStore(value, variable);
+    }
 
-    void operator()(ast::expression& expression) {
-        std::visit(*this, expression.expression);
+    llvm::Value* operator()(ast::expression& expression) {
+        return std::visit(*this, expression.expression);
     }
-    void operator()(ast::identifier& identifier) {}
-    void operator()(ast::literal& literal) {}
-    void operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
-        std::invoke(*this, binary_operator->l);
-        std::invoke(*this, binary_operator->r);
+    llvm::Value* operator()(ast::identifier& identifier) {
+        auto x = context.named_values.find(identifier);
+        if (x != context.named_values.end()) {
+            return x->second;
+        } else {
+            yyerror("variable used before being defined");
+            return NULL;
+        }
     }
-    void operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
-        std::invoke(*this, unary_operator->r);
+    llvm::Value* operator()(ast::literal& literal) {
+        struct literal_visitor {
+            codegen_context_llvm& context;
+            llvm::Value* operator()(double& x) {
+                return llvm::ConstantFP::get(context.context, llvm::APFloat(x));
+            }
+            llvm::Value* operator()(uint64_t& x) {
+                return llvm::ConstantInt::get(context.context, x);
+            }
+            llvm::Value* operator()(bool& x) {
+                return llvm::ConstantInt::get(context.context, x);
+            }
+        };
+        std::visit(literal_visitor{context}, literal.literal);
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
+        llvm::Value* l = std::invoke(*this, binary_operator->l);
+        llvm::Value* r = std::invoke(*this, binary_operator->r);
+        switch (binary_operator->binary_operator) {
+            case ast::binary_operator::A_ADD:
+                return context.builder.CreateFAdd(l, r, "addtmp");
+                break;
+            case ast::binary_operator::A_SUB:
+                return context.builder.CreateFSub(l, r, "subtmp");
+                break;
+            case ast::binary_operator::A_MUL:
+                return context.builder.CreateFMul(l, r, "multmp");
+                break;
+            case ast::binary_operator::A_DIV:
+            case ast::binary_operator::A_MOD:
+            case ast::binary_operator::B_SHL:
+            case ast::binary_operator::B_SHR:
+            case ast::binary_operator::B_AND:
+            case ast::binary_operator::B_XOR:
+            case ast::binary_operator::B_OR:
+            case ast::binary_operator::L_AND:
+            case ast::binary_operator::L_OR:
+            case ast::binary_operator::C_EQ:
+            case ast::binary_operator::C_NE:
+            case ast::binary_operator::C_GT:
+            case ast::binary_operator::C_GE:
+            case ast::binary_operator::C_LT:
+            case ast::binary_operator::C_LE:
+                ;
+        }
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
+        llvm::Value* r = std::invoke(*this, unary_operator->r);
+        switch (unary_operator->unary_operator) {
+            case ast::unary_operator::B_NOT:
+                break;
+            case ast::unary_operator::L_NOT:
+                break;
+        }
+        return r;
     }
 };
 
-void codegen_llvm(codegen_context_llvm &ctx, ast::program &program) {
-    std::invoke(llvm_codegen_fn{ctx}, program);
-}
-
-llvm::Value* codegen_llvmexpression(codegen_context_llvm &context, ast::expression expression) {
-    switch (expression.type) {
-        case ast::expression::VARIABLE: {
-            auto x = context.named_values.find(expression.variable);
-            if (x != context.named_values.end()) {
-                return x->second;
-            } else {
-                yyerror("variable used before being defined");
-            }
-        } break;
-        case ast::expression::LITERAL: {
-            switch (expression.literal->type) {
-                case ast::literal::FLOAT:
-                    //return llvm::ConstantFP::get(context.context, llvm::APFloat(expression.literal->_float));
-                case ast::literal::INTEGER:
-                    //return llvm::ConstantInt::get(context.context, expression.literal->_integer);
-                case ast::literal::BOOL:
-                    //return llvm::ConstantInt::get(context.context, expression.literal->_bool);
-                    ;
-                default: ;
-            }
-        } break;
-        case ast::expression::UNARY_OPERATOR: {
-            llvm::Value *r;
-            r = codegen_llvmexpression(context, *expression.unary_operator->r);
-            switch (expression.unary_operator->unary_operator) {
-                case ast::unary_operator::B_NOT:
-                    break;
-                case ast::unary_operator::L_NOT:
-                    break;
-            }
-        } break;
-        case ast::expression::BINARY_OPERATOR: {
-            llvm::Value *l, *r;
-            l = codegen_llvmexpression(context, *expression.binary_operator->l);
-            r = codegen_llvmexpression(context, *expression.binary_operator->r);
-            switch (expression.binary_operator->binary_operator) {
-                case ast::binary_operator::A_ADD:
-                    return context.builder.CreateFAdd(l, r, "addtmp");
-                    break;
-                case ast::binary_operator::A_SUB:
-                    return context.builder.CreateFSub(l, r, "subtmp");
-                    break;
-                case ast::binary_operator::A_MUL:
-                    return context.builder.CreateFMul(l, r, "multmp");
-                    break;
-                case ast::binary_operator::A_DIV:
-                case ast::binary_operator::A_MOD:
-                case ast::binary_operator::B_SHL:
-                case ast::binary_operator::B_SHR:
-                case ast::binary_operator::B_AND:
-                case ast::binary_operator::B_XOR:
-                case ast::binary_operator::B_OR:
-                case ast::binary_operator::L_AND:
-                case ast::binary_operator::L_OR:
-                case ast::binary_operator::C_EQ:
-                case ast::binary_operator::C_NE:
-                case ast::binary_operator::C_GT:
-                case ast::binary_operator::C_GE:
-                case ast::binary_operator::C_LT:
-                case ast::binary_operator::C_LE:
-                    ;
-            }
-        } break;
-    }
-    return NULL;
-}
-
-void codegen_llvmstatement(codegen_context_llvm &context, ast::statement statement) {
-    switch (statement.type) {
-        case ast::statement::S_BLOCK: {
-        } break;
-        case ast::statement::S_IF: {
-        } break;
-        case ast::statement::S_FOR: {
-        } break;
-        case ast::statement::S_WHILE: {
-        } break;
-        case ast::statement::S_FUNCTION: {
-        } break;
-        case ast::statement::S_ASSIGNMENT: {
-            ast::assignment& assign = *(statement.assignment);
-            llvm::Value* value = codegen_llvmexpression(context, *(assign.expression));
-            llvm::Value* variable = context.named_values[assign.identifier];
-            context.builder.CreateStore(value, variable);
-        } break;
-    }
-}
-
-void codegen_llvmprogram(codegen_context_llvm &context, ast::program *program) {
+void codegen_llvm(codegen_context_llvm &context, ast::program &program) {
     printf("beginning codegen\n");
     context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
 
@@ -190,9 +166,7 @@ void codegen_llvmprogram(codegen_context_llvm &context, ast::program *program) {
 
     context.module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
     std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
-    for (auto& statement: program->statements) {
-        codegen_llvmstatement(context, statement);
-    }
+    std::invoke(llvm_codegen_fn{context}, program);
     DBuilder->finalize();
     context.module->print(llvm::errs(), nullptr);
 }
