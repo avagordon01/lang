@@ -1,10 +1,7 @@
-#include "parser.hh"
-#define YY_DECL yy::parser::symbol_type yylex ()
-YY_DECL;
-
-#include "ast.hh"
 #include <string>
 #include <memory>
+#include "ast.hh"
+#include "parser.hh"
 
 extern ast::program program_ast;
 

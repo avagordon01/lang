@@ -15,6 +15,7 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/TargetSelect.h>
 
+#include "utils.hh"
 #include "ast.hh"
 
 struct codegen_context_llvm {

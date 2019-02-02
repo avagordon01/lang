@@ -1,3 +1,4 @@
+#include "parser.hh"
 #include "utils.hh"
 #include "ast.hh"
 
@@ -11,10 +12,8 @@ void yyerror(std::string s) {
     fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
     exit(1);
 }
-
-void
-yy::parser::error(const std::string& m) {
-    std::cerr << m << '\n';
+void yy::parser::error(const location_type& l, const std::string& m) {
+    std::cerr << l << ": " << m << std::endl;
 }
 
 static std::unordered_map<std::string, ast::identifier> symbols;

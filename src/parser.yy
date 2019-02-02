@@ -6,13 +6,19 @@
 %define api.value.automove
 %define parse.assert
 
+%locations
+
 %error-verbose
 
 %code requires {
 #include "ast.hh"
+struct driver;
 }
 
+%param { driver& drv }
+
 %{
+#include "driver.hh"
 #include "utils.hh"
 #include "lexer.hh"
 %}
@@ -61,7 +67,7 @@
 
 %%
 
-program: statement_list { program_ast = std::move($$); };
+program: statement_list { drv.program_ast = std::move($$); };
 
 statement_list: %empty { }
               | statement_list statement { $1.push_back($2); }
