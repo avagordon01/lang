@@ -7,9 +7,8 @@
 #include <unordered_map>
 #include <memory>
 
-extern int yylineno;
-void yyerror(std::string s) {
-    fprintf(stderr, "line %i: %s\n", yylineno, s.c_str());
+void error(std::string s) {
+    std::cout << s << std::endl;
     exit(1);
 }
 void yy::parser::error(const location_type& l, const std::string& m) {

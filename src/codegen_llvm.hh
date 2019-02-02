@@ -73,7 +73,7 @@ struct llvm_codegen_fn {
         if (x != context.named_values.end()) {
             return x->second;
         } else {
-            yyerror("variable used before being defined");
+            error("variable used before being defined");
             return NULL;
         }
     }

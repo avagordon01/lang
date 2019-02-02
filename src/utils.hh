@@ -5,7 +5,7 @@
 
 extern ast::program program_ast;
 
-void yyerror(std::string s);
+void error(std::string s);
 ast::identifier lookup_or_insert(char* c);
 uint64_t parse_integer(char *s, size_t base);
 std::unique_ptr<ast::binary_operator> new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op);
