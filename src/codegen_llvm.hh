@@ -1,4 +1,3 @@
-#include <stack>
 #include <unordered_map>
 #include <memory>
 #include <variant>
@@ -23,13 +22,14 @@ struct codegen_context_llvm {
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
-    std::map<ast::identifier, llvm::Value *> named_values;
+    std::unordered_map<ast::identifier, llvm::Value *> named_values;
 };
 
 struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
         for (auto& statement: program.statements) {
+            printf("codegen statement\n");
             std::invoke(*this, statement);
         }
         return NULL;
@@ -83,13 +83,13 @@ struct llvm_codegen_fn {
                 return llvm::ConstantFP::get(context.context, llvm::APFloat(x));
             }
             llvm::Value* operator()(uint64_t& x) {
-                return llvm::ConstantInt::get(context.context, x);
+                return NULL;//llvm::ConstantInt::get(context.context, x);
             }
             llvm::Value* operator()(bool& x) {
-                return llvm::ConstantInt::get(context.context, x);
+                return NULL;//llvm::ConstantInt::get(context.context, x);
             }
         };
-        std::visit(literal_visitor{context}, literal.literal);
+        return std::visit(literal_visitor{context}, literal.literal);
     }
     llvm::Value* operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         llvm::Value* l = std::invoke(*this, binary_operator->l);
@@ -119,6 +119,7 @@ struct llvm_codegen_fn {
             case ast::binary_operator::C_GE:
             case ast::binary_operator::C_LT:
             case ast::binary_operator::C_LE:
+                return NULL;
                 ;
         }
     }
@@ -135,9 +136,7 @@ struct llvm_codegen_fn {
 };
 
 void codegen_llvm(codegen_context_llvm &context, ast::program &program) {
-    printf("beginning codegen\n");
     context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
-
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -162,7 +161,6 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program) {
     auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     context.module->setDataLayout(TheTargetMachine->createDataLayout());
-
 
     context.module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
     std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
