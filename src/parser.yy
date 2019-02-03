@@ -17,11 +17,10 @@ struct driver;
 
 %param { driver& drv }
 
-%{
+%code {
 #include "driver.hh"
 #include "utils.hh"
-#include "lexer.hh"
-%}
+}
 
 %left OP_L_OR
 %left OP_L_AND
