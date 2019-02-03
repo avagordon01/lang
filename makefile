@@ -12,7 +12,7 @@ LDLIBS = -lLLVM-7
 
 all: dirs out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o out/utils.o
+objects := out/lexer.o out/parser.o out/main.o
 depends := $(objects:.o=.d)
 
 out/lexer.cc out/lexer.hh: src/lexer.ll

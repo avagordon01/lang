@@ -15,8 +15,14 @@
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/TargetSelect.h>
 
-#include "utils.hh"
 #include "ast.hh"
+
+#include <iostream>
+#include <string>
+void error(std::string s) {
+    std::cerr << s << std::endl;
+    exit(1);
+}
 
 struct codegen_context_llvm {
     codegen_context_llvm(): builder(context) {}

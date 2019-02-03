@@ -22,8 +22,15 @@ struct driver;
 }
 
 %code {
-#include <memory>
 
+#include <iostream>
+#include <string>
+void yy::parser::error(const location_type& l, const std::string& m) {
+    std::cerr << "line " << l.begin.line << " column " << l.begin.column << ": " << m << std::endl;
+    exit(1);
+}
+
+#include <memory>
 std::unique_ptr<ast::unary_operator>
 new_unary_op(ast::expression r, ast::unary_operator::op op) {
     auto x = std::make_unique<ast::unary_operator>();
