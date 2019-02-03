@@ -2,8 +2,52 @@
 
 %{
 #include "driver.hh"
-#include "utils.hh"
 #include "parser.hh"
+%}
+
+%{
+#include "ast.hh"
+#include <string>
+#include <unordered_map>
+
+uint64_t parse_integer(char *s, size_t base) {
+    size_t value = 0;
+    int sign = 1;
+    if (*s == '+') {
+        s++;
+    } else if (*s == '-') {
+        sign = -1;
+        s++;
+    }
+    if (base != 10) {
+        s += 2;
+    }
+    while (*s != '\0') {
+        value *= base;
+        if (*s >= '0' && *s <= '9') {
+            value += *s - '0';
+        } else if (*s >= 'a' && *s <= 'z') {
+            value += *s - 'a';
+        } else if (*s >= 'A' && *s <= 'Z') {
+            value += *s - 'A';
+        }
+        s++;
+    }
+    return sign * value;
+}
+
+static std::unordered_map<std::string, ast::identifier> symbols;
+ast::identifier lookup_or_insert(char* c) {
+    auto str = std::string(c);
+    auto s = symbols.find(str);
+    if (s != symbols.end()) {
+        return s->second;
+    } else {
+        ast::identifier id = symbols.size();
+        symbols.insert({str, id});
+        return id;
+    }
+}
 %}
 
 %x COMMENT
