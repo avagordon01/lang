@@ -129,6 +129,7 @@ struct llvm_codegen_fn {
                 return NULL;
                 ;
         }
+        return NULL;
     }
     llvm::Value* operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
         llvm::Value* r = std::invoke(*this, unary_operator->r);

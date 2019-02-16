@@ -2,12 +2,12 @@ LEX = flex
 LFLAGS =
 YACC = bison -y
 YFLAGS = -d -Werror=all
-CXX = clang++
+CXX = g++
 CPPFLAGS = -Isrc -Iout
 CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
-LDFLAGS = -L/usr/lib
+LDFLAGS =
 LDLIBS = -lLLVM-7
 
 all: out/compiler

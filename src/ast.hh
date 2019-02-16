@@ -24,10 +24,10 @@ namespace ast {
     struct unary_operator;
     struct expression {
         std::variant<
-            identifier,
-            literal,
-            std::unique_ptr<binary_operator>,
-            std::unique_ptr<unary_operator>
+            ast::identifier,
+            ast::literal,
+            std::unique_ptr<ast::binary_operator>,
+            std::unique_ptr<ast::unary_operator>
         > expression;
     };
     struct binary_operator {
@@ -37,60 +37,60 @@ namespace ast {
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        expression l, r;
+        ast::expression l, r;
     };
     struct unary_operator {
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
-        expression r;
+        ast::expression r;
     };
 
     struct statement;
     struct block {
-        std::vector<statement> statements;
+        std::vector<ast::statement> statements;
     };
     struct if_statement {
-        std::vector<expression> conditions;
-        std::vector<block> blocks;
+        std::vector<ast::expression> conditions;
+        std::vector<ast::block> blocks;
     };
-    using optional_else = std::optional<block>;
+    using optional_else = std::optional<ast::block>;
     struct else_if_list {
-        std::vector<expression> conditions;
-        std::vector<block> blocks;
+        std::vector<ast::expression> conditions;
+        std::vector<ast::block> blocks;
     };
     struct for_loop {
-        expression initial;
-        expression condition;
-        expression step;
-        block block;
+        ast::expression initial;
+        ast::expression condition;
+        ast::expression step;
+        ast::block block;
     };
     struct while_loop {
-        expression condition;
-        block block;
+        ast::expression condition;
+        ast::block block;
     };
-    using parameter_list = std::vector<std::pair<type, identifier>>;
+    using parameter_list = std::vector<std::pair<ast::type, ast::identifier>>;
     struct function {
-        type returntype;
-        parameter_list parameter_list;
-        block block;
+        ast::type returntype;
+        ast::parameter_list parameter_list;
+        ast::block block;
     };
     struct assignment {
-        identifier identifier;
-        expression expression;
+        ast::identifier identifier;
+        ast::expression expression;
     };
     struct statement {
         std::variant<
-            block,
-            if_statement,
-            for_loop,
-            while_loop,
-            function,
-            assignment
+            ast::block,
+            ast::if_statement,
+            ast::for_loop,
+            ast::while_loop,
+            ast::function,
+            ast::assignment
         > statement;
     };
-    using statement_list = std::vector<statement>;
+    using statement_list = std::vector<ast::statement>;
     struct program {
-        statement_list statements;
+        ast::statement_list statements;
     };
 }
