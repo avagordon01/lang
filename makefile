@@ -29,11 +29,8 @@ out/compiler: $(objects) | dirs
 clean:
 	rm -rf out
 
-test: out/compiler test.lang
-	out/compiler < test.lang
-
-debug: out/compiler test.lang
-	gdb out/compiler -ex 'run < test.lang'
+test: tests/parse-test.lang | out/compiler
+	out/compiler < $<
 
 .PHONY: dirs
 dirs:
