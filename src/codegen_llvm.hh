@@ -14,6 +14,8 @@
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Support/FileSystem.h>
 
 #include "ast.hh"
 
@@ -143,7 +145,7 @@ struct llvm_codegen_fn {
     }
 };
 
-void codegen_llvm(codegen_context_llvm &context, ast::program &program) {
+int codegen_llvm(codegen_context_llvm &context, ast::program &program) {
     context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
 
     llvm::InitializeAllTargetInfos();
@@ -175,4 +177,20 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program) {
     std::invoke(llvm_codegen_fn{context}, program);
     DBuilder->finalize();
     context.module->print(llvm::errs(), nullptr);
+
+    std::error_code EC;
+    llvm::raw_fd_ostream dest("out/output.o", EC, llvm::sys::fs::OpenFlags::F_None);
+    if (EC) {
+        llvm::errs() << "Could not open file: " << EC.message();
+        return 1;
+    }
+    llvm::legacy::PassManager pass;
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, llvm::TargetMachine::CGFT_ObjectFile)) {
+        llvm::errs() << "TheTargetMachine can't emit a file of this type";
+        return 1;
+    }
+    pass.run(*context.module);
+    dest.flush();
+
+    return 0;
 }
