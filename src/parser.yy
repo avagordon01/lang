@@ -27,7 +27,7 @@ struct driver;
 #include <string>
 void yy::parser::error(const location_type& l, const std::string& m) {
     std::cerr << "line " << l.begin.line << " column " << l.begin.column << ": " << m << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 #include <memory>

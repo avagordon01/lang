@@ -23,7 +23,7 @@
 #include <string>
 void error(std::string s) {
     std::cerr << s << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 struct codegen_context_llvm {
