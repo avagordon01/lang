@@ -7,7 +7,7 @@ CPPFLAGS = -Isrc -Iout
 CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
-LDFLAGS =
+LDFLAGS = -L/usr/lib
 LDLIBS = -lLLVM-7
 
 all: dirs out/compiler
@@ -28,6 +28,12 @@ out/compiler: $(objects)
 
 clean:
 	rm -rf out
+
+test: out/compiler test.lang
+	out/compiler < test.lang
+
+debug: out/compiler test.lang
+	gdb out/compiler -ex 'run < test.lang'
 
 .PHONY: dirs
 dirs:

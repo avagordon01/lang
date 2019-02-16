@@ -1,0 +1,27 @@
+u8 a = 100;
+u8 b = 2;
+f32 c = 1.000;
+/*
+
+
+*/
+if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else if (true) {
+} else {
+}
+while (true) {}
+for (a; b; c) {}
+fn u8 test() {}
+{
+    u8 d = 10;
+}
