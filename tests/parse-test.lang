@@ -19,9 +19,15 @@ if (true) {
 } else if (true) {
 } else {
 }
-while (true) {}
-for (a; b; c) {}
-fn u8 test() {}
+while (true) {
+    break 10;
+}
+for (a; b; c) {
+    continue;
+}
+fn u8 test() {
+    return 10;
+}
 {
     u8 d = 10;
 }

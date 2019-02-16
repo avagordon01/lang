@@ -79,6 +79,13 @@ namespace ast {
         ast::identifier identifier;
         ast::expression expression;
     };
+    struct s_return {
+        ast::expression expression;
+    };
+    struct s_break {
+        ast::expression expression;
+    };
+    struct s_continue {};
     struct statement {
         std::variant<
             ast::block,
@@ -86,7 +93,10 @@ namespace ast {
             ast::for_loop,
             ast::while_loop,
             ast::function,
-            ast::assignment
+            ast::assignment,
+            ast::s_return,
+            ast::s_break,
+            ast::s_continue
         > statement;
     };
     using statement_list = std::vector<ast::statement>;

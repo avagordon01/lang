@@ -64,7 +64,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token OPEN_C_BRACKET CLOSE_C_BRACKET
 %token OPEN_S_BRACKET CLOSE_S_BRACKET
 %token IF ELSE
-%token FOR WHILE
+%token FOR WHILE BREAK CONTINUE
 %token FUNCTION RETURN
 
 %token SEMICOLON
@@ -89,6 +89,9 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::for_loop> for_loop
 %type <ast::while_loop> while_loop
 %type <ast::function> function
+%type <ast::s_return> return
+%type <ast::s_break> break
+%type <ast::s_continue> continue
 
 %%
 
@@ -104,6 +107,9 @@ statement: block         { $$.statement = $1; }
          | for_loop      { $$.statement = $1; }
          | while_loop    { $$.statement = $1; }
          | function      { $$.statement = $1; }
+         | return        { $$.statement = $1; }
+         | break         { $$.statement = $1; }
+         | continue      { $$.statement = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
             $$.conditions.push_back($3);
@@ -129,11 +135,20 @@ while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
 function: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
         $$.returntype = $2;
         $$.parameter_list = $5;
+        $$.block = $7;
         }
 assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           $$.identifier = $1;
           $$.expression = $4;
           }
+return: RETURN exp SEMICOLON {
+      $$.expression = $2;
+      }
+break: BREAK exp SEMICOLON {
+     $$.expression = $2;
+     }
+continue: CONTINUE SEMICOLON {
+        }
 
 optional_else: %empty {
              $$ = std::nullopt;

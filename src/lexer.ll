@@ -109,12 +109,14 @@ false                   return yy::parser::make_LITERAL_BOOL_F(ast::literal{fals
 "{"  return yy::parser::make_OPEN_C_BRACKET(loc);
 "}"  return yy::parser::make_CLOSE_C_BRACKET(loc);
 
-if      return yy::parser::make_IF(loc);
-else    return yy::parser::make_ELSE(loc);
-for     return yy::parser::make_FOR(loc);
-while   return yy::parser::make_WHILE(loc);
-fn      return yy::parser::make_FUNCTION(loc);
-return  return yy::parser::make_RETURN(loc);
+if       return yy::parser::make_IF(loc);
+else     return yy::parser::make_ELSE(loc);
+for      return yy::parser::make_FOR(loc);
+while    return yy::parser::make_WHILE(loc);
+fn       return yy::parser::make_FUNCTION(loc);
+return   return yy::parser::make_RETURN(loc);
+break    return yy::parser::make_BREAK(loc);
+continue return yy::parser::make_CONTINUE(loc);
 
 bool return yy::parser::make_TYPE(ast::type::t_bool, loc);
 u8   return yy::parser::make_TYPE(ast::type::u8, loc);
