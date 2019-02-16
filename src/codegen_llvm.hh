@@ -145,7 +145,7 @@ struct llvm_codegen_fn {
     }
 };
 
-int codegen_llvm(codegen_context_llvm &context, ast::program &program) {
+void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& filename) {
     context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
 
     llvm::InitializeAllTargetInfos();
@@ -179,18 +179,16 @@ int codegen_llvm(codegen_context_llvm &context, ast::program &program) {
     context.module->print(llvm::errs(), nullptr);
 
     std::error_code EC;
-    llvm::raw_fd_ostream dest("out/output.o", EC, llvm::sys::fs::OpenFlags::F_None);
+    llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OpenFlags::F_None);
     if (EC) {
         llvm::errs() << "Could not open file: " << EC.message();
-        return 1;
+        exit(EXIT_FAILURE);
     }
     llvm::legacy::PassManager pass;
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, llvm::TargetMachine::CGFT_ObjectFile)) {
         llvm::errs() << "TheTargetMachine can't emit a file of this type";
-        return 1;
+        exit(EXIT_FAILURE);
     }
     pass.run(*context.module);
     dest.flush();
-
-    return 0;
 }
