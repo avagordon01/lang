@@ -42,15 +42,16 @@ $ ./out/compiler
   - not sure how to manage the blobs, uploading to the GPU, spawning the threads etc
   - just operate on blobs in memory, no need for input/output operations, and especially no string operations
 - execution
-  - should support arbitrary mixing and matching of execution modes/backends: REPL, compiletime, LLVM IR, and SPIR-V
-    - would be _incredible_ for debugging experience to REPL code on the GPU
-  - allow the user to specify where/when each bit of code should execute, and handle the data transfer in a default sensible way
-    - cross machine: TCP
-    - cross thread: shared memory
-    - to/from GPU: various??
-  - LLVM IR and SPIR-V backends cover all platforms
-    - all kinds of SIMD, SSE, AVX, NEON, etc
-    - all important GPUs
+  - allow complete control of when code is compiled and where code is executed 
+  - compilation modes: offline, JIT, REPL
+  - _where_ the code executes
+    - backends LLVM IR and SPIR-V give us basically all platforms
+    - SIMD (SSE, AVX, NEON, etc)
+    - FPU
+    - GPU
+    - multiple cores, sockets, machines...
+    - handle the data transfer in a default sensible way
+  - would be _incredible_ for debugging experience to REPL code on the GPU
 - better operators
   - first class support for
     - vectors and matrices
