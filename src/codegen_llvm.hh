@@ -159,8 +159,8 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     std::string Error;
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
     if (!Target) {
-        llvm::errs() << Error;
-        exit(1);
+        std::cerr << Error << std::endl;;
+        exit(EXIT_FAILURE);
     }
 
     auto CPU = "generic";
@@ -181,7 +181,7 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     if (!ir_filename.empty()) {
         llvm::raw_fd_ostream dest(ir_filename, EC, llvm::sys::fs::OpenFlags::F_None);
         if (EC) {
-            llvm::errs() << "Could not open file: " << EC.message();
+            std::cerr << "Could not open file: " << EC.message() << std::endl;
             exit(EXIT_FAILURE);
         }
         context.module->print(dest, nullptr);
@@ -190,12 +190,12 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
 
     llvm::raw_fd_ostream dest(obj_filename, EC, llvm::sys::fs::OpenFlags::F_None);
     if (EC) {
-        llvm::errs() << "Could not open file: " << EC.message();
+        std::cerr << "Could not open file: " << EC.message() << std::endl;
         exit(EXIT_FAILURE);
     }
     llvm::legacy::PassManager pass;
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, llvm::TargetMachine::CGFT_ObjectFile)) {
-        llvm::errs() << "TheTargetMachine can't emit a file of this type";
+        std::cerr << "TheTargetMachine can't emit a file of this type" << std::endl;
         exit(EXIT_FAILURE);
     }
     pass.run(*context.module);
