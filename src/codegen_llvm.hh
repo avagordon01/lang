@@ -145,8 +145,8 @@ struct llvm_codegen_fn {
     }
 };
 
-void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& filename) {
-    context.module = llvm::make_unique<llvm::Module>("lang compiler", context.context);
+void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& src_filename, const std::string& obj_filename, const std::string& ir_filename = "") {
+    context.module = llvm::make_unique<llvm::Module>(src_filename, context.context);
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -176,10 +176,19 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
     std::invoke(llvm_codegen_fn{context}, program);
     DBuilder->finalize();
-    context.module->print(llvm::errs(), nullptr);
 
     std::error_code EC;
-    llvm::raw_fd_ostream dest(filename, EC, llvm::sys::fs::OpenFlags::F_None);
+    if (!ir_filename.empty()) {
+        llvm::raw_fd_ostream dest(ir_filename, EC, llvm::sys::fs::OpenFlags::F_None);
+        if (EC) {
+            llvm::errs() << "Could not open file: " << EC.message();
+            exit(EXIT_FAILURE);
+        }
+        context.module->print(dest, nullptr);
+        dest.flush();
+    }
+
+    llvm::raw_fd_ostream dest(obj_filename, EC, llvm::sys::fs::OpenFlags::F_None);
     if (EC) {
         llvm::errs() << "Could not open file: " << EC.message();
         exit(EXIT_FAILURE);

@@ -30,7 +30,7 @@ clean:
 	rm -rf out
 
 test: tests/parse-test.lang | out/compiler
-	out/compiler < $<
+	out/compiler $< out/parse-test.o out/parse-test.ir
 
 .PHONY: dirs
 dirs:
