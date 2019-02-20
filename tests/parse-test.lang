@@ -25,9 +25,9 @@ while (true) {
 for (a; b; c) {
     continue;
 }
-fn u8 test() {
+fn u8 test(u8 a, u8 b, u8 c) {
     return 10;
 }
 {
-    u8 d = 10;
+    u8 d = test(a, b, c);
 }

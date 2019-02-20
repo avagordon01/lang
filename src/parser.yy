@@ -99,10 +99,14 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 
 %%
 
-program: statement_list { drv.program_ast = std::move($$); };
+program: statement_list { drv.program_ast.statements = std::move($1); };
 
 statement_list: %empty { }
-              | statement_list statement { $1.push_back($2); }
+              | statement_list statement {
+              auto& v = $$;
+              v = $1;
+              v.push_back($2);
+              }
               ;
 
 statement: block         { $$.statement = $1; }
@@ -169,9 +173,10 @@ optional_else: %empty {
 
 else_if_list: %empty { }
             | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-            auto else_if_list = $1;
-            else_if_list.conditions.push_back($5);
-            else_if_list.blocks.push_back($7);
+            auto& v = $$;
+            v = $1;
+            v.conditions.push_back($5);
+            v.blocks.push_back($7);
             }
             ;
 
@@ -180,7 +185,9 @@ parameter_list: %empty { }
               $$.push_back(std::make_pair($1, $2));
               }
               | parameter_list COMMA TYPE IDENTIFIER {
-              $1.push_back(std::make_pair($3, $4));
+              auto& v = $$;
+              v = $1;
+              v.push_back(std::make_pair($3, $4));
               }
               ;
 
@@ -189,7 +196,9 @@ argument_list: %empty { }
               $$.push_back($1);
               }
               | argument_list COMMA exp {
-              $1.push_back($3);
+              auto& v = $$;
+              v = $1;
+              v.push_back($3);
               }
               ;
 
