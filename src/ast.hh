@@ -79,6 +79,11 @@ namespace ast {
         ast::parameter_list parameter_list;
         ast::block block;
     };
+    struct variable_def {
+        ast::type type;
+        ast::identifier identifier;
+        ast::expression expression;
+    };
     struct assignment {
         ast::identifier identifier;
         ast::expression expression;
@@ -97,6 +102,7 @@ namespace ast {
             ast::for_loop,
             ast::while_loop,
             ast::function_def,
+            ast::variable_def,
             ast::assignment,
             ast::s_return,
             ast::s_break,

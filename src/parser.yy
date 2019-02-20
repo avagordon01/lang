@@ -87,6 +87,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::parameter_list> parameter_list
 %type <ast::argument_list> argument_list
 %type <ast::assignment> assignment
+%type <ast::variable_def> variable_def
 %type <ast::if_statement> if_statement
 %type <ast::for_loop> for_loop
 %type <ast::while_loop> while_loop
@@ -111,6 +112,7 @@ statement_list: %empty { }
 
 statement: block         { $$.statement = $1; }
          | assignment    { $$.statement = $1; }
+         | variable_def  { $$.statement = $1; }
          | if_statement  { $$.statement = $1; }
          | for_loop      { $$.statement = $1; }
          | while_loop    { $$.statement = $1; }
@@ -150,9 +152,14 @@ function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_
             $$.parameter_list = $6;
             $$.block = $8;
             }
-assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
+variable_def: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
+            $$.type = $1;
+            $$.identifier = $2;
+            $$.expression = $4;
+            }
+assignment: IDENTIFIER OP_ASSIGN exp SEMICOLON {
           $$.identifier = $1;
-          $$.expression = $4;
+          $$.expression = $3;
           }
 return: RETURN exp SEMICOLON {
       $$.expression = $2;

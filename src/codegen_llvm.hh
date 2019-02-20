@@ -113,6 +113,9 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::s_continue& s_continue) {
         return NULL;
     }
+    llvm::Value* operator()(ast::variable_def& variable_def) {
+        return NULL;
+    }
     llvm::Value* operator()(ast::assignment& assignment) {
         llvm::Value* value = std::invoke(*this, assignment.expression);
         llvm::Value* variable = context.named_values[assignment.identifier];
