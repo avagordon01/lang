@@ -92,7 +92,7 @@ struct llvm_codegen_fn {
         context.named_values.clear();
         size_t j = 0;
         for (auto& arg: f->args()) {
-            context.named_values[j++] = &arg;
+            context.named_values[function_def.parameter_list[j++].second] = &arg;
         }
 
         for (auto& statement: function_def.block.statements) {
