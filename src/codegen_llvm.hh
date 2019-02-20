@@ -86,13 +86,12 @@ struct llvm_codegen_fn {
         return std::visit(*this, expression.expression);
     }
     llvm::Value* operator()(ast::identifier& identifier) {
-        auto x = context.named_values.find(identifier);
-        if (x != context.named_values.end()) {
-            return x->second;
-        } else {
+        llvm::Value* x = context.named_values[identifier];
+        if (!x) {
             error("variable used before being defined");
             return NULL;
         }
+        return x;
     }
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
@@ -101,10 +100,10 @@ struct llvm_codegen_fn {
                 return llvm::ConstantFP::get(context.context, llvm::APFloat(x));
             }
             llvm::Value* operator()(uint64_t& x) {
-                return NULL;//llvm::ConstantInt::get(context.context, x);
+                return llvm::ConstantInt::get(context.context, llvm::APInt(x, 64));
             }
             llvm::Value* operator()(bool& x) {
-                return NULL;//llvm::ConstantInt::get(context.context, x);
+                return llvm::ConstantInt::get(context.context, llvm::APInt(x, 1));
             }
         };
         return std::visit(literal_visitor{context}, literal.literal);
@@ -114,43 +113,183 @@ struct llvm_codegen_fn {
         llvm::Value* r = std::invoke(*this, binary_operator->r);
         switch (binary_operator->binary_operator) {
             case ast::binary_operator::A_ADD:
-                return context.builder.CreateFAdd(l, r, "addtmp");
-                break;
             case ast::binary_operator::A_SUB:
-                return context.builder.CreateFSub(l, r, "subtmp");
-                break;
             case ast::binary_operator::A_MUL:
-                return context.builder.CreateFMul(l, r, "multmp");
-                break;
             case ast::binary_operator::A_DIV:
             case ast::binary_operator::A_MOD:
+                if (l->getType() != r->getType()) {
+                    error("LHS and RHS of arithmetic operator are not of the same type");
+                }
+                if (!ast::llvm_type_is_number(l->getType())) {
+                    error("LHS and RHS of arithmetic operator are not numbers");
+                }
+                break;
             case ast::binary_operator::B_SHL:
             case ast::binary_operator::B_SHR:
+                if (!ast::llvm_type_is_integer(l->getType())) {
+                    error("LHS of shift operator is not an integer");
+                }
+                if (!ast::llvm_type_is_integer(r->getType())) {
+                    error("RHS of shift operator is not an integer");
+                }
+                break;
             case ast::binary_operator::B_AND:
             case ast::binary_operator::B_XOR:
             case ast::binary_operator::B_OR:
+                if (l->getType() != r->getType()) {
+                    error("LHS and RHS of bitwise operator are not of the same type");
+                }
+                if (!ast::llvm_type_is_integer(l->getType())) {
+                    error("LHS of bitwise operator is not an integer");
+                }
+                if (!ast::llvm_type_is_integer(r->getType())) {
+                    error("RHS of bitwise operator is not an integer");
+                }
+                break;
             case ast::binary_operator::L_AND:
             case ast::binary_operator::L_OR:
+                if (!ast::llvm_type_is_bool(l->getType())) {
+                    error("LHS of logical operator is not a boolean");
+                }
+                if (!ast::llvm_type_is_bool(r->getType())) {
+                    error("RHS of logical operator is not a boolean");
+                }
+                break;
             case ast::binary_operator::C_EQ:
             case ast::binary_operator::C_NE:
+                if (l->getType() != r->getType()) {
+                    error("LHS and RHS of comparison operator are not of the same type");
+                }
+                break;
             case ast::binary_operator::C_GT:
             case ast::binary_operator::C_GE:
             case ast::binary_operator::C_LT:
             case ast::binary_operator::C_LE:
-                return NULL;
-                ;
+                if (l->getType() != r->getType()) {
+                    error("LHS and RHS of comparison operator are not of the same type");
+                }
+                if (!ast::llvm_type_is_number(l->getType())) {
+                    error("LHS and RHS of comparison operator are not numbers");
+                }
+                break;
         }
-        return NULL;
+        switch (binary_operator->binary_operator) {
+            case ast::binary_operator::A_ADD:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateAdd(l, r, "addtmp");
+                } else {
+                    return context.builder.CreateFAdd(l, r, "addtmp");
+                }
+                break;
+            case ast::binary_operator::A_SUB:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateSub(l, r, "subtmp");
+                } else {
+                    return context.builder.CreateFSub(l, r, "subtmp");
+                }
+                break;
+            case ast::binary_operator::A_MUL:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateMul(l, r, "multmp");
+                } else {
+                    return context.builder.CreateFMul(l, r, "multmp");
+                }
+                break;
+            case ast::binary_operator::A_DIV:
+                if (l->getType()->isIntegerTy()) {
+                    //TODO check signedness of integer llvm types
+                    return context.builder.CreateUDiv(l, r, "divtmp");
+                } else {
+                    return context.builder.CreateFDiv(l, r, "divtmp");
+                }
+                break;
+            case ast::binary_operator::A_MOD:
+                if (l->getType()->isIntegerTy()) {
+                    //TODO check signedness of integer llvm types
+                    return context.builder.CreateURem(l, r, "modtmp");
+                } else {
+                    return context.builder.CreateFRem(l, r, "modtmp");
+                }
+                break;
+            case ast::binary_operator::B_SHL:
+                return context.builder.CreateShl(l, r, "lshifttmp");
+            case ast::binary_operator::B_SHR:
+                return context.builder.CreateLShr(l, r, "rshifttmp");
+            case ast::binary_operator::B_AND:
+                return context.builder.CreateAnd(l, r, "bandtmp");
+            case ast::binary_operator::B_XOR:
+                return context.builder.CreateXor(l, r, "bxortmp");
+            case ast::binary_operator::B_OR:
+                return context.builder.CreateOr(l, r, "bortmp");
+            case ast::binary_operator::L_AND:
+                return context.builder.CreateAnd(l, r, "landtmp");
+            case ast::binary_operator::L_OR:
+                return context.builder.CreateOr(l, r, "lortmp");
+            case ast::binary_operator::C_EQ:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpEQ(l, r, "eqtmp");
+                } else {
+                    return context.builder.CreateFCmpUEQ(l, r, "eqtmp");
+                }
+            case ast::binary_operator::C_NE:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpNE(l, r, "netmp");
+                } else {
+                    return context.builder.CreateFCmpUNE(l, r, "netmp");
+                }
+            case ast::binary_operator::C_GT:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpUGT(l, r, "gttmp");
+                } else {
+                    return context.builder.CreateFCmpUGT(l, r, "gttmp");
+                }
+            case ast::binary_operator::C_GE:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpUGE(l, r, "getmp");
+                } else {
+                    return context.builder.CreateFCmpUGE(l, r, "getmp");
+                }
+            case ast::binary_operator::C_LT:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpULT(l, r, "lttmp");
+                } else {
+                    return context.builder.CreateFCmpULT(l, r, "lttmp");
+                }
+            case ast::binary_operator::C_LE:
+                if (l->getType()->isIntegerTy()) {
+                    return context.builder.CreateICmpULE(l, r, "letmp");
+                } else {
+                    return context.builder.CreateFCmpULE(l, r, "letmp");
+                }
+        }
+        assert(false);
     }
     llvm::Value* operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
         llvm::Value* r = std::invoke(*this, unary_operator->r);
         switch (unary_operator->unary_operator) {
             case ast::unary_operator::B_NOT:
+                if (!ast::llvm_type_is_integer(r->getType())) {
+                    error("RHS of bitwise negation is not an integer");
+                }
                 break;
             case ast::unary_operator::L_NOT:
+                if (!ast::llvm_type_is_bool(r->getType())) {
+                    error("RHS of bitwise negation is not boolean");
+                }
                 break;
         }
-        return r;
+        uint64_t ones = -1;
+        uint64_t one = 1;
+        switch (unary_operator->unary_operator) {
+            case ast::unary_operator::B_NOT:
+                return context.builder.CreateXor(r, ones, "bnottmp");
+            case ast::unary_operator::L_NOT:
+                return context.builder.CreateTrunc(
+                    context.builder.CreateXor(r, one, "lnottmp"),
+                    llvm::IntegerType::get(context.context, 1)
+                );
+        }
+        assert(false);
     }
 };
 
