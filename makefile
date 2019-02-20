@@ -29,17 +29,20 @@ out/compiler: $(objects) | dirs
 clean:
 	rm -rf out
 
-test: parse-test codegen-link-test
+test: parse-test codegen-test codegen-link-test
 
 parse-test: tests/parse-test.lang | out/compiler
 	out/compiler $< out/parse-test.o out/parse-test.ir
+
+codegen-test: tests/codegen-test.lang | out/compiler
+	out/compiler $< out/codegen-test.o out/codegen-test.ir
 
 codegen-link-test: tests/codegen-link-test.lang | out/compiler
 	out/compiler $< out/codegen-link-test.o out/codegen-link-test.ir
 	g++ tests/codegen-link-test.cc out/codegen-link-test.o -o out/codegen-link-test
 	out/codegen-link-test
 
-.PHONY: all dirs clean test parse-test codegen-link-test
+.PHONY: all dirs clean test parse-test codegen-test codegen-link-test
 dirs:
 	@mkdir -p out
 

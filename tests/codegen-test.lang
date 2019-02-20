@@ -1,0 +1,7 @@
+export fn u8 test(u8 b, u8 c, u8 d) {
+    u8 a = 100;
+    return a;
+}
+u8 a = 10;
+if (true) {
+}
