@@ -66,7 +66,23 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::function_def& function_def) {
-        return NULL;
+        std::vector<llvm::Type*> parameter_types;
+        for (auto& param: function_def.parameter_list) {
+            ast::type type = param.first;
+            parameter_types.push_back(ast::type_to_llvm_type(context.context, type));
+        }
+        llvm::FunctionType* ft = llvm::FunctionType::get(
+            ast::type_to_llvm_type(context.context, function_def.returntype),
+            parameter_types,
+            false);
+        llvm::Function* f = llvm::Function::Create(
+            ft, llvm::Function::ExternalLinkage, context.symbols[function_def.identifier], context.module.get());
+        size_t i = 0;
+        for (auto& arg: f->args()) {
+            arg.setName(context.symbols[function_def.parameter_list[i].second]);
+            i++;
+        }
+        return f;
     }
     llvm::Value* operator()(ast::s_return& s_return) {
         return NULL;

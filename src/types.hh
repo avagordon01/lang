@@ -1,6 +1,7 @@
 #pragma once
 
 #include <llvm/IR/Type.h>
+#include <llvm/IR/DerivedTypes.h>
 
 namespace ast {
     enum type {
@@ -46,5 +47,35 @@ namespace ast {
     }
     static bool llvm_type_is_number(llvm::Type* t) {
         return llvm_type_is_integer(t) || llvm_type_is_float(t);
+    }
+
+    static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, type t) {
+        switch (t) {
+            case t_bool:
+                return llvm::Type::getInt1Ty(context);
+            case u8:
+                return llvm::Type::getInt8Ty(context);
+            case u16:
+                return llvm::Type::getInt16Ty(context);
+            case u32:
+                return llvm::Type::getInt32Ty(context);
+            case u64:
+                return llvm::Type::getInt64Ty(context);
+            case i8:
+                return llvm::Type::getInt8Ty(context);
+            case i16:
+                return llvm::Type::getInt16Ty(context);
+            case i32:
+                return llvm::Type::getInt32Ty(context);
+            case i64:
+                return llvm::Type::getInt64Ty(context);
+            case f16:
+                return llvm::Type::getHalfTy(context);
+            case f32:
+                return llvm::Type::getFloatTy(context);
+            case f64:
+                return llvm::Type::getDoubleTy(context);
+        }
+        assert(false);
     }
 }
