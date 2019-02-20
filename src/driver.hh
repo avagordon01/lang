@@ -11,6 +11,7 @@ extern FILE *yyin;
 struct driver {
     ast::program program_ast;
     yy::location location;
+    std::vector<std::string> symbols;
     void parse(const std::string& filename) {
         location.initialize();
         scan_begin(filename);

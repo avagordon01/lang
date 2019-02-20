@@ -37,7 +37,7 @@ uint64_t parse_integer(char *s, size_t base) {
 }
 
 static std::unordered_map<std::string, ast::identifier> symbols;
-ast::identifier lookup_or_insert(char* c) {
+ast::identifier lookup_or_insert(char* c, driver& driver) {
     auto str = std::string(c);
     auto s = symbols.find(str);
     if (s != symbols.end()) {
@@ -45,6 +45,7 @@ ast::identifier lookup_or_insert(char* c) {
     } else {
         ast::identifier id = symbols.size();
         symbols.insert({str, id});
+        driver.symbols.push_back(str);
         return id;
     }
 }
@@ -132,7 +133,7 @@ f16  return yy::parser::make_TYPE(ast::type::f16, loc);
 f32  return yy::parser::make_TYPE(ast::type::f32, loc);
 f64  return yy::parser::make_TYPE(ast::type::f64, loc);
 
-[a-zA-Z_][a-zA-Z0-9_]* return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext), loc);
+[a-zA-Z_][a-zA-Z0-9_]* return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
 
 "//".*
 
