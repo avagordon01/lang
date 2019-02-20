@@ -72,6 +72,7 @@ namespace ast {
         ast::argument_list arguments;
     };
     struct function_def {
+        bool to_export;
         ast::identifier identifier;
         ast::type returntype;
         ast::parameter_list parameter_list;

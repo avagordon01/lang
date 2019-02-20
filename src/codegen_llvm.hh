@@ -76,7 +76,9 @@ struct llvm_codegen_fn {
             parameter_types,
             false);
         llvm::Function* f = llvm::Function::Create(
-            ft, llvm::Function::ExternalLinkage, context.symbols[function_def.identifier], context.module.get());
+            ft,
+            function_def.to_export ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage,
+            context.symbols[function_def.identifier], context.module.get());
         size_t i = 0;
         for (auto& arg: f->args()) {
             arg.setName(context.symbols[function_def.parameter_list[i].second]);

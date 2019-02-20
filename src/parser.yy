@@ -66,6 +66,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token IF ELSE
 %token FOR WHILE BREAK CONTINUE
 %token FUNCTION RETURN
+%token IMPORT EXPORT
 
 %token SEMICOLON
 %token COMMA
@@ -94,6 +95,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::s_return> return
 %type <ast::s_break> break
 %type <ast::s_continue> continue
+%type <bool> optional_export
 
 %%
 
@@ -134,11 +136,15 @@ while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
           $$.condition = $3;
           $$.block = $5;
           }
-function_def: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
-            $$.identifier = $3;
-            $$.returntype = $2;
-            $$.parameter_list = $5;
-            $$.block = $7;
+optional_export: %empty { $$ = false; }
+               | EXPORT { $$ = true; }
+               ;
+function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+            $$.to_export = $1;
+            $$.identifier = $4;
+            $$.returntype = $3;
+            $$.parameter_list = $6;
+            $$.block = $8;
             }
 assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           $$.identifier = $1;
