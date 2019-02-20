@@ -33,20 +33,19 @@ out/compiler: $(objects) | dirs
 clean:
 	rm -rf out
 
-test: codegen-test link-test parse-test
+type-1-tests := parse-test codegen-test
+type-2-tests := link-test
+test: $(type-1-tests) $(type-2-tests)
 
-parse-test: tests/parse-test.lang | out/compiler
-	$(DEBUG) out/compiler $< out/parse-test.o out/parse-test.ir
+$(type-1-tests): %: out/compiler
+	$(DEBUG) out/compiler tests/$@.lang out/$@.o out/$@.ir
 
-codegen-test: tests/codegen-test.lang | out/compiler
-	$(DEBUG) out/compiler $< out/codegen-test.o out/codegen-test.ir
+$(type-2-tests): %: out/compiler
+	$(DEBUG) out/compiler tests/$@.lang out/$@.o out/$@.ir
+	g++ tests/$@.cc out/$@.o -o out/$@
+	$(DEBUG) out/$@
 
-link-test: tests/link-test.lang | out/compiler
-	$(DEBUG) out/compiler $< out/link-test.o out/link-test.ir
-	g++ tests/link-test.cc out/link-test.o -o out/link-test
-	$(DEBUG) out/link-test
-
-.PHONY: all dirs clean test parse-test codegen-test link-test
+.PHONY: all dirs clean test $(type-1-tests) $(type-2-tests)
 dirs:
 	@mkdir -p out
 
