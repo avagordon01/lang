@@ -69,6 +69,7 @@ namespace ast {
     using parameter_list = std::vector<std::pair<ast::type, ast::identifier>>;
     using argument_list = std::vector<ast::expression>;
     struct function_call {
+        ast::identifier identifier;
         ast::argument_list arguments;
     };
     struct function_def {

@@ -146,7 +146,22 @@ struct llvm_codegen_fn {
         return std::visit(literal_visitor{context}, literal.literal);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
-        return NULL;
+        llvm::Function* function = context.module->getFunction(context.symbols[function_call->identifier]);
+        if (!function) {
+            error("function called before being defined");
+        }
+        std::vector<llvm::Value*> arguments;
+        for (auto& arg: function_call->arguments) {
+            arguments.push_back(std::invoke(*this, arg));
+        }
+        size_t i = 0;
+        for (auto arg = function->arg_begin(); arg != function->arg_end(); ++arg) {
+            //FIXME use our type not LLVM type
+            if (arguments[i++]->getType() != arg->getType()) {
+                error("function call type does not match function definition type");
+            }
+        }
+        return context.builder.CreateCall(function, arguments, "calltmp");
     }
     llvm::Value* operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         llvm::Value* l = std::invoke(*this, binary_operator->l);

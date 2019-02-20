@@ -202,7 +202,10 @@ argument_list: %empty { }
               }
               ;
 
-function_call: IDENTIFIER OPEN_R_BRACKET argument_list CLOSE_R_BRACKET { $$.arguments = $3; };
+function_call: IDENTIFIER OPEN_R_BRACKET argument_list CLOSE_R_BRACKET {
+             $$.identifier = $1;
+             $$.arguments = $3;
+             };
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 
