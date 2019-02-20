@@ -1,3 +1,0 @@
-fn f32 average(f32 x, f32 y) {
-    return (x + y) / 0.5;
-}

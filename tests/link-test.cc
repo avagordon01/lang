@@ -1,7 +1,7 @@
 #include <iostream>
 
 extern "C" {
-    float average(float, float);
+    double average(double, double);
 }
 
 int main() {
