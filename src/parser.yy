@@ -135,6 +135,7 @@ while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
           $$.block = $5;
           }
 function_def: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+            $$.identifier = $3;
             $$.returntype = $2;
             $$.parameter_list = $5;
             $$.block = $7;
