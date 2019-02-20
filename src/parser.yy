@@ -84,11 +84,13 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::else_if_list> else_if_list
 %type <ast::statement_list> statement_list
 %type <ast::parameter_list> parameter_list
+%type <ast::argument_list> argument_list
 %type <ast::assignment> assignment
 %type <ast::if_statement> if_statement
 %type <ast::for_loop> for_loop
 %type <ast::while_loop> while_loop
-%type <ast::function> function
+%type <ast::function_def> function_def
+%type <ast::function_call> function_call
 %type <ast::s_return> return
 %type <ast::s_break> break
 %type <ast::s_continue> continue
@@ -106,7 +108,7 @@ statement: block         { $$.statement = $1; }
          | if_statement  { $$.statement = $1; }
          | for_loop      { $$.statement = $1; }
          | while_loop    { $$.statement = $1; }
-         | function      { $$.statement = $1; }
+         | function_def  { $$.statement = $1; }
          | return        { $$.statement = $1; }
          | break         { $$.statement = $1; }
          | continue      { $$.statement = $1; }
@@ -132,11 +134,11 @@ while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
           $$.condition = $3;
           $$.block = $5;
           }
-function: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
-        $$.returntype = $2;
-        $$.parameter_list = $5;
-        $$.block = $7;
-        }
+function_def: FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+            $$.returntype = $2;
+            $$.parameter_list = $5;
+            $$.block = $7;
+            }
 assignment: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
           $$.identifier = $1;
           $$.expression = $4;
@@ -175,6 +177,17 @@ parameter_list: %empty { }
               }
               ;
 
+argument_list: %empty { }
+              | exp {
+              $$.push_back($1);
+              }
+              | argument_list COMMA exp {
+              $1.push_back($3);
+              }
+              ;
+
+function_call: IDENTIFIER OPEN_R_BRACKET argument_list CLOSE_R_BRACKET { $$.arguments = $3; };
+
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 
 literal: LITERAL_FLOAT
@@ -184,6 +197,7 @@ literal: LITERAL_FLOAT
        ;
 
 exp: IDENTIFIER { $$.expression = $1; }
+   | function_call { $$.expression = std::make_unique<ast::function_call>($1); }
    | literal { $$.expression = $1; }
    | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD); }
    | exp OP_A_SUB exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_SUB); }

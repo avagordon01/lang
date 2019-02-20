@@ -64,7 +64,7 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::while_loop& while_loop) {
         return NULL;
     }
-    llvm::Value* operator()(ast::function& function) {
+    llvm::Value* operator()(ast::function_def& function_def) {
         return NULL;
     }
     llvm::Value* operator()(ast::s_return& s_return) {
@@ -107,6 +107,9 @@ struct llvm_codegen_fn {
             }
         };
         return std::visit(literal_visitor{context}, literal.literal);
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
+        return NULL;
     }
     llvm::Value* operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         llvm::Value* l = std::invoke(*this, binary_operator->l);

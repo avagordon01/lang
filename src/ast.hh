@@ -15,12 +15,14 @@ namespace ast {
     struct literal {
         std::variant<double, uint64_t, bool> literal;
     };
+    struct function_call;
     struct binary_operator;
     struct unary_operator;
     struct expression {
         std::variant<
             ast::identifier,
             ast::literal,
+            std::unique_ptr<ast::function_call>,
             std::unique_ptr<ast::binary_operator>,
             std::unique_ptr<ast::unary_operator>
         > expression;
@@ -65,7 +67,11 @@ namespace ast {
         ast::block block;
     };
     using parameter_list = std::vector<std::pair<ast::type, ast::identifier>>;
-    struct function {
+    using argument_list = std::vector<ast::expression>;
+    struct function_call {
+        ast::argument_list arguments;
+    };
+    struct function_def {
         ast::type returntype;
         ast::parameter_list parameter_list;
         ast::block block;
@@ -87,7 +93,7 @@ namespace ast {
             ast::if_statement,
             ast::for_loop,
             ast::while_loop,
-            ast::function,
+            ast::function_def,
             ast::assignment,
             ast::s_return,
             ast::s_break,
