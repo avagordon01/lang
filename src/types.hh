@@ -7,7 +7,7 @@ namespace ast {
         t_bool,
         u8, u16, u32, u64,
         i8, i16, i32, i64,
-        f8, f16, f32, f64,
+        f16, f32, f64,
     };
     static bool type_is_bool(type t) {
         return t == t_bool;
@@ -22,7 +22,7 @@ namespace ast {
         return t >= u8 && t <= u64;
     }
     static bool type_is_float(type t) {
-        return t >= f8 && t <= f64;
+        return t >= f16 && t <= f64;
     }
     static bool type_is_number(type t) {
         return t >= u8 && t <= f64;

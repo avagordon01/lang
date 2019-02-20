@@ -128,7 +128,6 @@ i8   return yy::parser::make_TYPE(ast::type::i8, loc);
 i16  return yy::parser::make_TYPE(ast::type::i16, loc);
 i32  return yy::parser::make_TYPE(ast::type::i32, loc);
 i64  return yy::parser::make_TYPE(ast::type::i64, loc);
-f8   return yy::parser::make_TYPE(ast::type::f8, loc);
 f16  return yy::parser::make_TYPE(ast::type::f16, loc);
 f32  return yy::parser::make_TYPE(ast::type::f32, loc);
 f64  return yy::parser::make_TYPE(ast::type::f64, loc);
