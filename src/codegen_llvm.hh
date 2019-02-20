@@ -9,6 +9,7 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/DIBuilder.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetOptions.h>
@@ -39,7 +40,6 @@ struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
         for (auto& statement: program.statements) {
-            printf("codegen statement\n");
             std::invoke(*this, statement);
         }
         return NULL;
@@ -66,6 +66,7 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::function_def& function_def) {
+        //prototype
         std::vector<llvm::Type*> parameter_types;
         for (auto& param: function_def.parameter_list) {
             ast::type type = param.first;
@@ -81,13 +82,30 @@ struct llvm_codegen_fn {
             context.symbols[function_def.identifier], context.module.get());
         size_t i = 0;
         for (auto& arg: f->args()) {
-            arg.setName(context.symbols[function_def.parameter_list[i].second]);
-            i++;
+            arg.setName(context.symbols[function_def.parameter_list[i++].second]);
         }
+
+        //body
+        llvm::BasicBlock* bb = llvm::BasicBlock::Create(context.context, "entry", f);
+        context.builder.SetInsertPoint(bb);
+
+        context.named_values.clear();
+        size_t j = 0;
+        for (auto& arg: f->args()) {
+            context.named_values[j++] = &arg;
+        }
+
+        for (auto& statement: function_def.block.statements) {
+            std::invoke(*this, statement);
+        }
+
+        llvm::verifyFunction(*f);
+
         return f;
     }
     llvm::Value* operator()(ast::s_return& s_return) {
-        return NULL;
+        llvm::Value* ret = std::invoke(*this, s_return.expression);
+        return context.builder.CreateRet(ret);
     }
     llvm::Value* operator()(ast::s_break& s_break) {
         return NULL;
