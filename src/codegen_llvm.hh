@@ -32,6 +32,7 @@ struct codegen_context_llvm {
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
     std::unordered_map<ast::identifier, llvm::Value *> named_values;
+    std::vector<std::string> symbols;
 };
 
 struct llvm_codegen_fn {

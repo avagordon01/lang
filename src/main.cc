@@ -11,11 +11,11 @@ int main(int argc, char *argv[]) {
     driver driver;
     driver.parse(std::string(argv[1]));
 
+    codegen_context_llvm codegen_context_llvm;
+    codegen_context_llvm.symbols = driver.symbols;
     if (argc == 2) {
-        codegen_context_llvm codegen_context_llvm;
         codegen_llvm(codegen_context_llvm, driver.program_ast, std::string(argv[1]), std::string(argv[2]));
     } else if (argc == 3) {
-        codegen_context_llvm codegen_context_llvm;
         codegen_llvm(codegen_context_llvm, driver.program_ast, std::string(argv[1]), std::string(argv[2]), std::string(argv[3]));
     }
 
