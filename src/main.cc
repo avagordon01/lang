@@ -4,7 +4,7 @@
 int main(int argc, char *argv[]) {
     argc -= 1;
     if (!(argc >= 1 && argc <= 3)) {
-        std::cerr << "usage: " << argv[0] << " input [obj_output [ir_output]]" << std::endl;
+        std::cerr << "usage: " << argv[0] << " input.lang [output.o [output.ir]]" << std::endl;
         exit(EXIT_FAILURE);
     }
 

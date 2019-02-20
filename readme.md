@@ -11,11 +11,7 @@ LLVM (for LLVM IR backend) and glslang (for SPIR-V backend) for code generation.
 ## usage
 ```
 $ make
-$ ./out/compiler
-> u32 a = 100;
-> u32 b = 0b100_100_100;
-> a * b;
-109200
+$ out/compiler input.lang [output.o [output.ir]]
 ```
 
 ## ideas
