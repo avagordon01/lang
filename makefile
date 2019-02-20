@@ -10,6 +10,10 @@ CXXFLAGS = -g -std=c++17 -MMD -MP \
 LDFLAGS =
 LDLIBS = -lLLVM-7
 
+ifdef debug
+DEBUG = gdb -q -ex "set confirm on" -ex run -ex quit --args
+endif
+
 all: out/compiler
 
 objects := out/lexer.o out/parser.o out/main.o
@@ -29,18 +33,18 @@ out/compiler: $(objects) | dirs
 clean:
 	rm -rf out
 
-test: parse-test codegen-test link-test
+test: codegen-test link-test parse-test
 
 parse-test: tests/parse-test.lang | out/compiler
-	out/compiler $< out/parse-test.o out/parse-test.ir
+	$(DEBUG) out/compiler $< out/parse-test.o out/parse-test.ir
 
 codegen-test: tests/codegen-test.lang | out/compiler
-	out/compiler $< out/codegen-test.o out/codegen-test.ir
+	$(DEBUG) out/compiler $< out/codegen-test.o out/codegen-test.ir
 
 link-test: tests/link-test.lang | out/compiler
-	out/compiler $< out/link-test.o out/link-test.ir
+	$(DEBUG) out/compiler $< out/link-test.o out/link-test.ir
 	g++ tests/link-test.cc out/link-test.o -o out/link-test
-	out/link-test
+	$(DEBUG) out/link-test
 
 .PHONY: all dirs clean test parse-test codegen-test link-test
 dirs:

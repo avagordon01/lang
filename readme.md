@@ -14,6 +14,12 @@ $ make
 $ out/compiler input.lang [output.o [output.ir]]
 ```
 
+## testing
+```
+$ make test #will run all tests
+$ make test debug=1 #as above and will drop you into a GDB session when a test fails
+```
+
 ## ideas
 - halide and futhark inspiration
   - futhark is a language compiler written in haskell generating opencl
