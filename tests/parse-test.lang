@@ -2,19 +2,27 @@ var u64 a = 100u64;
 var i32 b = 2;
 var f32 c = 1.000;
 var i32 x = 10;
-if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else if (true) {
-} else {
+fn u8 other() {
+    if (true) {
+    } else if (true) {
+    } else {
+    }
+
+
+    /*
+    if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else if (true) {
+    } else {
+    }
+    */
 }
 while (true) {
     break 10;

@@ -40,9 +40,45 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::if_statement& if_statement) {
+        std::vector<llvm::Value*> conditions;
         for (auto& condition: if_statement.conditions) {
-            std::invoke(*this, condition);
+            conditions.push_back(std::invoke(*this, condition));
         }
+
+        llvm::Function* f = context.builder.GetInsertBlock()->getParent();
+        std::vector<llvm::BasicBlock*> condition_blocks;
+        for (size_t i = 0; i < if_statement.conditions.size(); i++) {
+            llvm::BasicBlock* bb = llvm::BasicBlock::Create(context.context, "condblock", f);
+            condition_blocks.push_back(bb);
+        }
+        std::vector<llvm::BasicBlock*> basic_blocks;
+        for (size_t i = 0; i < if_statement.blocks.size(); i++) {
+            llvm::BasicBlock* bb = llvm::BasicBlock::Create(context.context, "doblock", f);
+            basic_blocks.push_back(bb);
+        }
+        llvm::BasicBlock* merge_block = llvm::BasicBlock::Create(context.context, "mergeblock", f);
+
+        //if/else if
+        context.builder.SetInsertPoint(condition_blocks[0]);
+        context.builder.CreateCondBr(conditions[0], basic_blocks[0], condition_blocks[1]);
+        context.builder.SetInsertPoint(basic_blocks[0]);
+        std::invoke(*this, if_statement.blocks[0]);
+        context.builder.CreateBr(merge_block);
+
+        //final if/else if
+        context.builder.SetInsertPoint(condition_blocks[1]);
+        context.builder.CreateCondBr(conditions[1], basic_blocks[1], basic_blocks[2]);
+        context.builder.SetInsertPoint(basic_blocks[1]);
+        std::invoke(*this, if_statement.blocks[1]);
+        context.builder.CreateBr(merge_block);
+
+        //else
+        context.builder.SetInsertPoint(basic_blocks[2]);
+        std::invoke(*this, if_statement.blocks[2]);
+        context.builder.CreateBr(merge_block);
+
+        context.builder.SetInsertPoint(merge_block);
+
         return NULL;
     }
     llvm::Value* operator()(ast::for_loop& for_loop) {
