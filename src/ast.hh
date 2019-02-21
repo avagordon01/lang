@@ -12,8 +12,10 @@
 namespace ast {
     using identifier = size_t;
 
+    using raw_literal = std::variant<double, uint64_t, bool>;
     struct literal {
-        std::variant<double, uint64_t, bool> literal;
+        raw_literal literal;
+        std::optional<ast::type> type;
     };
     struct function_call;
     struct binary_operator;

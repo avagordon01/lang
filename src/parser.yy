@@ -74,7 +74,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token T_EOF 0
 
 %token <ast::type> TYPE
-%token <ast::literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
+%token <ast::raw_literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
 %token <ast::identifier> IDENTIFIER
 
 %type <ast::program> program
@@ -98,6 +98,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::s_break> break
 %type <ast::s_continue> continue
 %type <bool> optional_export
+%type <std::optional<ast::type>> optional_type
 
 %%
 
@@ -153,11 +154,7 @@ function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_
             $$.parameter_list = $6;
             $$.block = $8;
             }
-variable_def: VAR IDENTIFIER OP_ASSIGN exp {
-            $$.identifier = $2;
-            $$.expression = $4;
-            }
-variable_def: VAR TYPE IDENTIFIER OP_ASSIGN exp {
+variable_def: VAR optional_type IDENTIFIER OP_ASSIGN exp {
             $$.type = $2;
             $$.identifier = $3;
             $$.expression = $5;
@@ -221,10 +218,13 @@ function_call: IDENTIFIER OPEN_R_BRACKET argument_list CLOSE_R_BRACKET {
 
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 
-literal: LITERAL_FLOAT
-       | LITERAL_INTEGER
-       | LITERAL_BOOL_T
-       | LITERAL_BOOL_F
+optional_type: %empty { $$ = std::nullopt; }
+             | TYPE   { $$ = $1; }
+             ;
+literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2}; }
+       | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2}; }
+       | LITERAL_BOOL_T optional_type  { $$ = ast::literal{$1, $2}; }
+       | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2}; }
        ;
 
 exp: IDENTIFIER { $$.expression = $1; }

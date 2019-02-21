@@ -69,13 +69,13 @@ loc.step();
 ";"  return yy::parser::make_SEMICOLON(loc);
 ","  return yy::parser::make_COMMA(loc);
 
-true                    return yy::parser::make_LITERAL_BOOL_T(ast::literal{true}, loc);
-false                   return yy::parser::make_LITERAL_BOOL_F(ast::literal{false}, loc);
-[+-]?[0-9_]+            return yy::parser::make_LITERAL_INTEGER(ast::literal{parse_integer(yytext, 10)}, loc);
-[+-]?0[xX][0-9a-fA-F_]+ return yy::parser::make_LITERAL_INTEGER(ast::literal{parse_integer(yytext, 16)}, loc);
-[+-]?0[oO][0-7_]+       return yy::parser::make_LITERAL_INTEGER(ast::literal{parse_integer(yytext, 8)}, loc);
-[+-]?0[bB][0-1_]+       return yy::parser::make_LITERAL_INTEGER(ast::literal{parse_integer(yytext, 2)}, loc);
-[+-]?[0-9]+\.[0-9]+     return yy::parser::make_LITERAL_FLOAT(ast::literal{atof(yytext)}, loc);
+true                    return yy::parser::make_LITERAL_BOOL_T(ast::raw_literal{true}, loc);
+false                   return yy::parser::make_LITERAL_BOOL_F(ast::raw_literal{false}, loc);
+[+-]?[0-9_]+            return yy::parser::make_LITERAL_INTEGER(ast::raw_literal{parse_integer(yytext, 10)}, loc);
+[+-]?0[xX][0-9a-fA-F_]+ return yy::parser::make_LITERAL_INTEGER(ast::raw_literal{parse_integer(yytext, 16)}, loc);
+[+-]?0[oO][0-7_]+       return yy::parser::make_LITERAL_INTEGER(ast::raw_literal{parse_integer(yytext, 8)}, loc);
+[+-]?0[bB][0-1_]+       return yy::parser::make_LITERAL_INTEGER(ast::raw_literal{parse_integer(yytext, 2)}, loc);
+[+-]?[0-9]+\.[0-9]+     return yy::parser::make_LITERAL_FLOAT(ast::raw_literal{atof(yytext)}, loc);
 
 "="  return yy::parser::make_OP_ASSIGN(loc);
 
