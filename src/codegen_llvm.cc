@@ -119,17 +119,67 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
             codegen_context_llvm& context;
+            std::optional<ast::type> type;
             llvm::Value* operator()(double& x) {
-                return llvm::ConstantFP::get(context.context, llvm::APFloat(x));
+                llvm::Type* llvm_type;
+                if (!type) {
+                    type = ast::type::f32;
+                }
+                switch (*type) {
+                    case ast::type::f16:
+                        llvm_type = llvm::Type::getHalfTy(context.context);
+                        break;
+                    case ast::type::f32:
+                        llvm_type = llvm::Type::getFloatTy(context.context);
+                        break;
+                    case ast::type::f64:
+                        llvm_type = llvm::Type::getDoubleTy(context.context);
+                        break;
+                    default:
+                        assert(false);
+                }
+                return llvm::ConstantFP::get(llvm_type, x);
             }
             llvm::Value* operator()(uint64_t& x) {
-                return llvm::ConstantInt::get(context.context, llvm::APInt(x, 64));
+                llvm::Type* llvm_type;
+                if (!type) {
+                    type = ast::type::i32;
+                }
+                switch (*type) {
+                    case ast::type::u8:
+                        llvm_type = llvm::Type::getInt8Ty(context.context);
+                        break;
+                    case ast::type::u16:
+                        llvm_type = llvm::Type::getInt16Ty(context.context);
+                        break;
+                    case ast::type::u32:
+                        llvm_type = llvm::Type::getInt32Ty(context.context);
+                        break;
+                    case ast::type::u64:
+                        llvm_type = llvm::Type::getInt64Ty(context.context);
+                        break;
+                    case ast::type::i8:
+                        llvm_type = llvm::Type::getInt8Ty(context.context);
+                        break;
+                    case ast::type::i16:
+                        llvm_type = llvm::Type::getInt16Ty(context.context);
+                        break;
+                    case ast::type::i32:
+                        llvm_type = llvm::Type::getInt32Ty(context.context);
+                        break;
+                    case ast::type::i64:
+                        llvm_type = llvm::Type::getInt64Ty(context.context);
+                        break;
+                    default:
+                        assert(false);
+                }
+                return llvm::ConstantInt::get(llvm_type, x);
             }
             llvm::Value* operator()(bool& x) {
                 return llvm::ConstantInt::get(context.context, llvm::APInt(x, 1));
             }
         };
-        return std::visit(literal_visitor{context}, literal.literal);
+        return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
         llvm::Function* function = context.module->getFunction(context.symbols[function_call->identifier]);

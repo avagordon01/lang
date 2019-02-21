@@ -146,17 +146,45 @@ struct typecheck_fn {
     ast::type operator()(ast::literal& literal) {
         struct literal_visitor {
             typecheck_context& context;
+            std::optional<ast::type> type;
             ast::type operator()(double& x) {
-                return ast::type::f64;
+                if (!type) {
+                    return ast::type::f32;
+                }
+                if (ast::type_is_float(*type)) {
+                    return *type;
+                } else if (ast::type_is_integer(*type)) {
+                    error("redundant values after decimal point in floating point literal converted to integer type");
+                    assert(false);
+                } else {
+                    error("floating point literal cannot be converted to non number type");
+                    assert(false);
+                }
             }
             ast::type operator()(uint64_t& x) {
-                return ast::type::u64;
+                if (!type) {
+                    return ast::type::i32;
+                }
+                if (ast::type_is_number(*type)) {
+                    return *type;
+                } else {
+                    error("integer literal cannot be converted to non number type");
+                    assert(false);
+                }
             }
             ast::type operator()(bool& x) {
-                return ast::type::t_bool;
+                if (!type) {
+                    return ast::type::t_bool;
+                }
+                if (ast::type_is_bool(*type)) {
+                    return ast::type::t_bool;
+                } else {
+                    error("bool literal cannot be converted to non bool type");
+                    assert(false);
+                }
             }
         };
-        return std::visit(literal_visitor{context}, literal.literal);
+        return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
         //TODO check the function signature

@@ -1,7 +1,7 @@
-var f64 a = 0.0;
-var f64 f = 0.0;
-var f64 g = 0.0;
-var f64 h = 0.0;
+var f32 a = 0.0;
+var f32 f = 0.0;
+var f32 g = 0.0;
+var f32 h = 0.0;
 fn u8 internal(u8 a, u8 b, u8 c) {
     return a + b * c;
 }
