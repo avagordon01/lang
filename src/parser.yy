@@ -127,8 +127,12 @@ if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_
             $$.conditions.push_back($3);
             $$.blocks.push_back($5);
             auto else_if_list = $6;
-            $$.conditions = std::move(else_if_list.conditions);
-            $$.blocks = std::move(else_if_list.blocks);
+            for (auto& t: else_if_list.conditions) {
+                $$.conditions.emplace_back(std::move(t));
+            }
+            for (auto& t: else_if_list.blocks) {
+                $$.blocks.emplace_back(std::move(t));
+            }
             auto optional_else = $7;
             if (optional_else.has_value()) {
                 $$.blocks.emplace_back(std::move(optional_else.value()));
