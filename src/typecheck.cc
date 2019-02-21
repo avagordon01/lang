@@ -3,6 +3,7 @@
 #include <memory>
 #include <variant>
 #include <functional>
+#include <stack>
 
 #include "ast.hh"
 
@@ -14,13 +15,18 @@ static void error(std::string s) {
 }
 
 struct typecheck_context {
-    std::unordered_map<ast::identifier, ast::type> named_values;
+    ast::type current_function_returntype;
+    ast::type current_loop_returntype;
+    std::unordered_map<ast::identifier, ast::function_def> functions;
+    using scope = std::unordered_map<ast::identifier, ast::type>;
+    std::stack<scope> scopes;
     std::vector<std::string> symbols;
 };
 
 struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
+        context.scopes.push({});
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
@@ -37,37 +43,73 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
-            std::invoke(*this, condition);
+            if (std::invoke(*this, condition) != ast::type::t_bool) {
+                error("if statement condition not a boolean");
+            }
+        }
+        for (auto& block: if_statement.blocks) {
+            std::invoke(*this, block);
         }
         return ast::type::t_void;
     }
     ast::type operator()(ast::for_loop& for_loop) {
+        if (std::invoke(*this, for_loop.condition) != ast::type::t_bool) {
+            error("for loop condition not a boolean");
+        }
+        std::invoke(*this, for_loop.block);
         return ast::type::t_void;
     }
     ast::type operator()(ast::while_loop& while_loop) {
+        if (std::invoke(*this, while_loop.condition) != ast::type::t_bool) {
+            error("while loop condition not a boolean");
+        }
+        std::invoke(*this, while_loop.block);
         return ast::type::t_void;
     }
     ast::type operator()(ast::function_def& function_def) {
+        auto& x = context.scopes.top()[function_def.identifier];
+        if (x) {
+            error("function already defined");
+        }
+        x = function_def.returntype;
+        context.current_function_returntype = x;
+        std::invoke(*this, function_def.block);
         //TODO put the signature somewhere to typecheck function calls
         return ast::type::t_void;
     }
     ast::type operator()(ast::s_return& s_return) {
-        return std::invoke(*this, s_return.expression);
+        ast::type x = std::invoke(*this, s_return.expression);
+        if (x != context.current_function_returntype) {
+            error("return type does not match defined function return type");
+        }
+        return ast::type::t_void;
     }
     ast::type operator()(ast::s_break& s_break) {
-        return std::invoke(*this, s_break.expression);
+        //TODO check the return type matches the loop return type
+        //std::invoke(*this, s_break.expression)
+        return ast::type::t_void;
     }
     ast::type operator()(ast::s_continue& s_continue) {
         return ast::type::t_void;
     }
     ast::type operator()(ast::variable_def& variable_def) {
-        //TODO put the type of the variable somewhere to typecheck assignments
+        auto& x = context.scopes.top()[variable_def.identifier];
+        if (x) {
+            error("variable already defined");
+        }
+        x = std::invoke(*this, variable_def.expression);
+        if (x != variable_def.type) {
+            error("type mismatch in variable definition");
+        }
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
         //TODO use the variable type information to check the expression type
+        ast::type variable = context.scopes.top()[assignment.identifier];
+        if (!variable) {
+            error("variable used before being defined");
+        }
         ast::type value = std::invoke(*this, assignment.expression);
-        ast::type variable = context.named_values[assignment.identifier];
         if (value != variable) {
             error("type mismatch in assignment");
         }
@@ -78,12 +120,11 @@ struct typecheck_fn {
         return std::visit(*this, expression.expression);
     }
     ast::type operator()(ast::identifier& identifier) {
-        ast::type x = context.named_values[identifier];
-        if (!x) {
+        ast::type variable = context.scopes.top()[identifier];
+        if (!variable) {
             error("variable used before being defined");
-            return ast::type::t_void;
         }
-        return x;
+        return variable;
     }
     ast::type operator()(ast::literal& literal) {
         struct literal_visitor {
@@ -101,8 +142,9 @@ struct typecheck_fn {
         return std::visit(literal_visitor{context}, literal.literal);
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
-        //TODO check the function signature and return the return type
-        return ast::type::t_void;
+        //TODO check the function signature
+        auto& x = context.scopes.top()[function_call->identifier];
+        return x;
     }
     ast::type operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         ast::type l = std::invoke(*this, binary_operator->l);
