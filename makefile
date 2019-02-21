@@ -16,7 +16,7 @@ endif
 
 all: out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o
+objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o
 depends := $(objects:.o=.d)
 
 out/lexer.cc out/lexer.hh: src/lexer.ll | dirs

@@ -5,6 +5,7 @@
 
 namespace ast {
     enum type {
+        t_void,
         t_bool,
         u8, u16, u32, u64,
         i8, i16, i32, i64,
@@ -51,6 +52,8 @@ namespace ast {
 
     static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, type t) {
         switch (t) {
+            case t_void:
+                assert(false);
             case t_bool:
                 return llvm::Type::getInt1Ty(context);
             case u8:

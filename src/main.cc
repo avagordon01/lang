@@ -1,4 +1,5 @@
 #include "driver.hh"
+#include "typecheck.hh"
 #include "codegen_llvm.hh"
 
 int main(int argc, char *argv[]) {
@@ -10,6 +11,9 @@ int main(int argc, char *argv[]) {
 
     driver driver;
     driver.parse(std::string(argv[1]));
+
+    typecheck_context typecheck_context;
+    typecheck(typecheck_context, driver.program_ast);
 
     codegen_context_llvm codegen_context_llvm;
     codegen_context_llvm.symbols = driver.symbols;
