@@ -56,10 +56,19 @@ namespace ast {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
     };
+    struct variable_def {
+        ast::type type;
+        ast::identifier identifier;
+        ast::expression expression;
+    };
+    struct assignment {
+        ast::identifier identifier;
+        ast::expression expression;
+    };
     struct for_loop {
-        ast::expression initial;
+        ast::variable_def initial;
         ast::expression condition;
-        ast::expression step;
+        ast::assignment step;
         ast::block block;
     };
     struct while_loop {
@@ -78,15 +87,6 @@ namespace ast {
         ast::type returntype;
         ast::parameter_list parameter_list;
         ast::block block;
-    };
-    struct variable_def {
-        ast::type type;
-        ast::identifier identifier;
-        ast::expression expression;
-    };
-    struct assignment {
-        ast::identifier identifier;
-        ast::expression expression;
     };
     struct s_return {
         ast::expression expression;

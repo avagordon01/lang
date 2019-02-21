@@ -132,7 +132,7 @@ if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_
                 $$.blocks.emplace_back(std::move(optional_else.value()));
             }
             }
-for_loop: FOR OPEN_R_BRACKET exp SEMICOLON exp SEMICOLON exp CLOSE_R_BRACKET block {
+for_loop: FOR OPEN_R_BRACKET variable_def SEMICOLON exp SEMICOLON assignment CLOSE_R_BRACKET block {
         $$.initial = $3;
         $$.condition = $5;
         $$.step = $7;
