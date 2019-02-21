@@ -57,7 +57,7 @@ namespace ast {
         std::vector<ast::block> blocks;
     };
     struct variable_def {
-        ast::type type;
+        std::optional<ast::type> type;
         ast::identifier identifier;
         ast::expression expression;
     };

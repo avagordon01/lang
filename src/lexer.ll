@@ -110,6 +110,7 @@ false                   return yy::parser::make_LITERAL_BOOL_F(ast::literal{fals
 "{"  return yy::parser::make_OPEN_C_BRACKET(loc);
 "}"  return yy::parser::make_CLOSE_C_BRACKET(loc);
 
+var      return yy::parser::make_VAR(loc);
 if       return yy::parser::make_IF(loc);
 else     return yy::parser::make_ELSE(loc);
 for      return yy::parser::make_FOR(loc);

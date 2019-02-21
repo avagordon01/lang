@@ -1,6 +1,6 @@
 fn f64 internal(f64 x, f64 y) {
-    f64 half = 0.5;
-    return (x + y) * half;
+    var f64 half = 0.5;
+    return (x + y) * 0.5;
 }
 export fn f64 average(f64 x, f64 y) {
     return internal(x, y);

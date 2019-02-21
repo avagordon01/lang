@@ -47,7 +47,7 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::for_loop& for_loop) {
         context.scopes.push_back({});
-        context.scopes.back()[for_loop.initial.identifier] = for_loop.initial.type;
+        std::invoke(*this, for_loop.initial);
         if (std::invoke(*this, for_loop.condition) != ast::type::t_bool) {
             error("for loop condition not a boolean");
         }
@@ -99,8 +99,8 @@ struct typecheck_fn {
             error("variable already defined in this scope");
         }
         ast::type& t = context.scopes.back()[variable_def.identifier];
-        t = variable_def.type;
-        if (std::invoke(*this, variable_def.expression) != variable_def.type) {
+        t = std::invoke(*this, variable_def.expression);
+        if (variable_def.type && *variable_def.type != t) {
             error("type mismatch in variable definition");
         }
         return ast::type::t_void;

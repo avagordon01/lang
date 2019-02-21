@@ -67,6 +67,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token FOR WHILE BREAK CONTINUE
 %token FUNCTION RETURN
 %token IMPORT EXPORT
+%token VAR
 
 %token SEMICOLON
 %token COMMA
@@ -152,10 +153,14 @@ function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_
             $$.parameter_list = $6;
             $$.block = $8;
             }
-variable_def: TYPE IDENTIFIER OP_ASSIGN exp {
-            $$.type = $1;
+variable_def: VAR IDENTIFIER OP_ASSIGN exp {
             $$.identifier = $2;
             $$.expression = $4;
+            }
+variable_def: VAR TYPE IDENTIFIER OP_ASSIGN exp {
+            $$.type = $2;
+            $$.identifier = $3;
+            $$.expression = $5;
             }
 assignment: IDENTIFIER OP_ASSIGN exp {
           $$.identifier = $1;
