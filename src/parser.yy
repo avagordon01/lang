@@ -189,12 +189,12 @@ else_if_list: %empty { }
 
 parameter_list: %empty { }
               | TYPE IDENTIFIER {
-              $$.push_back(std::make_pair($1, $2));
+              $$.push_back({$1, $2});
               }
               | parameter_list COMMA TYPE IDENTIFIER {
               auto& v = $$;
               v = $1;
-              v.push_back(std::make_pair($3, $4));
+              v.push_back({$3, $4});
               }
               ;
 

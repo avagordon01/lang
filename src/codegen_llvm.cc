@@ -55,7 +55,7 @@ struct llvm_codegen_fn {
         //prototype
         std::vector<llvm::Type*> parameter_types;
         for (auto& param: function_def.parameter_list) {
-            ast::type type = param.first;
+            ast::type type = param.type;
             parameter_types.push_back(ast::type_to_llvm_type(context.context, type));
         }
         llvm::FunctionType* ft = llvm::FunctionType::get(
@@ -68,7 +68,7 @@ struct llvm_codegen_fn {
             context.symbols[function_def.identifier], context.module.get());
         size_t i = 0;
         for (auto& arg: f->args()) {
-            arg.setName(context.symbols[function_def.parameter_list[i++].second]);
+            arg.setName(context.symbols[function_def.parameter_list[i++].identifier]);
         }
 
         //body
@@ -78,7 +78,7 @@ struct llvm_codegen_fn {
         context.named_values.clear();
         size_t j = 0;
         for (auto& arg: f->args()) {
-            context.named_values[function_def.parameter_list[j++].second] = &arg;
+            context.named_values[function_def.parameter_list[j++].identifier] = &arg;
         }
 
         for (auto& statement: function_def.block.statements) {

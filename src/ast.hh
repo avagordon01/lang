@@ -75,7 +75,11 @@ namespace ast {
         ast::expression condition;
         ast::block block;
     };
-    using parameter_list = std::vector<std::pair<ast::type, ast::identifier>>;
+    struct parameter {
+        ast::type type;
+        ast::identifier identifier;
+    };
+    using parameter_list = std::vector<ast::parameter>;
     using argument_list = std::vector<ast::expression>;
     struct function_call {
         ast::identifier identifier;
