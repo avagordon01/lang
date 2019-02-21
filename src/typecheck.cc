@@ -3,8 +3,8 @@
 #include <memory>
 #include <variant>
 #include <functional>
-#include <stack>
 
+#include "typecheck.hh"
 #include "ast.hh"
 
 #include <string>
@@ -14,19 +14,10 @@ static void error(std::string s) {
     exit(EXIT_FAILURE);
 }
 
-struct typecheck_context {
-    ast::type current_function_returntype;
-    ast::type current_loop_returntype;
-    std::unordered_map<ast::identifier, ast::function_def> functions;
-    using scope = std::unordered_map<ast::identifier, ast::type>;
-    std::stack<scope> scopes;
-    std::vector<std::string> symbols;
-};
-
 struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
-        context.scopes.push({});
+        context.scopes.push_back({});
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
@@ -48,32 +39,44 @@ struct typecheck_fn {
             }
         }
         for (auto& block: if_statement.blocks) {
+            context.scopes.push_back({});
             std::invoke(*this, block);
+            context.scopes.pop_back();
         }
         return ast::type::t_void;
     }
     ast::type operator()(ast::for_loop& for_loop) {
+        context.scopes.push_back({});
+        context.scopes.back()[for_loop.initial.identifier] = for_loop.initial.type;
         if (std::invoke(*this, for_loop.condition) != ast::type::t_bool) {
             error("for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
+        context.scopes.pop_back();
         return ast::type::t_void;
     }
     ast::type operator()(ast::while_loop& while_loop) {
         if (std::invoke(*this, while_loop.condition) != ast::type::t_bool) {
             error("while loop condition not a boolean");
         }
+        context.scopes.push_back({});
         std::invoke(*this, while_loop.block);
+        context.scopes.pop_back();
         return ast::type::t_void;
     }
     ast::type operator()(ast::function_def& function_def) {
-        auto& x = context.scopes.top()[function_def.identifier];
-        if (x) {
+        auto v = context.scopes.front().find(function_def.identifier);
+        if (v != context.scopes.front().end()) {
             error("function already defined");
         }
-        x = function_def.returntype;
-        context.current_function_returntype = x;
+        context.scopes.front()[function_def.identifier] = function_def.returntype;
+        context.current_function_returntype = function_def.returntype;
+        context.scopes.push_back({});
+        for (auto& parameter: function_def.parameter_list) {
+            context.scopes.back()[parameter.identifier] = parameter.type;
+        }
         std::invoke(*this, function_def.block);
+        context.scopes.pop_back();
         //TODO put the signature somewhere to typecheck function calls
         return ast::type::t_void;
     }
@@ -85,28 +88,34 @@ struct typecheck_fn {
         return ast::type::t_void;
     }
     ast::type operator()(ast::s_break& s_break) {
-        //TODO check the return type matches the loop return type
-        //std::invoke(*this, s_break.expression)
         return ast::type::t_void;
     }
     ast::type operator()(ast::s_continue& s_continue) {
         return ast::type::t_void;
     }
     ast::type operator()(ast::variable_def& variable_def) {
-        auto& x = context.scopes.top()[variable_def.identifier];
-        if (x) {
-            error("variable already defined");
+        auto v = context.scopes.back().find(variable_def.identifier);
+        if (v != context.scopes.back().end()) {
+            error("variable already defined in this scope");
         }
-        x = std::invoke(*this, variable_def.expression);
-        if (x != variable_def.type) {
+        ast::type& t = context.scopes.back()[variable_def.identifier];
+        t = variable_def.type;
+        if (std::invoke(*this, variable_def.expression) != variable_def.type) {
             error("type mismatch in variable definition");
         }
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
-        //TODO use the variable type information to check the expression type
-        ast::type variable = context.scopes.top()[assignment.identifier];
-        if (!variable) {
+        ast::type variable;
+        auto it = context.scopes.rbegin();
+        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
+            auto v = it->find(assignment.identifier);
+            if (v != it->end()) {
+                variable = v->second;
+                break;
+            }
+        }
+        if (it == context.scopes.rend()) {
             error("variable used before being defined");
         }
         ast::type value = std::invoke(*this, assignment.expression);
@@ -120,8 +129,16 @@ struct typecheck_fn {
         return std::visit(*this, expression.expression);
     }
     ast::type operator()(ast::identifier& identifier) {
-        ast::type variable = context.scopes.top()[identifier];
-        if (!variable) {
+        ast::type variable;
+        auto it = context.scopes.rbegin();
+        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
+            auto v = it->find(identifier);
+            if (v != it->end()) {
+                variable = v->second;
+                break;
+            }
+        }
+        if (it == context.scopes.rend()) {
             error("variable used before being defined");
         }
         return variable;
@@ -143,8 +160,11 @@ struct typecheck_fn {
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
         //TODO check the function signature
-        auto& x = context.scopes.top()[function_call->identifier];
-        return x;
+        auto v = context.scopes.front().find(function_call->identifier);
+        if (v == context.scopes.front().end()) {
+            error("function called before being defined");
+        }
+        return v->second;
     }
     ast::type operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         ast::type l = std::invoke(*this, binary_operator->l);

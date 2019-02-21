@@ -1,16 +1,12 @@
 u64 a = 100;
 u64 b = 2;
 f64 c = 1.000;
-/*
-
-
-*/
+u64 x = 10;
 if (true) {
 } else if (true) {
 } else if (true) {
 } else if (true) {
 } else if (true) {
-    u64 x = 10;
 } else if (true) {
 } else if (true) {
 } else if (true) {
@@ -23,15 +19,13 @@ if (true) {
 while (true) {
     break 10;
 }
-/*
 for (u64 i = 0; i < 10; i = i + 1) {
     continue;
 }
-*/
 fn u64 test(u64 a, u64 b, u64 c) {
     return 10;
 }
 {
-    u64 f = 0;
+    f64 f = 0.0;
     u64 d = test(f, f, f);
 }
