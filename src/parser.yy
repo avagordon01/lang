@@ -110,16 +110,16 @@ statement_list: %empty { }
               }
               ;
 
-statement: block         { $$.statement = $1; }
-         | assignment    { $$.statement = $1; }
-         | variable_def  { $$.statement = $1; }
-         | if_statement  { $$.statement = $1; }
-         | for_loop      { $$.statement = $1; }
-         | while_loop    { $$.statement = $1; }
-         | function_def  { $$.statement = $1; }
-         | return        { $$.statement = $1; }
-         | break         { $$.statement = $1; }
-         | continue      { $$.statement = $1; }
+statement: block        { $$.statement = $1; }
+         | if_statement { $$.statement = $1; }
+         | for_loop     { $$.statement = $1; }
+         | while_loop   { $$.statement = $1; }
+         | function_def { $$.statement = $1; }
+         | assignment   SEMICOLON { $$.statement = $1; }
+         | variable_def SEMICOLON { $$.statement = $1; }
+         | return       SEMICOLON { $$.statement = $1; }
+         | break        SEMICOLON { $$.statement = $1; }
+         | continue     SEMICOLON { $$.statement = $1; }
          ;
 if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
             $$.conditions.push_back($3);
@@ -152,22 +152,22 @@ function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_
             $$.parameter_list = $6;
             $$.block = $8;
             }
-variable_def: TYPE IDENTIFIER OP_ASSIGN exp SEMICOLON {
+variable_def: TYPE IDENTIFIER OP_ASSIGN exp {
             $$.type = $1;
             $$.identifier = $2;
             $$.expression = $4;
             }
-assignment: IDENTIFIER OP_ASSIGN exp SEMICOLON {
+assignment: IDENTIFIER OP_ASSIGN exp {
           $$.identifier = $1;
           $$.expression = $3;
           }
-return: RETURN exp SEMICOLON {
+return: RETURN exp {
       $$.expression = $2;
       }
-break: BREAK exp SEMICOLON {
+break: BREAK exp {
      $$.expression = $2;
      }
-continue: CONTINUE SEMICOLON {
+continue: CONTINUE {
         }
 
 optional_else: %empty {
