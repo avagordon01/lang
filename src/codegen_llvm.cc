@@ -25,6 +25,7 @@
 struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
+        context.scopes.push_back({});
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
@@ -71,7 +72,9 @@ struct llvm_codegen_fn {
                 context.builder.SetInsertPoint(condition_blocks[i]);
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
+                context.scopes.push_back({});
                 std::invoke(*this, if_statement.blocks[i]);
+                context.scopes.pop_back();
                 context.builder.CreateBr(merge_block);
             } else {
                 //final if/else if
@@ -82,14 +85,18 @@ struct llvm_codegen_fn {
                     context.builder.CreateCondBr(conditions[i], basic_blocks[i], merge_block);
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
+                context.scopes.push_back({});
                 std::invoke(*this, if_statement.blocks[i]);
+                context.scopes.pop_back();
                 context.builder.CreateBr(merge_block);
             }
         }
         if (if_statement.blocks.size() > if_statement.conditions.size()) {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
+            context.scopes.push_back({});
             std::invoke(*this, if_statement.blocks.back());
+            context.scopes.pop_back();
             context.builder.CreateBr(merge_block);
         }
 
@@ -127,15 +134,16 @@ struct llvm_codegen_fn {
         llvm::BasicBlock* bb = llvm::BasicBlock::Create(context.context, "entry", f);
         context.builder.SetInsertPoint(bb);
 
-        context.named_values.clear();
+        context.scopes.push_back({});
         size_t j = 0;
         for (auto& arg: f->args()) {
-            context.named_values[function_def.parameter_list[j++].identifier] = &arg;
+            context.scopes.back()[function_def.parameter_list[j++].identifier] = &arg;
         }
 
         for (auto& statement: function_def.block.statements) {
             std::invoke(*this, statement);
         }
+        context.scopes.pop_back();
 
         llvm::verifyFunction(*f);
 
@@ -155,8 +163,16 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {
+        llvm::Value* variable;
+        auto it = context.scopes.rbegin();
+        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
+            auto v = it->find(assignment.identifier);
+            if (v != it->end()) {
+                variable = v->second;
+                break;
+            }
+        }
         llvm::Value* value = std::invoke(*this, assignment.expression);
-        llvm::Value* variable = context.named_values[assignment.identifier];
         return context.builder.CreateStore(value, variable);
     }
 
@@ -164,9 +180,16 @@ struct llvm_codegen_fn {
         return std::visit(*this, expression.expression);
     }
     llvm::Value* operator()(ast::identifier& identifier) {
-        llvm::Value* x = context.named_values[identifier];
-        assert(x);
-        return x;
+        llvm::Value* variable;
+        auto it = context.scopes.rbegin();
+        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
+            auto v = it->find(identifier);
+            if (v != it->end()) {
+                variable = v->second;
+                break;
+            }
+        }
+        return variable;
     }
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
