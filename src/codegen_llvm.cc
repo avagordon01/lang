@@ -173,7 +173,8 @@ struct llvm_codegen_fn {
             }
         }
         llvm::Value* value = std::invoke(*this, assignment.expression);
-        return context.builder.CreateStore(value, variable);
+        context.builder.CreateStore(value, variable);
+        return NULL;
     }
 
     llvm::Value* operator()(ast::expression& expression) {
