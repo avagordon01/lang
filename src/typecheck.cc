@@ -98,11 +98,11 @@ struct typecheck_fn {
         if (v != context.scopes.back().end()) {
             error("variable already defined in this scope");
         }
-        ast::type& t = context.scopes.back()[variable_def.identifier];
-        t = std::invoke(*this, variable_def.expression);
-        if (variable_def.type && *variable_def.type != t) {
+        ast::type t = std::invoke(*this, variable_def.expression);
+        if (variable_def.type && variable_def.type != t) {
             error("type mismatch in variable definition");
         }
+        variable_def.type = t;
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
