@@ -103,6 +103,7 @@ struct typecheck_fn {
             error("type mismatch in variable definition");
         }
         variable_def.type = t;
+        context.scopes.back()[variable_def.identifier] = *variable_def.type;
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {

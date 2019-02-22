@@ -13,7 +13,7 @@ struct codegen_context_llvm {
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
-    using scope = std::unordered_map<ast::identifier, llvm::Value*>;
+    using scope = std::unordered_map<ast::identifier, llvm::AllocaInst*>;
     std::vector<scope> scopes;
     std::vector<std::string> symbols;
 };

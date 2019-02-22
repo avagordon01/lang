@@ -22,6 +22,18 @@
 #include "ast.hh"
 #include "codegen_llvm.hh"
 
+static llvm::AllocaInst *
+CreateEntryBlockAlloca(
+codegen_context_llvm& context, llvm::Function *f, const ast::identifier identifier, ast::type type
+) {
+    llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
+    llvm::BasicBlock* entry_bb = &f->getEntryBlock();
+    context.builder.SetInsertPoint(entry_bb);
+    llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols[identifier].c_str());
+    context.builder.SetInsertPoint(saved_bb);
+    return a;
+}
+
 struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
@@ -137,12 +149,13 @@ struct llvm_codegen_fn {
         context.scopes.push_back({});
         size_t j = 0;
         for (auto& arg: f->args()) {
-            context.scopes.back()[function_def.parameter_list[j++].identifier] = &arg;
+            ast::parameter param = function_def.parameter_list[j++];
+            llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, f, param.identifier, param.type);
+            context.builder.CreateStore(&arg, alloca);
+            context.scopes.back()[param.identifier] = alloca;
         }
 
-        for (auto& statement: function_def.block.statements) {
-            std::invoke(*this, statement);
-        }
+        std::invoke(*this, function_def.block);
         context.scopes.pop_back();
 
         llvm::verifyFunction(*f);
@@ -160,6 +173,11 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::variable_def& variable_def) {
+        llvm::Function* f = context.builder.GetInsertBlock()->getParent();
+        llvm::Value* value = std::invoke(*this, variable_def.expression);
+        llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, f, variable_def.identifier, *variable_def.type);
+        context.builder.CreateStore(value, alloca);
+        context.scopes.back()[variable_def.identifier] = alloca;
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {
@@ -190,7 +208,7 @@ struct llvm_codegen_fn {
                 break;
             }
         }
-        return variable;
+        return context.builder.CreateLoad(variable, context.symbols[identifier].c_str());
     }
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
