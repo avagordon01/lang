@@ -147,10 +147,11 @@ struct typecheck_fn {
     ast::type operator()(ast::literal& literal) {
         struct literal_visitor {
             typecheck_context& context;
-            std::optional<ast::type> type;
+            std::optional<ast::type>& type;
             ast::type operator()(double& x) {
                 if (!type) {
-                    return ast::type::f32;
+                    *type = ast::type::f32;
+                    return *type;
                 }
                 if (ast::type_is_float(*type)) {
                     return *type;
@@ -164,7 +165,8 @@ struct typecheck_fn {
             }
             ast::type operator()(uint64_t& x) {
                 if (!type) {
-                    return ast::type::i32;
+                    *type = ast::type::i32;
+                    return *type;
                 }
                 if (ast::type_is_number(*type)) {
                     return *type;
@@ -175,7 +177,8 @@ struct typecheck_fn {
             }
             ast::type operator()(bool& x) {
                 if (!type) {
-                    return ast::type::t_bool;
+                    *type = ast::type::t_bool;
+                    return *type;
                 }
                 if (ast::type_is_bool(*type)) {
                     return ast::type::t_bool;
