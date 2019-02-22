@@ -117,6 +117,22 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::for_loop& for_loop) {
+        llvm::Function* f = context.builder.GetInsertBlock()->getParent();
+        context.scopes.push_back({});
+        std::invoke(*this, for_loop.initial);
+        llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "for", f);
+        context.builder.CreateBr(loop_bb);
+        context.builder.SetInsertPoint(loop_bb);
+        std::invoke(*this, for_loop.block);
+        std::invoke(*this, for_loop.step);
+        llvm::Value* cond = context.builder.CreateICmpEQ(
+            std::invoke(*this, for_loop.condition),
+            llvm::ConstantInt::getTrue(context.context),
+            "forcond");
+        context.scopes.pop_back();
+        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "formerge", f);
+        context.builder.CreateCondBr(cond, loop_bb, merge_bb);
+        context.builder.SetInsertPoint(merge_bb);
         return NULL;
     }
     llvm::Value* operator()(ast::while_loop& while_loop) {
