@@ -60,24 +60,38 @@ struct llvm_codegen_fn {
 
         context.builder.CreateBr(condition_blocks[0]);
 
-        //if/else if
-        context.builder.SetInsertPoint(condition_blocks[0]);
-        context.builder.CreateCondBr(conditions[0], basic_blocks[0], condition_blocks[1]);
-        context.builder.SetInsertPoint(basic_blocks[0]);
-        std::invoke(*this, if_statement.blocks[0]);
-        context.builder.CreateBr(merge_block);
+        assert(if_statement.blocks.size() >= 1);
+        assert(if_statement.conditions.size() >= 1);
+        assert(if_statement.blocks.size() == if_statement.conditions.size() ||
+            if_statement.blocks.size() == if_statement.conditions.size() + 1);
 
-        //final if/else if
-        context.builder.SetInsertPoint(condition_blocks[1]);
-        context.builder.CreateCondBr(conditions[1], basic_blocks[1], basic_blocks[2]);
-        context.builder.SetInsertPoint(basic_blocks[1]);
-        std::invoke(*this, if_statement.blocks[1]);
-        context.builder.CreateBr(merge_block);
-
-        //else
-        context.builder.SetInsertPoint(basic_blocks[2]);
-        std::invoke(*this, if_statement.blocks[2]);
-        context.builder.CreateBr(merge_block);
+        for (size_t i = 0; i < if_statement.conditions.size(); i++) {
+            if (i != if_statement.conditions.size()-1) {
+                //if/else if
+                context.builder.SetInsertPoint(condition_blocks[i]);
+                context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
+                context.builder.SetInsertPoint(basic_blocks[i]);
+                std::invoke(*this, if_statement.blocks[i]);
+                context.builder.CreateBr(merge_block);
+            } else {
+                //final if/else if
+                context.builder.SetInsertPoint(condition_blocks[i]);
+                if (if_statement.blocks.size() > if_statement.conditions.size()) {
+                    context.builder.CreateCondBr(conditions[i], basic_blocks[i], basic_blocks.back());
+                } else {
+                    context.builder.CreateCondBr(conditions[i], basic_blocks[i], merge_block);
+                }
+                context.builder.SetInsertPoint(basic_blocks[i]);
+                std::invoke(*this, if_statement.blocks[i]);
+                context.builder.CreateBr(merge_block);
+            }
+        }
+        if (if_statement.blocks.size() > if_statement.conditions.size()) {
+            //else
+            context.builder.SetInsertPoint(basic_blocks.back());
+            std::invoke(*this, if_statement.blocks.back());
+            context.builder.CreateBr(merge_block);
+        }
 
         context.builder.SetInsertPoint(merge_block);
 

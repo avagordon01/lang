@@ -4,26 +4,37 @@ var f32 c = 1.000;
 var i32 x = 10;
 fn u8 other() {
     if (true) {
+    }
+
+    if (true) {
+    } else {
+    }
+
+    if (true) {
+    } else if (true) {
+    }
+
+    if (true) {
     } else if (true) {
     } else {
     }
-    return 10u8;
 
-
-    /*
     if (true) {
     } else if (true) {
     } else if (true) {
     } else if (true) {
     } else if (true) {
-    } else if (true) {
+    }
+
+    if (true) {
     } else if (true) {
     } else if (true) {
     } else if (true) {
     } else if (true) {
     } else {
     }
-    */
+
+    return 10u8;
 }
 while (true) {
     break 10;
