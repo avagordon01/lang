@@ -7,6 +7,7 @@ fn u8 other() {
     } else if (true) {
     } else {
     }
+    return 10u8;
 
 
     /*

@@ -58,6 +58,8 @@ struct llvm_codegen_fn {
         }
         llvm::BasicBlock* merge_block = llvm::BasicBlock::Create(context.context, "mergeblock", f);
 
+        context.builder.CreateBr(condition_blocks[0]);
+
         //if/else if
         context.builder.SetInsertPoint(condition_blocks[0]);
         context.builder.CreateCondBr(conditions[0], basic_blocks[0], condition_blocks[1]);
