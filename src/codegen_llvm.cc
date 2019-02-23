@@ -280,10 +280,23 @@ struct llvm_codegen_fn {
                     case ast::type::i64:
                         llvm_type = llvm::Type::getInt64Ty(context.context);
                         break;
+                    case ast::type::f16:
+                        llvm_type = llvm::Type::getHalfTy(context.context);
+                        break;
+                    case ast::type::f32:
+                        llvm_type = llvm::Type::getFloatTy(context.context);
+                        break;
+                    case ast::type::f64:
+                        llvm_type = llvm::Type::getDoubleTy(context.context);
+                        break;
                     default:
                         assert(false);
                 }
-                return llvm::ConstantInt::get(llvm_type, x);
+                if (ast::type_is_integer(*type)) {
+                    return llvm::ConstantInt::get(llvm_type, x);
+                } else {
+                    return llvm::ConstantFP::get(llvm_type, static_cast<double>(x));
+                }
             }
             llvm::Value* operator()(bool& x) {
                 return llvm::ConstantInt::get(context.context, llvm::APInt(x, 1));

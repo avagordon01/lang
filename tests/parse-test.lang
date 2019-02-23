@@ -36,6 +36,7 @@ while (true) {
     break 10;
 }
 fn u64 test(u64 a, u64 b, u64 c) {
+    var f = 1f32;
     var x = 0;
     for (var i = 0; i < 10; i = i + 1) {
         x = i;
