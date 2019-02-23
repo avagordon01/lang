@@ -39,7 +39,7 @@ fn u64 test(u64 a, u64 b, u64 c) {
         x = i;
     }
     while (true) {
-        break 10;
+        break;
     }
     return 10u64;
 }

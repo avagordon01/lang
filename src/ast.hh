@@ -97,9 +97,7 @@ namespace ast {
     struct s_return {
         ast::expression expression;
     };
-    struct s_break {
-        ast::expression expression;
-    };
+    struct s_break {};
     struct s_continue {};
     struct statement {
         std::variant<

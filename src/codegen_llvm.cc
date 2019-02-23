@@ -21,6 +21,7 @@
 #include <iostream>
 #include "ast.hh"
 #include "codegen_llvm.hh"
+#include "error.hh"
 
 static llvm::AllocaInst *
 CreateEntryBlockAlloca(
@@ -121,6 +122,9 @@ struct llvm_codegen_fn {
         context.scopes.push_back({});
         std::invoke(*this, for_loop.initial);
         llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "for", f);
+        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "formerge", f);
+        context.current_loop_entry = loop_bb;
+        context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
         context.builder.SetInsertPoint(loop_bb);
         std::invoke(*this, for_loop.block);
@@ -130,7 +134,6 @@ struct llvm_codegen_fn {
             llvm::ConstantInt::getTrue(context.context),
             "forcond");
         context.scopes.pop_back();
-        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "formerge", f);
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
@@ -139,6 +142,9 @@ struct llvm_codegen_fn {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         context.scopes.push_back({});
         llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "while", f);
+        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "whilemerge", f);
+        context.current_loop_entry = loop_bb;
+        context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
         context.builder.SetInsertPoint(loop_bb);
         std::invoke(*this, while_loop.block);
@@ -147,7 +153,6 @@ struct llvm_codegen_fn {
             llvm::ConstantInt::getTrue(context.context),
             "whilecond");
         context.scopes.pop_back();
-        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "whilemerge", f);
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
@@ -197,9 +202,17 @@ struct llvm_codegen_fn {
         return context.builder.CreateRet(ret);
     }
     llvm::Value* operator()(ast::s_break& s_break) {
+        if (!context.current_loop_exit) {
+            error("cannot call break statement outside of a loop body");
+        }
+        context.builder.CreateBr(context.current_loop_exit);
         return NULL;
     }
     llvm::Value* operator()(ast::s_continue& s_continue) {
+        if (!context.current_loop_entry) {
+            error("cannot call continue statement outside of a loop body");
+        }
+        context.builder.CreateBr(context.current_loop_entry);
         return NULL;
     }
     llvm::Value* operator()(ast::variable_def& variable_def) {

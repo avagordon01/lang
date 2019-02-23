@@ -170,11 +170,8 @@ assignment: IDENTIFIER OP_ASSIGN exp {
 return: RETURN exp {
       $$.expression = $2;
       }
-break: BREAK exp {
-     $$.expression = $2;
-     }
-continue: CONTINUE {
-        }
+break: BREAK { }
+continue: CONTINUE { }
 
 optional_else: %empty {
              $$ = std::nullopt;

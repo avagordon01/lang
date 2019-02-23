@@ -41,7 +41,8 @@ $(type-1-tests): %: out/compiler
 	$(DEBUG) out/compiler tests/$@.lang out/$@.o out/$@.ir
 
 $(type-2-tests): %: out/compiler
-	$(DEBUG) out/compiler tests/$@.lang out/$@.o out/$@.ir
+	$(DEBUG) out/compiler tests/$@.lang out/$@.o.broken out/$@.ir
+	llc -filetype=obj out/$@.ir -o out/$@.o
 	g++ tests/$@.cc out/$@.o -o out/$@
 	$(DEBUG) out/$@
 
