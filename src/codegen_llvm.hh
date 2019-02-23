@@ -20,4 +20,4 @@ struct codegen_context_llvm {
     llvm::BasicBlock* current_loop_entry = NULL;
 };
 
-void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& src_filename, const std::string& obj_filename, const std::string& ir_filename = "");
+void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& src_filename, const std::string& ir_filename);

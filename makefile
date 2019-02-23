@@ -38,10 +38,11 @@ type-2-tests := link-test
 test: $(type-1-tests) $(type-2-tests)
 
 $(type-1-tests): %: out/compiler
-	$(DEBUG) out/compiler tests/$@.lang out/$@.o out/$@.ir
+	$(DEBUG) out/compiler tests/$@.lang out/$@.ir
+	llc -filetype=obj out/$@.ir -o out/$@.o
 
 $(type-2-tests): %: out/compiler
-	$(DEBUG) out/compiler tests/$@.lang out/$@.o.broken out/$@.ir
+	$(DEBUG) out/compiler tests/$@.lang out/$@.ir
 	llc -filetype=obj out/$@.ir -o out/$@.o
 	g++ tests/$@.cc out/$@.o -o out/$@
 	$(DEBUG) out/$@
