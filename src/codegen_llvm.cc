@@ -326,7 +326,7 @@ struct llvm_codegen_fn {
                 }
             }
             llvm::Value* operator()(bool& x) {
-                return llvm::ConstantInt::get(context.context, llvm::APInt(x, 1));
+                return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context.context), x);
             }
         };
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
