@@ -14,41 +14,45 @@ ifdef debug
 DEBUG = gdb -q -ex "set confirm on" -ex run -ex quit --args
 endif
 
+ifdef quiet
+Q := @
+endif
+
 all: out/compiler
 
 objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o
 depends := $(objects:.o=.d)
 
 out/lexer.cc out/lexer.hh: src/lexer.ll | dirs
-	$(LEX) $(LFLAGS) --header-file=out/lexer.hh -o out/lexer.cc src/lexer.ll
+	$(Q) $(LEX) $(LFLAGS) --header-file=out/lexer.hh -o out/lexer.cc src/lexer.ll
 out/parser.cc out/parser.hh: src/parser.yy | dirs
-	$(YACC) $(YFLAGS) -o out/parser.cc src/parser.yy
+	$(Q) $(YACC) $(YFLAGS) -o out/parser.cc src/parser.yy
 out/%.o: out/%.cc out/lexer.hh out/parser.hh | dirs
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 out/%.o: src/%.cc out/lexer.hh out/parser.hh | dirs
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 out/compiler: $(objects) | dirs
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(Q) $(CXX) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:
-	rm -rf out
+	$(Q) rm -rf out
 
 type-1-tests := parse-test codegen-test
 type-2-tests := link-test
 test: $(type-1-tests) $(type-2-tests)
 
 $(type-1-tests): %: out/compiler
-	$(DEBUG) out/compiler tests/$@.lang out/$@.ir
-	llc -filetype=obj out/$@.ir -o out/$@.o
+	$(Q) $(DEBUG) out/compiler tests/$@.lang out/$@.ir
+	$(Q) llc -filetype=obj out/$@.ir -o out/$@.o
 
 $(type-2-tests): %: out/compiler
-	$(DEBUG) out/compiler tests/$@.lang out/$@.ir
-	llc -filetype=obj out/$@.ir -o out/$@.o
-	g++ tests/$@.cc out/$@.o -o out/$@
-	$(DEBUG) out/$@
+	$(Q) $(DEBUG) out/compiler tests/$@.lang out/$@.ir
+	$(Q) llc -filetype=obj out/$@.ir -o out/$@.o
+	$(Q) g++ tests/$@.cc out/$@.o -o out/$@
+	$(Q) $(DEBUG) out/$@
 
 .PHONY: all dirs clean test $(type-1-tests) $(type-2-tests)
 dirs:
-	@mkdir -p out
+	$(Q) mkdir -p out
 
 -include $(depends)
