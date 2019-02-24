@@ -1,0 +1,36 @@
+bugfix break, continue instructions dont actually get compiled to assembly from IR
+    what
+    if you compile the IR manually with llc then assembler it works...
+    either my invocation of passes is wrong
+    or its a bug in llvm assembly output
+    what
+    llc, clang and everything else uses legacy
+    no examples of using modern passmanager and cant find a way to emit machine code
+
+    could narrow down the difference between my invocation and theirs
+    or just invoke their command line
+        could get nice CLI for free, and possibly optimisation etc
+    would it stop us from compiling fine-grained modules for different targets? CPU/GPU?
+errors
+    add location information to the ast
+    print out the location information for errors
+codegen
+    casts/conversions from one type to another
+    builtins for math and bitwise operations
+    allocation, aliasing
+    global variables
+modules
+    import/export
+    c interface
+    top-level definition order unimportant
+typing
+    attach sign information to llvm types
+    typecheck function signatures
+    arrays, structs, vectors
+        getelementptr
+make if, for, while expressions not statements
+    break should be able to return values
+return should optionally take a value
+function_def should use optional_type
+    or maybe have a void type...
+        would only be used in this case, don't really like it
