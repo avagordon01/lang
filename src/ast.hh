@@ -10,6 +10,11 @@
 #include "types.hh"
 
 namespace ast {
+    struct function_call;
+    struct binary_operator;
+    struct unary_operator;
+    struct statement;
+
     using identifier = size_t;
 
     using raw_literal = std::variant<double, uint64_t, bool>;
@@ -17,9 +22,6 @@ namespace ast {
         raw_literal literal;
         std::optional<ast::type> type;
     };
-    struct function_call;
-    struct binary_operator;
-    struct unary_operator;
     struct expression {
         std::variant<
             ast::identifier,
@@ -45,7 +47,6 @@ namespace ast {
         ast::expression r;
     };
 
-    struct statement;
     struct block {
         std::vector<ast::statement> statements;
     };
