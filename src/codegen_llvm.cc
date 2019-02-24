@@ -129,10 +129,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(loop_bb);
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
-        llvm::Value* cond = context.builder.CreateICmpEQ(
-            std::invoke(*this, for_loop.condition),
-            llvm::ConstantInt::getTrue(context.context),
-            "forcond");
+        llvm::Value* cond = std::invoke(*this, for_loop.condition);
         context.scopes.pop_back();
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
@@ -148,10 +145,7 @@ struct llvm_codegen_fn {
         context.builder.CreateBr(loop_bb);
         context.builder.SetInsertPoint(loop_bb);
         std::invoke(*this, while_loop.block);
-        llvm::Value* cond = context.builder.CreateICmpEQ(
-            std::invoke(*this, while_loop.condition),
-            llvm::ConstantInt::getTrue(context.context),
-            "whilecond");
+        llvm::Value* cond = std::invoke(*this, while_loop.condition);
         context.scopes.pop_back();
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
