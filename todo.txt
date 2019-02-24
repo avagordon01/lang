@@ -24,7 +24,6 @@ modules
     c interface
     top-level definition order unimportant
 typing
-    attach sign information to llvm types
     typecheck function signatures
     arrays, structs, vectors
         getelementptr

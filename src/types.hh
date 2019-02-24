@@ -35,14 +35,6 @@ namespace ast {
     static bool llvm_type_is_integer(llvm::Type* t) {
         return t->isIntegerTy() && t->getIntegerBitWidth() > 1;
     }
-    static bool llvm_type_is_signed_integer(llvm::Type* t) {
-        //TODO check sign
-        return llvm_type_is_integer(t) && true;
-    }
-    static bool llvm_type_is_unsigned_integer(llvm::Type* t) {
-        //TODO check sign
-        return llvm_type_is_integer(t) && true;
-    }
     static bool llvm_type_is_float(llvm::Type* t) {
         return t->isFloatingPointTy();
     }

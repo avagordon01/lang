@@ -195,6 +195,7 @@ struct typecheck_fn {
     ast::type operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         ast::type l = std::invoke(*this, binary_operator->l);
         ast::type r = std::invoke(*this, binary_operator->r);
+        binary_operator->is_unsigned = ast::type_is_unsigned_integer(l);
         switch (binary_operator->binary_operator) {
             case ast::binary_operator::A_ADD:
             case ast::binary_operator::A_SUB:

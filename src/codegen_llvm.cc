@@ -361,16 +361,22 @@ struct llvm_codegen_fn {
                 break;
             case ast::binary_operator::A_DIV:
                 if (l->getType()->isIntegerTy()) {
-                    //TODO check signedness of integer llvm types
-                    return context.builder.CreateUDiv(l, r, "divtmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateUDiv(l, r, "divtmp");
+                    } else {
+                        return context.builder.CreateSDiv(l, r, "divtmp");
+                    }
                 } else {
                     return context.builder.CreateFDiv(l, r, "divtmp");
                 }
                 break;
             case ast::binary_operator::A_MOD:
                 if (l->getType()->isIntegerTy()) {
-                    //TODO check signedness of integer llvm types
-                    return context.builder.CreateURem(l, r, "modtmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateURem(l, r, "modtmp");
+                    } else {
+                        return context.builder.CreateSRem(l, r, "modtmp");
+                    }
                 } else {
                     return context.builder.CreateFRem(l, r, "modtmp");
                 }
@@ -403,25 +409,41 @@ struct llvm_codegen_fn {
                 }
             case ast::binary_operator::C_GT:
                 if (l->getType()->isIntegerTy()) {
-                    return context.builder.CreateICmpUGT(l, r, "gttmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateICmpUGT(l, r, "getmp");
+                    } else {
+                        return context.builder.CreateICmpSGT(l, r, "getmp");
+                    }
                 } else {
                     return context.builder.CreateFCmpUGT(l, r, "gttmp");
                 }
             case ast::binary_operator::C_GE:
                 if (l->getType()->isIntegerTy()) {
-                    return context.builder.CreateICmpUGE(l, r, "getmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateICmpUGE(l, r, "getmp");
+                    } else {
+                        return context.builder.CreateICmpSGE(l, r, "getmp");
+                    }
                 } else {
                     return context.builder.CreateFCmpUGE(l, r, "getmp");
                 }
             case ast::binary_operator::C_LT:
                 if (l->getType()->isIntegerTy()) {
-                    return context.builder.CreateICmpULT(l, r, "lttmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateICmpULT(l, r, "getmp");
+                    } else {
+                        return context.builder.CreateICmpSLT(l, r, "getmp");
+                    }
                 } else {
                     return context.builder.CreateFCmpULT(l, r, "lttmp");
                 }
             case ast::binary_operator::C_LE:
                 if (l->getType()->isIntegerTy()) {
-                    return context.builder.CreateICmpULE(l, r, "letmp");
+                    if (binary_operator->is_unsigned) {
+                        return context.builder.CreateICmpULE(l, r, "getmp");
+                    } else {
+                        return context.builder.CreateICmpSLE(l, r, "getmp");
+                    }
                 } else {
                     return context.builder.CreateFCmpULE(l, r, "letmp");
                 }

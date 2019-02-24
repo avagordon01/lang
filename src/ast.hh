@@ -39,6 +39,7 @@ namespace ast {
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
         ast::expression l, r;
+        bool is_unsigned;
     };
     struct unary_operator {
         enum op {
