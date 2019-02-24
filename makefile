@@ -11,7 +11,7 @@ LDFLAGS =
 LDLIBS = -lLLVM-7
 
 ifdef debug
-DEBUG = gdb -q -ex "set confirm on" -ex run -ex quit --args
+DEBUG = gdb -nx -q -ex run -ex quit --args
 endif
 
 ifdef quiet
