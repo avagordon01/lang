@@ -25,10 +25,10 @@
 
 static llvm::AllocaInst *
 CreateEntryBlockAlloca(
-codegen_context_llvm& context, llvm::Function *f, const ast::identifier identifier, ast::type type
+codegen_context_llvm& context, const ast::identifier identifier, ast::type type
 ) {
     llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
-    llvm::BasicBlock* entry_bb = &f->getEntryBlock();
+    llvm::BasicBlock* entry_bb = context.current_function_entry;
     context.builder.SetInsertPoint(entry_bb);
     llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols[identifier].c_str());
     context.builder.SetInsertPoint(saved_bb);
@@ -121,7 +121,7 @@ struct llvm_codegen_fn {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         context.scopes.push_back({});
         std::invoke(*this, for_loop.initial);
-        llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "for", f);
+        llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "forloop", f);
         llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "formerge", f);
         context.current_loop_entry = loop_bb;
         context.current_loop_exit = merge_bb;
@@ -138,7 +138,7 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::while_loop& while_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         context.scopes.push_back({});
-        llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "while", f);
+        llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "whileloop", f);
         llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "whilemerge", f);
         context.current_loop_entry = loop_bb;
         context.current_loop_exit = merge_bb;
@@ -173,13 +173,14 @@ struct llvm_codegen_fn {
 
         //body
         llvm::BasicBlock* bb = llvm::BasicBlock::Create(context.context, "entry", f);
+        context.current_function_entry = bb;
         context.builder.SetInsertPoint(bb);
 
         context.scopes.push_back({});
         size_t j = 0;
         for (auto& arg: f->args()) {
             ast::parameter param = function_def.parameter_list[j++];
-            llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, f, param.identifier, param.type);
+            llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, param.identifier, param.type);
             context.builder.CreateStore(&arg, alloca);
             context.scopes.back()[param.identifier] = alloca;
         }
@@ -214,9 +215,8 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::variable_def& variable_def) {
-        llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         llvm::Value* value = std::invoke(*this, variable_def.expression);
-        llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, f, variable_def.identifier, *variable_def.type);
+        llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, variable_def.identifier, *variable_def.type);
         context.builder.CreateStore(value, alloca);
         context.scopes.back()[variable_def.identifier] = alloca;
         return NULL;

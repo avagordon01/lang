@@ -16,6 +16,7 @@ struct codegen_context_llvm {
     using scope = std::unordered_map<ast::identifier, llvm::AllocaInst*>;
     std::vector<scope> scopes;
     std::vector<std::string> symbols;
+    llvm::BasicBlock* current_function_entry = NULL;
     llvm::BasicBlock* current_loop_exit = NULL;
     llvm::BasicBlock* current_loop_entry = NULL;
 };
