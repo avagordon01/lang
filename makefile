@@ -53,6 +53,6 @@ $(type-2-tests): %: out/compiler
 
 .PHONY: all dirs clean test $(type-1-tests) $(type-2-tests)
 dirs:
-	$(Q) mkdir -p out
+	@mkdir -p out
 
 -include $(depends)
