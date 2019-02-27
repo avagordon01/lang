@@ -1,3 +1,7 @@
+bugfix
+    variable_def inside for and while loops
+    creates allocas that are never reached
+    they are between the br and the label
 bugfix break, continue instructions dont actually get compiled to assembly from IR
     what
     if you compile the IR manually with llc then assembler it works...

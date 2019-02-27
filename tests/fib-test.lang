@@ -1,9 +1,8 @@
 export fn u32 fibonacci(u32 n) {
     var a = 0u32;
     var b = 1u32;
-    var t = 0u32;
     for (var i = 0u32; i < n; i = i + 1) {
-        t = b;
+        var t = b;
         b = a + t;
         a = t;
     }
