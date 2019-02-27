@@ -192,8 +192,12 @@ struct llvm_codegen_fn {
         return f;
     }
     llvm::Value* operator()(ast::s_return& s_return) {
-        llvm::Value* ret = s_return.expression ? std::invoke(*this, *s_return.expression) : NULL;
-        return context.builder.CreateRet(ret);
+        if (s_return.expression) {
+            context.builder.CreateRet(std::invoke(*this, *s_return.expression));
+        } else {
+            context.builder.CreateRetVoid();
+        }
+        return NULL;
     }
     llvm::Value* operator()(ast::s_break& s_break) {
         if (!context.current_loop_exit) {
