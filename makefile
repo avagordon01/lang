@@ -38,7 +38,7 @@ clean:
 	$(Q) rm -rf out
 
 type-1-tests := parse-test codegen-test
-type-2-tests := link-test fib-test
+type-2-tests := link-test fib-test gcd
 test: $(type-1-tests) $(type-2-tests)
 
 $(type-1-tests): %: out/compiler
