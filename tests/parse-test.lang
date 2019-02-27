@@ -1,4 +1,4 @@
-fn u8 other() {
+fn other() {
     if (true) {
     }
 
@@ -30,7 +30,7 @@ fn u8 other() {
     } else {
     }
 
-    return 10u8;
+    return;
 }
 fn u64 test(u64 a, u64 b, u64 c) {
     var f = 1f32;

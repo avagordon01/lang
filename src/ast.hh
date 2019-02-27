@@ -97,7 +97,7 @@ namespace ast {
         ast::block block;
     };
     struct s_return {
-        ast::expression expression;
+        std::optional<ast::expression> expression;
     };
     struct s_break {};
     struct s_continue {};

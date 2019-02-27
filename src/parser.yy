@@ -99,6 +99,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::s_continue> continue
 %type <bool> optional_export
 %type <std::optional<ast::type>> optional_type
+%type <std::optional<ast::expression>> optional_exp
 
 %%
 
@@ -151,10 +152,15 @@ while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
 optional_export: %empty { $$ = false; }
                | EXPORT { $$ = true; }
                ;
-function_def: optional_export FUNCTION TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+function_def: optional_export FUNCTION optional_type IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
             $$.to_export = $1;
             $$.identifier = $4;
-            $$.returntype = $3;
+            auto optional_type = $3;
+            if (optional_type) {
+                $$.returntype = *optional_type;
+            } else {
+                $$.returntype = ast::type::t_void;
+            }
             $$.parameter_list = $6;
             $$.block = $8;
             }
@@ -167,7 +173,10 @@ assignment: IDENTIFIER OP_ASSIGN exp {
           $$.identifier = $1;
           $$.expression = $3;
           }
-return: RETURN exp {
+optional_exp: %empty { $$ = std::nullopt; }
+            | exp { $$ = $1; }
+            ;
+return: RETURN optional_exp {
       $$.expression = $2;
       }
 break: BREAK { }

@@ -29,7 +29,3 @@ typing
         getelementptr
 make if, for, while expressions not statements
     break should be able to return values
-return should optionally take a value
-function_def should use optional_type
-    or maybe have a void type...
-        would only be used in this case, don't really like it

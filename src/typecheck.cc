@@ -75,7 +75,7 @@ struct typecheck_fn {
         return ast::type::t_void;
     }
     ast::type operator()(ast::s_return& s_return) {
-        ast::type x = std::invoke(*this, s_return.expression);
+        ast::type x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type::t_void;
         if (x != context.current_function_returntype) {
             error("return type does not match defined function return type");
         }

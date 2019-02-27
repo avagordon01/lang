@@ -45,7 +45,7 @@ namespace ast {
     static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, type t) {
         switch (t) {
             case t_void:
-                assert(false);
+                return llvm::Type::getVoidTy(context);
             case t_bool:
                 return llvm::Type::getInt1Ty(context);
             case u8:
