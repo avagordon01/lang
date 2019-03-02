@@ -48,8 +48,9 @@ namespace ast {
         ast::expression r;
     };
 
+    using statement_list = std::vector<ast::statement>;
     struct block {
-        std::vector<ast::statement> statements;
+        statement_list statements;
     };
     struct if_statement {
         std::vector<ast::expression> conditions;
@@ -107,7 +108,6 @@ namespace ast {
             ast::if_statement,
             ast::for_loop,
             ast::while_loop,
-            ast::function_def,
             ast::variable_def,
             ast::assignment,
             ast::s_return,
@@ -115,8 +115,7 @@ namespace ast {
             ast::s_continue
         > statement;
     };
-    using statement_list = std::vector<ast::statement>;
     struct program {
-        ast::statement_list statements;
+        std::vector<ast::function_def> function_defs;
     };
 }

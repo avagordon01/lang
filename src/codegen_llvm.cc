@@ -39,8 +39,8 @@ struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
         context.scopes.push_back({});
-        for (auto& statement: program.statements) {
-            std::invoke(*this, statement);
+        for (auto& function_def: program.function_defs) {
+            std::invoke(*this, function_def);
         }
         return NULL;
     }

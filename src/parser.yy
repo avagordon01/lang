@@ -85,6 +85,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::optional_else> optional_else
 %type <ast::else_if_list> else_if_list
 %type <ast::statement_list> statement_list
+%type <std::vector<ast::function_def>> function_def_list
 %type <ast::parameter_list> parameter_list
 %type <ast::argument_list> argument_list
 %type <ast::assignment> assignment
@@ -103,7 +104,15 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 
 %%
 
-program: statement_list { drv.program_ast.statements = std::move($1); };
+program: function_def_list { drv.program_ast.function_defs = std::move($1); };
+
+function_def_list: %empty { }
+                 | function_def_list function_def {
+                 auto& v = $$;
+                 v = $1;
+                 v.push_back($2);
+                 }
+                 ;
 
 statement_list: %empty { }
               | statement_list statement {
@@ -117,7 +126,6 @@ statement: block        { $$.statement = $1; }
          | if_statement { $$.statement = $1; }
          | for_loop     { $$.statement = $1; }
          | while_loop   { $$.statement = $1; }
-         | function_def { $$.statement = $1; }
          | assignment   SEMICOLON { $$.statement = $1; }
          | variable_def SEMICOLON { $$.statement = $1; }
          | return       SEMICOLON { $$.statement = $1; }

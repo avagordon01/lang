@@ -18,7 +18,6 @@ codegen
     casts/conversions from one type to another
     builtins for math and bitwise operations
     allocation, aliasing
-    global variables
 modules
     import/export
     c interface
