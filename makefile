@@ -37,8 +37,8 @@ out/compiler: $(objects) | dirs
 clean:
 	$(Q) rm -rf out
 
-type-1-tests := parse-test codegen-test
-type-2-tests := link-test fib-test gcd
+type-1-tests := parse codegen
+type-2-tests := link fib gcd
 test: $(type-1-tests) $(type-2-tests)
 
 $(type-1-tests): %: out/compiler
