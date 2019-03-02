@@ -1,4 +1,4 @@
-export fn u32 computeGCD(u32 x, u32 y) {
+export fn u32 gcd(u32 x, u32 y) {
     while (y != 0u32) {
         var t = y;
         y = x % t;
