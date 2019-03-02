@@ -29,7 +29,7 @@ codegen_context_llvm& context, const ast::identifier identifier, ast::type type
 ) {
     llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
     llvm::BasicBlock* entry_bb = context.current_function_entry;
-    context.builder.SetInsertPoint(entry_bb);
+    context.builder.SetInsertPoint(entry_bb, entry_bb->begin());
     llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols[identifier].c_str());
     context.builder.SetInsertPoint(saved_bb);
     return a;
