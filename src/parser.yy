@@ -132,30 +132,30 @@ statement: block        { $$.statement = $1; }
          | break        SEMICOLON { $$.statement = $1; }
          | continue     SEMICOLON { $$.statement = $1; }
          ;
-if_statement: IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block else_if_list optional_else {
-            $$.conditions.push_back($3);
-            $$.blocks.push_back($5);
-            auto else_if_list = $6;
+if_statement: IF exp block else_if_list optional_else {
+            $$.conditions.push_back($2);
+            $$.blocks.push_back($3);
+            auto else_if_list = $4;
             for (auto& t: else_if_list.conditions) {
                 $$.conditions.emplace_back(std::move(t));
             }
             for (auto& t: else_if_list.blocks) {
                 $$.blocks.emplace_back(std::move(t));
             }
-            auto optional_else = $7;
+            auto optional_else = $5;
             if (optional_else.has_value()) {
                 $$.blocks.emplace_back(std::move(optional_else.value()));
             }
             }
-for_loop: FOR OPEN_R_BRACKET variable_def SEMICOLON exp SEMICOLON assignment CLOSE_R_BRACKET block {
-        $$.initial = $3;
-        $$.condition = $5;
-        $$.step = $7;
-        $$.block = $9;
+for_loop: FOR variable_def SEMICOLON exp SEMICOLON assignment block {
+        $$.initial = $2;
+        $$.condition = $4;
+        $$.step = $6;
+        $$.block = $7;
         }
-while_loop: WHILE OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
-          $$.condition = $3;
-          $$.block = $5;
+while_loop: WHILE exp block {
+          $$.condition = $2;
+          $$.block = $3;
           }
 optional_export: %empty { $$ = false; }
                | EXPORT { $$ = true; }
@@ -199,11 +199,11 @@ optional_else: %empty {
              ;
 
 else_if_list: %empty { }
-            | else_if_list ELSE IF OPEN_R_BRACKET exp CLOSE_R_BRACKET block {
+            | else_if_list ELSE IF exp block {
             auto& v = $$;
             v = $1;
-            v.conditions.push_back($5);
-            v.blocks.push_back($7);
+            v.conditions.push_back($4);
+            v.blocks.push_back($5);
             }
             ;
 

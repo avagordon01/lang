@@ -1,5 +1,5 @@
 export fn u32 gcd(u32 x, u32 y) {
-    while (y != 0u32) {
+    while y != 0u32 {
         var t = y;
         y = x % t;
         x = t;
