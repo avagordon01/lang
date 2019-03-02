@@ -71,7 +71,9 @@ struct typecheck_fn {
         }
         std::invoke(*this, function_def.block);
         context.scopes.pop_back();
-        //TODO put the signature somewhere to typecheck function calls
+        for (auto& parameter: function_def.parameter_list) {
+            context.function_parameter_types[function_def.identifier].push_back(parameter.type);
+        }
         return ast::type::t_void;
     }
     ast::type operator()(ast::s_return& s_return) {
@@ -185,7 +187,13 @@ struct typecheck_fn {
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
-        //TODO check the function signature
+        std::vector<ast::type> function_parameter_type;
+        for (auto& argument: function_call->arguments) {
+            function_parameter_type.push_back(std::invoke(*this, argument));
+        }
+        if (function_parameter_type != context.function_parameter_types[function_call->identifier]) {
+            error("type mismatch between function call parameters and function definition arguments");
+        }
         auto v = context.scopes.front().find(function_call->identifier);
         if (v == context.scopes.front().end()) {
             error("function called before being defined");

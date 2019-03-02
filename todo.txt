@@ -23,7 +23,6 @@ modules
     c interface
     top-level definition order unimportant
 typing
-    typecheck function signatures
     arrays, structs, vectors
         getelementptr
 make if, for, while expressions not statements
