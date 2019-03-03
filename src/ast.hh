@@ -61,6 +61,15 @@ namespace ast {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
     };
+    struct case_statement {
+        std::vector<ast::expression> cases;
+        ast::block block;
+    };
+    using cases_list = std::vector<ast::case_statement>;
+    struct switch_statement {
+        ast::expression expression;
+        cases_list cases;
+    };
     struct variable_def {
         std::optional<ast::type> type;
         ast::identifier identifier;
@@ -85,10 +94,10 @@ namespace ast {
         ast::identifier identifier;
     };
     using parameter_list = std::vector<ast::parameter>;
-    using argument_list = std::vector<ast::expression>;
+    using expression_list = std::vector<ast::expression>;
     struct function_call {
         ast::identifier identifier;
-        ast::argument_list arguments;
+        ast::expression_list arguments;
     };
     struct function_def {
         bool to_export;
@@ -108,6 +117,7 @@ namespace ast {
             ast::if_statement,
             ast::for_loop,
             ast::while_loop,
+            ast::switch_statement,
             ast::variable_def,
             ast::assignment,
             ast::s_return,

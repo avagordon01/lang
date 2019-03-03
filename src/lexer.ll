@@ -119,6 +119,8 @@ fn       return yy::parser::make_FUNCTION(loc);
 return   return yy::parser::make_RETURN(loc);
 break    return yy::parser::make_BREAK(loc);
 continue return yy::parser::make_CONTINUE(loc);
+switch   return yy::parser::make_SWITCH(loc);
+case     return yy::parser::make_CASE(loc);
 import   return yy::parser::make_IMPORT(loc);
 export   return yy::parser::make_EXPORT(loc);
 

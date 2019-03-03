@@ -30,6 +30,13 @@ fn other() {
     } else {
     }
 
+    switch true {
+        case true {
+        }
+        case false {
+        }
+    }
+
     return;
 }
 fn u64 test(u64 a, u64 b, u64 c) {

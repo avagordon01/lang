@@ -151,6 +151,9 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
     }
+    llvm::Value* operator()(ast::switch_statement& switch_statement) {
+        return NULL;
+    }
     llvm::Value* operator()(ast::function_def& function_def) {
         //prototype
         std::vector<llvm::Type*> parameter_types;

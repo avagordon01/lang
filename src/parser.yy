@@ -65,6 +65,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token OPEN_S_BRACKET CLOSE_S_BRACKET
 %token IF ELSE
 %token FOR WHILE BREAK CONTINUE
+%token SWITCH CASE
 %token FUNCTION RETURN
 %token IMPORT EXPORT
 %token VAR
@@ -87,12 +88,14 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::statement_list> statement_list
 %type <std::vector<ast::function_def>> function_def_list
 %type <ast::parameter_list> parameter_list
-%type <ast::argument_list> argument_list
+%type <ast::expression_list> expression_list
 %type <ast::assignment> assignment
 %type <ast::variable_def> variable_def
 %type <ast::if_statement> if_statement
 %type <ast::for_loop> for_loop
 %type <ast::while_loop> while_loop
+%type <ast::cases_list> cases_list
+%type <ast::switch_statement> switch_statement
 %type <ast::function_def> function_def
 %type <ast::function_call> function_call
 %type <ast::s_return> return
@@ -122,10 +125,11 @@ statement_list: %empty { }
               }
               ;
 
-statement: block        { $$.statement = $1; }
-         | if_statement { $$.statement = $1; }
-         | for_loop     { $$.statement = $1; }
-         | while_loop   { $$.statement = $1; }
+statement: block            { $$.statement = $1; }
+         | if_statement     { $$.statement = $1; }
+         | for_loop         { $$.statement = $1; }
+         | while_loop       { $$.statement = $1; }
+         | switch_statement { $$.statement = $1; }
          | assignment   SEMICOLON { $$.statement = $1; }
          | variable_def SEMICOLON { $$.statement = $1; }
          | return       SEMICOLON { $$.statement = $1; }
@@ -147,6 +151,17 @@ if_statement: IF exp block else_if_list optional_else {
                 $$.blocks.emplace_back(std::move(optional_else.value()));
             }
             }
+cases_list: %empty { }
+          | cases_list CASE expression_list block {
+          auto& v = $$;
+          v = $1;
+          v.push_back({$3, $4});
+          }
+          ;
+switch_statement: SWITCH exp OPEN_C_BRACKET cases_list CLOSE_C_BRACKET {
+                $$.expression = $2;
+                $$.cases = $4;
+                }
 for_loop: FOR variable_def SEMICOLON exp SEMICOLON assignment block {
         $$.initial = $2;
         $$.condition = $4;
@@ -218,18 +233,18 @@ parameter_list: %empty { }
               }
               ;
 
-argument_list: %empty { }
-              | exp {
-              $$.push_back($1);
-              }
-              | argument_list COMMA exp {
-              auto& v = $$;
-              v = $1;
-              v.push_back($3);
-              }
-              ;
+expression_list: %empty { }
+               | exp {
+               $$.push_back($1);
+               }
+               | expression_list COMMA exp {
+               auto& v = $$;
+               v = $1;
+               v.push_back($3);
+               }
+               ;
 
-function_call: IDENTIFIER OPEN_R_BRACKET argument_list CLOSE_R_BRACKET {
+function_call: IDENTIFIER OPEN_R_BRACKET expression_list CLOSE_R_BRACKET {
              $$.identifier = $1;
              $$.arguments = $3;
              };

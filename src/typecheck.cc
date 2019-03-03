@@ -58,6 +58,9 @@ struct typecheck_fn {
         context.scopes.pop_back();
         return ast::type::t_void;
     }
+    ast::type operator()(ast::switch_statement& switch_statement) {
+        return ast::type::t_void;
+    }
     ast::type operator()(ast::function_def& function_def) {
         auto v = context.scopes.front().find(function_def.identifier);
         if (v != context.scopes.front().end()) {
