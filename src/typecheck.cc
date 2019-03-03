@@ -21,10 +21,11 @@ struct typecheck_fn {
         return std::visit(*this, statement.statement);
     }
     ast::type operator()(ast::block& block) {
+        ast::type type = ast::type::t_void;
         for (auto& statement: block.statements) {
-            std::invoke(*this, statement);
+            type = std::invoke(*this, statement);
         }
-        return ast::type::t_void;
+        return type;
     }
     ast::type operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {

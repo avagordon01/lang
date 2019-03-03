@@ -48,10 +48,11 @@ struct llvm_codegen_fn {
         return std::visit(*this, statement.statement);
     }
     llvm::Value* operator()(ast::block& block) {
+        llvm::Value* ret = NULL;
         for (auto& statement: block.statements) {
-            std::invoke(*this, statement);
+            ret = std::invoke(*this, statement);
         }
-        return NULL;
+        return ret;
     }
     llvm::Value* operator()(ast::if_statement& if_statement) {
         std::vector<llvm::Value*> conditions;
