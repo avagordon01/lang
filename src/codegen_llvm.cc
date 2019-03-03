@@ -78,6 +78,15 @@ struct llvm_codegen_fn {
 
         context.builder.CreateBr(condition_blocks[0]);
 
+        context.builder.SetInsertPoint(merge_block);
+        ast::type type = if_statement.blocks.front().type;
+        llvm::PHINode* phi;
+        if (type != ast::type::t_void) {
+            phi = context.builder.CreatePHI(
+                ast::type_to_llvm_type(context.context, type),
+                if_statement.blocks.size(), "phi");
+        }
+
         assert(if_statement.blocks.size() >= 1);
         assert(if_statement.conditions.size() >= 1);
         assert(if_statement.blocks.size() == if_statement.conditions.size() ||
@@ -89,7 +98,10 @@ struct llvm_codegen_fn {
                 context.builder.SetInsertPoint(condition_blocks[i]);
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
-                std::invoke(*this, if_statement.blocks[i]);
+                llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
+                if (type != ast::type::t_void) {
+                    phi->addIncoming(v, basic_blocks[i]);
+                }
                 context.builder.CreateBr(merge_block);
             } else {
                 //final if/else if
@@ -100,20 +112,30 @@ struct llvm_codegen_fn {
                     context.builder.CreateCondBr(conditions[i], basic_blocks[i], merge_block);
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
-                std::invoke(*this, if_statement.blocks[i]);
+                llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
+                if (type != ast::type::t_void) {
+                    phi->addIncoming(v, basic_blocks[i]);
+                }
                 context.builder.CreateBr(merge_block);
             }
         }
         if (if_statement.blocks.size() > if_statement.conditions.size()) {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
-            std::invoke(*this, if_statement.blocks.back());
+            llvm::Value* v = std::invoke(*this, if_statement.blocks.back());
+            if (type != ast::type::t_void) {
+                phi->addIncoming(v, basic_blocks.back());
+            }
             context.builder.CreateBr(merge_block);
         }
 
         context.builder.SetInsertPoint(merge_block);
 
-        return NULL;
+        if (type != ast::type::t_void) {
+            return phi;
+        } else {
+            return NULL;
+        }
     }
     llvm::Value* operator()(ast::for_loop& for_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();

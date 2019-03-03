@@ -51,6 +51,7 @@ namespace ast {
     using statement_list = std::vector<ast::statement>;
     struct block {
         statement_list statements;
+        ast::type type;
     };
     struct if_statement {
         std::vector<ast::expression> conditions;

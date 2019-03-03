@@ -28,6 +28,7 @@ struct typecheck_fn {
             type = std::invoke(*this, statement);
         }
         context.scopes.pop_back();
+        block.type = type;
         return type;
     }
     ast::type operator()(ast::if_statement& if_statement) {
