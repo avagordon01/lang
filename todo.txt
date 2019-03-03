@@ -17,13 +17,23 @@ errors
 codegen
     casts/conversions from one type to another
     builtins for math and bitwise operations
-    allocation, aliasing
+memory
+    no aliasing
+    everything is reachable from the stack?
+    unique_ptr
+    dag or tree?
+    initialisation?
+    no declaration without definition/initialisation
 modules
-    import/export
-    c interface
+    import
+        import exported functions from another file
+        to typecheck and generate calls to external functions
+    generate c header
     top-level definition order unimportant
-typing
+aggregate types
     arrays, structs, vectors
-        getelementptr
+    getelementptr
+    multiple return? tuples
 make if, for, while expressions not statements
     break should be able to return values
+add switch-case statements
