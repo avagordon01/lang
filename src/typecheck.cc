@@ -59,6 +59,24 @@ struct typecheck_fn {
         return ast::type::t_void;
     }
     ast::type operator()(ast::switch_statement& switch_statement) {
+        ast::type switch_type = std::invoke(*this, switch_statement.expression);
+        if (!type_is_integer(switch_type)) {
+            error("switch statement switch expression is not an integer");
+        }
+        for (auto& case_statement: switch_statement.cases) {
+            for (auto& case_exp: case_statement.cases) {
+                ast::type case_type = std::invoke(*this, case_exp);
+                if (!type_is_integer(case_type)) {
+                    error("switch statement switch expression is not an integer");
+                }
+                if (case_type != switch_type) {
+                    error("type mismatch between switch expression and case expression");
+                }
+            }
+            context.scopes.push_back({});
+            std::invoke(*this, case_statement.block);
+            context.scopes.pop_back();
+        }
         return ast::type::t_void;
     }
     ast::type operator()(ast::function_def& function_def) {
