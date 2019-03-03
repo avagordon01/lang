@@ -42,6 +42,7 @@ struct llvm_codegen_fn {
         for (auto& function_def: program.function_defs) {
             std::invoke(*this, function_def);
         }
+        context.scopes.pop_back();
         return NULL;
     }
     llvm::Value* operator()(ast::statement& statement) {
@@ -49,9 +50,11 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::block& block) {
         llvm::Value* ret = NULL;
+        context.scopes.push_back({});
         for (auto& statement: block.statements) {
             ret = std::invoke(*this, statement);
         }
+        context.scopes.pop_back();
         return ret;
     }
     llvm::Value* operator()(ast::if_statement& if_statement) {
@@ -86,9 +89,7 @@ struct llvm_codegen_fn {
                 context.builder.SetInsertPoint(condition_blocks[i]);
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
-                context.scopes.push_back({});
                 std::invoke(*this, if_statement.blocks[i]);
-                context.scopes.pop_back();
                 context.builder.CreateBr(merge_block);
             } else {
                 //final if/else if
@@ -99,18 +100,14 @@ struct llvm_codegen_fn {
                     context.builder.CreateCondBr(conditions[i], basic_blocks[i], merge_block);
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
-                context.scopes.push_back({});
                 std::invoke(*this, if_statement.blocks[i]);
-                context.scopes.pop_back();
                 context.builder.CreateBr(merge_block);
             }
         }
         if (if_statement.blocks.size() > if_statement.conditions.size()) {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
-            context.scopes.push_back({});
             std::invoke(*this, if_statement.blocks.back());
-            context.scopes.pop_back();
             context.builder.CreateBr(merge_block);
         }
 
@@ -138,7 +135,6 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::while_loop& while_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
-        context.scopes.push_back({});
         llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "whileloop", f);
         llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "whilemerge", f);
         context.current_loop_entry = loop_bb;
@@ -147,7 +143,6 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(loop_bb);
         std::invoke(*this, while_loop.block);
         llvm::Value* cond = std::invoke(*this, while_loop.condition);
-        context.scopes.pop_back();
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
@@ -171,10 +166,8 @@ struct llvm_codegen_fn {
                 switch_inst->addCase(static_cast<llvm::ConstantInt*>(std::invoke(*this, basic_case)), blocks[i]);
             }
             context.builder.SetInsertPoint(blocks[i]);
-            context.scopes.push_back({});
             std::invoke(*this, case_statement.block);
             context.builder.CreateBr(merge_bb);
-            context.scopes.pop_back();
             i++;
         }
         context.builder.SetInsertPoint(merge_bb);
