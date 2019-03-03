@@ -36,10 +36,15 @@ struct typecheck_fn {
                 error("if statement condition not a boolean");
             }
         }
+        ast::type type = ast::type::t_void;
         for (auto& block: if_statement.blocks) {
-            std::invoke(*this, block);
+            ast::type t = std::invoke(*this, block);
+            if (t != type) {
+                error("type mismatch between if statement blocks");
+            }
+            type = t;
         }
-        return ast::type::t_void;
+        return type;
     }
     ast::type operator()(ast::for_loop& for_loop) {
         context.scopes.push_back({});
@@ -47,22 +52,23 @@ struct typecheck_fn {
         if (std::invoke(*this, for_loop.condition) != ast::type::t_bool) {
             error("for loop condition not a boolean");
         }
-        std::invoke(*this, for_loop.block);
+        ast::type type = std::invoke(*this, for_loop.block);
         context.scopes.pop_back();
-        return ast::type::t_void;
+        return type;
     }
     ast::type operator()(ast::while_loop& while_loop) {
         if (std::invoke(*this, while_loop.condition) != ast::type::t_bool) {
             error("while loop condition not a boolean");
         }
-        std::invoke(*this, while_loop.block);
-        return ast::type::t_void;
+        ast::type type = std::invoke(*this, while_loop.block);
+        return type;
     }
     ast::type operator()(ast::switch_statement& switch_statement) {
         ast::type switch_type = std::invoke(*this, switch_statement.expression);
         if (!type_is_integer(switch_type)) {
             error("switch statement switch expression is not an integer");
         }
+        ast::type type = ast::type::t_void;
         for (auto& case_statement: switch_statement.cases) {
             for (auto& case_exp: case_statement.cases) {
                 ast::type case_type = std::invoke(*this, case_exp);
@@ -73,9 +79,13 @@ struct typecheck_fn {
                     error("type mismatch between switch expression and case expression");
                 }
             }
-            std::invoke(*this, case_statement.block);
+            ast::type t = std::invoke(*this, case_statement.block);
+            if (t != type) {
+                error("type mismatch between switch statement blocks");
+            }
+            type = t;
         }
-        return ast::type::t_void;
+        return type;
     }
     ast::type operator()(ast::function_def& function_def) {
         auto v = context.scopes.front().find(function_def.identifier);
