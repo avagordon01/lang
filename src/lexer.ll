@@ -64,8 +64,8 @@ yy::location& loc = drv.location;
 loc.step();
 %}
 
-[ \t]+  loc.step();
-\n+     loc.lines(yyleng); loc.step();
+" "+ loc.step();
+\n+  loc.lines(yyleng); loc.step();
 ";"  return yy::parser::make_SEMICOLON(loc);
 ","  return yy::parser::make_COMMA(loc);
 
