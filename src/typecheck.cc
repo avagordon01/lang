@@ -15,6 +15,7 @@ struct typecheck_fn {
         for (auto& function_def: program.function_defs) {
             std::invoke(*this, function_def);
         }
+        context.scopes.pop_back();
         return ast::type::t_void;
     }
     ast::type operator()(ast::statement& statement) {
@@ -22,9 +23,11 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::block& block) {
         ast::type type = ast::type::t_void;
+        context.scopes.push_back({});
         for (auto& statement: block.statements) {
             type = std::invoke(*this, statement);
         }
+        context.scopes.pop_back();
         return type;
     }
     ast::type operator()(ast::if_statement& if_statement) {
@@ -34,9 +37,7 @@ struct typecheck_fn {
             }
         }
         for (auto& block: if_statement.blocks) {
-            context.scopes.push_back({});
             std::invoke(*this, block);
-            context.scopes.pop_back();
         }
         return ast::type::t_void;
     }
@@ -54,9 +55,7 @@ struct typecheck_fn {
         if (std::invoke(*this, while_loop.condition) != ast::type::t_bool) {
             error("while loop condition not a boolean");
         }
-        context.scopes.push_back({});
         std::invoke(*this, while_loop.block);
-        context.scopes.pop_back();
         return ast::type::t_void;
     }
     ast::type operator()(ast::switch_statement& switch_statement) {
@@ -74,9 +73,7 @@ struct typecheck_fn {
                     error("type mismatch between switch expression and case expression");
                 }
             }
-            context.scopes.push_back({});
             std::invoke(*this, case_statement.block);
-            context.scopes.pop_back();
         }
         return ast::type::t_void;
     }
