@@ -11,7 +11,7 @@ LLVM (for LLVM IR backend) and glslang (for SPIR-V backend) for code generation.
 ## usage
 ```
 $ make
-$ out/compiler input.lang [output.o [output.ir]]
+$ out/compiler input.lang output.ir
 ```
 
 ## testing
