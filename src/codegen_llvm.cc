@@ -182,18 +182,38 @@ struct llvm_codegen_fn {
             std::invoke(*this, switch_statement.expression),
             merge_bb,
             num_basic_cases);
+
+        context.builder.SetInsertPoint(merge_bb);
+        ast::type type = switch_statement.cases.front().block.type;
+        llvm::PHINode* phi;
+        if (type != ast::type::t_void) {
+            phi = context.builder.CreatePHI(
+                ast::type_to_llvm_type(context.context, type),
+                num_basic_cases, "phi");
+        }
+
         size_t i = 0;
         for (auto& case_statement: switch_statement.cases) {
             for (auto& basic_case: case_statement.cases) {
-                switch_inst->addCase(static_cast<llvm::ConstantInt*>(std::invoke(*this, basic_case)), blocks[i]);
+                llvm::Value* v = std::invoke(*this, basic_case);
+                if (type != ast::type::t_void) {
+                    phi->addIncoming(v, blocks[i]);
+                }
+                switch_inst->addCase(static_cast<llvm::ConstantInt*>(v), blocks[i]);
             }
             context.builder.SetInsertPoint(blocks[i]);
             std::invoke(*this, case_statement.block);
             context.builder.CreateBr(merge_bb);
             i++;
         }
+
         context.builder.SetInsertPoint(merge_bb);
-        return NULL;
+
+        if (type != ast::type::t_void) {
+            return phi;
+        } else {
+            return NULL;
+        }
     }
     llvm::Value* operator()(ast::function_def& function_def) {
         //prototype
