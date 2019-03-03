@@ -61,8 +61,9 @@ namespace ast {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
     };
+    using literal_list = std::vector<ast::literal>;
     struct case_statement {
-        std::vector<ast::expression> cases;
+        literal_list cases;
         ast::block block;
     };
     using cases_list = std::vector<ast::case_statement>;

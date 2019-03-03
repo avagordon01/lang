@@ -89,6 +89,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <std::vector<ast::function_def>> function_def_list
 %type <ast::parameter_list> parameter_list
 %type <ast::expression_list> expression_list
+%type <ast::literal_list> literal_list
 %type <ast::assignment> assignment
 %type <ast::variable_def> variable_def
 %type <ast::if_statement> if_statement
@@ -152,7 +153,7 @@ if_statement: IF exp block else_if_list optional_else {
             }
             }
 cases_list: %empty { }
-          | cases_list CASE expression_list block {
+          | cases_list CASE literal_list block {
           auto& v = $$;
           v = $1;
           v.push_back({$3, $4});
@@ -238,6 +239,17 @@ expression_list: %empty { }
                $$.push_back($1);
                }
                | expression_list COMMA exp {
+               auto& v = $$;
+               v = $1;
+               v.push_back($3);
+               }
+               ;
+
+literal_list: %empty { }
+               | literal {
+               $$.push_back($1);
+               }
+               | literal_list COMMA literal {
                auto& v = $$;
                v = $1;
                v.push_back($3);

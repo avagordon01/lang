@@ -152,6 +152,31 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::switch_statement& switch_statement) {
+        llvm::Function* f = context.builder.GetInsertBlock()->getParent();
+        llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "switchmerge", f);
+        std::vector<llvm::BasicBlock*> blocks;
+        size_t num_basic_cases = 0;
+        for (auto& case_statement: switch_statement.cases) {
+            blocks.push_back(llvm::BasicBlock::Create(context.context, "case", f));
+            num_basic_cases += case_statement.cases.size();
+        }
+        llvm::SwitchInst* switch_inst = context.builder.CreateSwitch(
+            std::invoke(*this, switch_statement.expression),
+            merge_bb,
+            num_basic_cases);
+        size_t i = 0;
+        for (auto& case_statement: switch_statement.cases) {
+            for (auto& basic_case: case_statement.cases) {
+                switch_inst->addCase(static_cast<llvm::ConstantInt*>(std::invoke(*this, basic_case)), blocks[i]);
+            }
+            context.builder.SetInsertPoint(blocks[i]);
+            context.scopes.push_back({});
+            std::invoke(*this, case_statement.block);
+            context.builder.CreateBr(merge_bb);
+            context.scopes.pop_back();
+            i++;
+        }
+        context.builder.SetInsertPoint(merge_bb);
         return NULL;
     }
     llvm::Value* operator()(ast::function_def& function_def) {

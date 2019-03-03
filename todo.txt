@@ -36,4 +36,3 @@ aggregate types
     multiple return? tuples
 make if, for, while expressions not statements
     break should be able to return values
-add switch-case statements
