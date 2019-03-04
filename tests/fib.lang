@@ -5,6 +5,6 @@ export fn u32 fibonacci(u32 n) {
         var t = b;
         b = a + t;
         a = t;
-    }
+    };
     return a;
 }

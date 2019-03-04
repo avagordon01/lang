@@ -1,26 +1,26 @@
 fn other() {
     if true {
-    }
+    };
 
     if true {
     } else {
-    }
+    };
 
     if true {
     } else if true {
-    }
+    };
 
     if true {
     } else if true {
     } else {
-    }
+    };
 
     if true {
     } else if true {
     } else if true {
     } else if true {
     } else if true {
-    }
+    };
 
     if true {
     } else if true {
@@ -28,14 +28,14 @@ fn other() {
     } else if true {
     } else if true {
     } else {
-    }
+    };
 
     switch 10 {
         case 10 {
         }
         case 20 {
         }
-    }
+    };
 
     return;
 }
@@ -44,9 +44,9 @@ fn u64 test(u64 a, u64 b, u64 c) {
     var x = 0;
     for var i = 0; i < 10; i = i + 1 {
         x = i;
-    }
+    };
     while true {
         break;
-    }
+    };
     return 10u64;
 }

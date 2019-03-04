@@ -119,7 +119,7 @@ function_def_list: %empty { }
                  ;
 
 statement_list: %empty { }
-              | statement_list statement {
+              | statement_list statement SEMICOLON {
               auto& v = $$;
               v = $1;
               v.push_back($2);
@@ -131,11 +131,11 @@ statement: block            { $$.statement = $1; }
          | for_loop         { $$.statement = $1; }
          | while_loop       { $$.statement = $1; }
          | switch_statement { $$.statement = $1; }
-         | assignment   SEMICOLON { $$.statement = $1; }
-         | variable_def SEMICOLON { $$.statement = $1; }
-         | return       SEMICOLON { $$.statement = $1; }
-         | break        SEMICOLON { $$.statement = $1; }
-         | continue     SEMICOLON { $$.statement = $1; }
+         | assignment       { $$.statement = $1; }
+         | variable_def     { $$.statement = $1; }
+         | return           { $$.statement = $1; }
+         | break            { $$.statement = $1; }
+         | continue         { $$.statement = $1; }
          ;
 if_statement: IF exp block else_if_list optional_else {
             $$.conditions.push_back($2);

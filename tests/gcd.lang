@@ -3,6 +3,6 @@ export fn u32 gcd(u32 x, u32 y) {
         var t = y;
         y = x % t;
         x = t;
-    }
+    };
     return x;
 }

@@ -8,6 +8,6 @@ export fn f64 average(f64 x, f64 y) {
     for var i = 0; i < 10; i = i {
         z = x;
         break;
-    }
+    };
     return internal(z, y);
 }
