@@ -199,7 +199,9 @@ optional_exp: %empty { $$ = std::nullopt; }
 return: RETURN optional_exp {
       $$.expression = $2;
       }
-break: BREAK { }
+break: BREAK optional_exp {
+     $$.expression = $2;
+     }
 continue: CONTINUE { }
 
 optional_else: %empty {

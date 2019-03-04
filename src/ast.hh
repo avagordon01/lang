@@ -121,7 +121,9 @@ namespace ast {
     struct s_return {
         std::optional<ast::expression> expression;
     };
-    struct s_break {};
+    struct s_break {
+        std::optional<ast::expression> expression;
+    };
     struct s_continue {};
     struct statement {
         std::variant<
