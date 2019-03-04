@@ -131,6 +131,7 @@ statement: block            { $$.statement = $1; }
          | for_loop         { $$.statement = $1; }
          | while_loop       { $$.statement = $1; }
          | switch_statement { $$.statement = $1; }
+         | exp              { $$.statement = $1; }
          | assignment       { $$.statement = $1; }
          | variable_def     { $$.statement = $1; }
          | return           { $$.statement = $1; }

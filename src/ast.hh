@@ -120,6 +120,7 @@ namespace ast {
             ast::for_loop,
             ast::while_loop,
             ast::switch_statement,
+            ast::expression,
             ast::variable_def,
             ast::assignment,
             ast::s_return,
