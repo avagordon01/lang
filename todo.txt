@@ -34,17 +34,16 @@ aggregate types
     arrays, structs, vectors
     getelementptr
     multiple return? tuples
-make if, for, while expressions not statements
-    break should be able to return values
-    loop returning last expression or break expression removes the need for
+make if, switch, for, while, block expressions not statements
+    todo type inference for if etc
+
+    loop break should optionally return a value
+    if the last statement in a block is an expression its value should be returned
+
+    loop return removes the need for some other less nice constructs
         python-like for/else
         multi level break
     switch continue should fallthrough
 
-    change if, switch, for, while and block from statements to expressions
-        in the parser and ast
-
     not sure what for and while should return yet
     maybe vector or iterator like rust or python
-
-    todo typecheck switch breaks match implicit block returns
