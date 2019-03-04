@@ -48,6 +48,9 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::statement& statement) {
         return std::visit(*this, statement.statement);
     }
+    llvm::Value* operator()(std::unique_ptr<ast::block>& block) {
+        return std::invoke(*this, *block);
+    }
     llvm::Value* operator()(ast::block& block) {
         llvm::Value* ret = NULL;
         context.scopes.push_back({});
@@ -56,6 +59,9 @@ struct llvm_codegen_fn {
         }
         context.scopes.pop_back();
         return ret;
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::if_statement>& if_statement) {
+        return std::invoke(*this, *if_statement);
     }
     llvm::Value* operator()(ast::if_statement& if_statement) {
         std::vector<llvm::Value*> conditions;
@@ -137,6 +143,9 @@ struct llvm_codegen_fn {
             return NULL;
         }
     }
+    llvm::Value* operator()(std::unique_ptr<ast::for_loop>& for_loop) {
+        return std::invoke(*this, *for_loop);
+    }
     llvm::Value* operator()(ast::for_loop& for_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         context.scopes.push_back({});
@@ -155,6 +164,9 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
     }
+    llvm::Value* operator()(std::unique_ptr<ast::while_loop>& while_loop) {
+        return std::invoke(*this, *while_loop);
+    }
     llvm::Value* operator()(ast::while_loop& while_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
         llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "whileloop", f);
@@ -168,6 +180,9 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
         return NULL;
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
+        return std::invoke(*this, *switch_statement);
     }
     llvm::Value* operator()(ast::switch_statement& switch_statement) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();

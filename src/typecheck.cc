@@ -21,6 +21,9 @@ struct typecheck_fn {
     ast::type operator()(ast::statement& statement) {
         return std::visit(*this, statement.statement);
     }
+    ast::type operator()(std::unique_ptr<ast::block>& block) {
+        return std::invoke(*this, *block);
+    }
     ast::type operator()(ast::block& block) {
         ast::type type = ast::type::t_void;
         context.scopes.push_back({});
@@ -30,6 +33,9 @@ struct typecheck_fn {
         context.scopes.pop_back();
         block.type = type;
         return type;
+    }
+    ast::type operator()(std::unique_ptr<ast::if_statement>& if_statement) {
+        return std::invoke(*this, *if_statement);
     }
     ast::type operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
@@ -47,6 +53,9 @@ struct typecheck_fn {
         }
         return type;
     }
+    ast::type operator()(std::unique_ptr<ast::for_loop>& for_loop) {
+        return std::invoke(*this, *for_loop);
+    }
     ast::type operator()(ast::for_loop& for_loop) {
         context.scopes.push_back({});
         std::invoke(*this, for_loop.initial);
@@ -57,12 +66,18 @@ struct typecheck_fn {
         context.scopes.pop_back();
         return type;
     }
+    ast::type operator()(std::unique_ptr<ast::while_loop>& while_loop) {
+        return std::invoke(*this, *while_loop);
+    }
     ast::type operator()(ast::while_loop& while_loop) {
         if (std::invoke(*this, while_loop.condition) != ast::type::t_bool) {
             error("while loop condition not a boolean");
         }
         ast::type type = std::invoke(*this, while_loop.block);
         return type;
+    }
+    ast::type operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
+        return std::invoke(*this, *switch_statement);
     }
     ast::type operator()(ast::switch_statement& switch_statement) {
         ast::type switch_type = std::invoke(*this, switch_statement.expression);

@@ -22,8 +22,18 @@ namespace ast {
         raw_literal literal;
         std::optional<ast::type> type;
     };
+    struct block;
+    struct if_statement;
+    struct for_loop;
+    struct while_loop;
+    struct switch_statement;
     struct expression {
         std::variant<
+            std::unique_ptr<ast::block>,
+            std::unique_ptr<ast::if_statement>,
+            std::unique_ptr<ast::for_loop>,
+            std::unique_ptr<ast::while_loop>,
+            std::unique_ptr<ast::switch_statement>,
             ast::identifier,
             ast::literal,
             std::unique_ptr<ast::function_call>,
@@ -115,11 +125,6 @@ namespace ast {
     struct s_continue {};
     struct statement {
         std::variant<
-            ast::block,
-            ast::if_statement,
-            ast::for_loop,
-            ast::while_loop,
-            ast::switch_statement,
             ast::expression,
             ast::variable_def,
             ast::assignment,

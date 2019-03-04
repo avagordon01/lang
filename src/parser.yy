@@ -126,12 +126,7 @@ statement_list: %empty { }
               }
               ;
 
-statement: block            { $$.statement = $1; }
-         | if_statement     { $$.statement = $1; }
-         | for_loop         { $$.statement = $1; }
-         | while_loop       { $$.statement = $1; }
-         | switch_statement { $$.statement = $1; }
-         | exp              { $$.statement = $1; }
+statement: exp              { $$.statement = $1; }
          | assignment       { $$.statement = $1; }
          | variable_def     { $$.statement = $1; }
          | return           { $$.statement = $1; }
@@ -273,7 +268,13 @@ literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2}; }
        | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2}; }
        ;
 
-exp: IDENTIFIER { $$.expression = $1; }
+exp: block            { $$.expression = std::make_unique<ast::block>($1); }
+   | if_statement     { $$.expression = std::make_unique<ast::if_statement>($1); }
+   | for_loop         { $$.expression = std::make_unique<ast::for_loop>($1); }
+   | while_loop       { $$.expression = std::make_unique<ast::while_loop>($1); }
+   | switch_statement { $$.expression = std::make_unique<ast::switch_statement>($1); }
+
+   | IDENTIFIER { $$.expression = $1; }
    | function_call { $$.expression = std::make_unique<ast::function_call>($1); }
    | literal { $$.expression = $1; }
    | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD); }
