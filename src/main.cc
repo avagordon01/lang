@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     typecheck(typecheck_context, driver.program_ast);
 
     codegen_context_llvm codegen_context_llvm;
-    codegen_context_llvm.symbols = driver.symbols;
+    codegen_context_llvm.symbols_list = driver.symbols_list;
     codegen_llvm(codegen_context_llvm, driver.program_ast, std::string(argv[1]), std::string(argv[2]));
 
     exit(EXIT_SUCCESS);

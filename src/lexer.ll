@@ -44,7 +44,7 @@ ast::identifier lookup_or_insert(char* c, driver& driver) {
     } else {
         ast::identifier id = driver.symbols_map.size();
         driver.symbols_map.insert({str, id});
-        driver.symbols.push_back(str);
+        driver.symbols_list.push_back(str);
         return id;
     }
 }

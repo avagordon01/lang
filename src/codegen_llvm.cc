@@ -30,7 +30,7 @@ codegen_context_llvm& context, const ast::identifier identifier, ast::type type
     llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
     llvm::BasicBlock* entry_bb = context.current_function_entry;
     context.builder.SetInsertPoint(entry_bb, entry_bb->begin());
-    llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols[identifier].c_str());
+    llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols_list[identifier].c_str());
     context.builder.SetInsertPoint(saved_bb);
     return a;
 }
@@ -244,10 +244,10 @@ struct llvm_codegen_fn {
         llvm::Function* f = llvm::Function::Create(
             ft,
             function_def.to_export ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage,
-            context.symbols[function_def.identifier], context.module.get());
+            context.symbols_list[function_def.identifier], context.module.get());
         size_t i = 0;
         for (auto& arg: f->args()) {
-            arg.setName(context.symbols[function_def.parameter_list[i++].identifier]);
+            arg.setName(context.symbols_list[function_def.parameter_list[i++].identifier]);
         }
 
         //body
@@ -328,7 +328,7 @@ struct llvm_codegen_fn {
                 break;
             }
         }
-        return context.builder.CreateLoad(variable, context.symbols[identifier].c_str());
+        return context.builder.CreateLoad(variable, context.symbols_list[identifier].c_str());
     }
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
@@ -409,7 +409,7 @@ struct llvm_codegen_fn {
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
-        llvm::Function* function = context.module->getFunction(context.symbols[function_call->identifier]);
+        llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier]);
         assert(function);
         std::vector<llvm::Value*> arguments;
         for (auto& arg: function_call->arguments) {
