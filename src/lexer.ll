@@ -36,15 +36,14 @@ uint64_t parse_integer(char *s, size_t base) {
     return sign * value;
 }
 
-static std::unordered_map<std::string, ast::identifier> symbols;
 ast::identifier lookup_or_insert(char* c, driver& driver) {
     auto str = std::string(c);
-    auto s = symbols.find(str);
-    if (s != symbols.end()) {
+    auto s = driver.symbols_map.find(str);
+    if (s != driver.symbols_map.end()) {
         return s->second;
     } else {
-        ast::identifier id = symbols.size();
-        symbols.insert({str, id});
+        ast::identifier id = driver.symbols_map.size();
+        driver.symbols_map.insert({str, id});
         driver.symbols.push_back(str);
         return id;
     }
