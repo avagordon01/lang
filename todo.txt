@@ -35,9 +35,15 @@ aggregate types
     getelementptr
     multiple return? tuples
 make if, switch, for, while, block expressions not statements
+    move the current_loop_{entry,exit,phi} from global context to function parameters
+    then we can have easily nested loops
+
     todo type inference for if etc
 
+    add switch break to the phi
+    add for block value to the phi
     loop break should optionally return a value
+        loops and blocks need phi instructions then
     if the last statement in a block is an expression its value should be returned
 
     loop return removes the need for some other less nice constructs

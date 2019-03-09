@@ -43,7 +43,7 @@ struct typecheck_fn {
                 error("if statement condition not a boolean");
             }
         }
-        ast::type type = ast::type::t_void;
+        ast::type type = std::invoke(*this, if_statement.blocks.front());
         for (auto& block: if_statement.blocks) {
             ast::type t = std::invoke(*this, block);
             if (t != type) {

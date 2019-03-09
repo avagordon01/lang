@@ -11,6 +11,24 @@ namespace ast {
         i8, i16, i32, i64,
         f16, f32, f64,
     };
+    static std::string type_to_string(type t) {
+        switch (t) {
+            case t_void:    return "void";
+            case t_bool:    return "bool";
+            case u8:        return "u8";
+            case u16:       return "u16";
+            case u32:       return "u32";
+            case u64:       return "u64";
+            case i8:        return "i8";
+            case i16:       return "i16";
+            case i32:       return "i32";
+            case i64:       return "i64";
+            case f16:       return "f16";
+            case f32:       return "f32";
+            case f64:       return "f64";
+            default:        assert(false);
+        }
+    }
     static bool type_is_bool(type t) {
         return t == t_bool;
     }

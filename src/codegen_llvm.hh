@@ -19,6 +19,7 @@ struct codegen_context_llvm {
     llvm::BasicBlock* current_function_entry = NULL;
     llvm::BasicBlock* current_loop_exit = NULL;
     llvm::BasicBlock* current_loop_entry = NULL;
+    llvm::PHINode* current_loop_phi = NULL;
 };
 
 void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& src_filename, const std::string& ir_filename);
