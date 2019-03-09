@@ -3,7 +3,8 @@
 #include <string>
 #include <iostream>
 
-static void error(std::string s) {
-    std::cerr << s << std::endl;
+template<typename ... Ts>
+static void error(Ts ... args) {
+    ((std::cerr << args << " "), ...) << std::endl;
     exit(EXIT_FAILURE);
 }
