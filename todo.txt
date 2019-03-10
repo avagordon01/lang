@@ -53,3 +53,6 @@ make if, switch, for, while, block expressions not statements
 
     not sure what for and while should return yet
     maybe vector or iterator like rust or python
+SPIRV backend
+    use GlslangToSpv.cpp as example
+    and SpvBuilder.h as documentation

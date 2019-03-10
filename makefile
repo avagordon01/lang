@@ -8,7 +8,7 @@ CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
 LDFLAGS =
-LDLIBS = -lLLVM-7
+LDLIBS = -lLLVM-7 -lSPIRV
 
 ifdef debug
 DEBUG = gdb -nx -q -ex run -ex quit --args

@@ -1,6 +1,7 @@
 #include "driver.hh"
 #include "typecheck.hh"
 #include "codegen_llvm.hh"
+#include "codegen_spirv.hh"
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
