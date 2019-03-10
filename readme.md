@@ -1,23 +1,25 @@
-# lang
+# kl lang
+kl is a language for easy and high performance compute kernel and graphics shader programming. It targets CPUs and GPUs with both an LLVM-IR backend and a SPIR-V backend. The key idea is (taken from Halide) to separate the algorithm from the execution location/schedule/pattern. It does this by letting the programmer write the algorithm and then independently specify when and where bits of code are executed in a fine-grained way.
+
 ## depends
-Flex and Bison are used for tokenising and parsing the language. Many distros will provide flex and bison by default, in Arch they are in package group base-devel.
+Flex and Bison are used for tokenising and parsing the language. LLVM and glslang are required for the LLVM-IR and SPIR-V backend/codegen.
 
-```# pacman -S flex bison```
+```# pacman -S flex bison llvm-libs glslang```
 
-LLVM (for LLVM IR backend) and glslang (for SPIR-V backend) for code generation.
-
-```# pacman -S llvm-libs glslang```
+## building
+```
+$ make
+```
 
 ## usage
 ```
-$ make
-$ out/compiler input.lang output.ir
+$ out/compiler input.kl output.ir
 ```
 
 ## testing
 ```
-$ make test #will run all tests
-$ make test debug=1 #as above and will drop you into a GDB session when a test fails
+$ make test
+$ make test debug=1 #will drop into a GDB session when something goes wrong
 ```
 
 ## ideas

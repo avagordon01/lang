@@ -42,11 +42,11 @@ type-2-tests := link fib gcd
 test: $(type-1-tests) $(type-2-tests)
 
 $(type-1-tests): %: out/compiler
-	$(Q) $(DEBUG) out/compiler tests/$@.lang out/$@.ir
+	$(Q) $(DEBUG) out/compiler tests/$@.kl out/$@.ir
 	$(Q) llc -filetype=obj out/$@.ir -o out/$@.o
 
 $(type-2-tests): %: out/compiler
-	$(Q) $(DEBUG) out/compiler tests/$@.lang out/$@.ir
+	$(Q) $(DEBUG) out/compiler tests/$@.kl out/$@.ir
 	$(Q) llc -filetype=obj out/$@.ir -o out/$@.o
 	$(Q) g++ tests/$@.cc out/$@.o -o out/$@
 	$(Q) $(DEBUG) out/$@
