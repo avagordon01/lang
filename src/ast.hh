@@ -42,20 +42,20 @@ namespace ast {
         > expression;
     };
     struct binary_operator {
+        ast::expression l, r;
         enum op {
             A_ADD, A_SUB, A_MUL, A_DIV, A_MOD,
             B_SHL, B_SHR, B_AND, B_XOR, B_OR,
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        ast::expression l, r;
         bool is_unsigned;
     };
     struct unary_operator {
+        ast::expression r;
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
-        ast::expression r;
     };
 
     using statement_list = std::vector<ast::statement>;
