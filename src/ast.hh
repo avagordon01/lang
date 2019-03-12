@@ -20,7 +20,8 @@ namespace ast {
     using raw_literal = std::variant<double, uint64_t, bool>;
     struct literal {
         raw_literal literal;
-        std::optional<ast::type> type;
+        std::optional<ast::type> explicit_type;
+        ast::type type;
     };
     struct block;
     struct if_statement;
@@ -40,6 +41,7 @@ namespace ast {
             std::unique_ptr<ast::binary_operator>,
             std::unique_ptr<ast::unary_operator>
         > expression;
+        ast::type type;
     };
     struct binary_operator {
         ast::expression l, r;
@@ -49,13 +51,14 @@ namespace ast {
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        bool is_unsigned;
+        ast::type type;
     };
     struct unary_operator {
         ast::expression r;
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
+        ast::type type;
     };
 
     using statement_list = std::vector<ast::statement>;
@@ -66,6 +69,7 @@ namespace ast {
     struct if_statement {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
+        ast::type type;
     };
     using optional_else = std::optional<ast::block>;
     struct else_if_list {
@@ -76,14 +80,16 @@ namespace ast {
     struct case_statement {
         literal_list cases;
         ast::block block;
+        ast::type type;
     };
     using cases_list = std::vector<ast::case_statement>;
     struct switch_statement {
         ast::expression expression;
         cases_list cases;
+        ast::type type;
     };
     struct variable_def {
-        std::optional<ast::type> type;
+        std::optional<ast::type> explicit_type;
         ast::identifier identifier;
         ast::expression expression;
     };
@@ -96,10 +102,12 @@ namespace ast {
         ast::expression condition;
         ast::assignment step;
         ast::block block;
+        ast::type type;
     };
     struct while_loop {
         ast::expression condition;
         ast::block block;
+        ast::type type;
     };
     struct parameter {
         ast::type type;
@@ -110,6 +118,7 @@ namespace ast {
     struct function_call {
         ast::identifier identifier;
         ast::expression_list arguments;
+        ast::type type;
     };
     struct function_def {
         bool to_export;

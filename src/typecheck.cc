@@ -51,6 +51,7 @@ struct typecheck_fn {
             }
             type = t;
         }
+        if_statement.type = type;
         return type;
     }
     ast::type operator()(std::unique_ptr<ast::for_loop>& for_loop) {
@@ -64,6 +65,7 @@ struct typecheck_fn {
         }
         ast::type type = std::invoke(*this, for_loop.block);
         context.scopes.pop_back();
+        for_loop.type = type;
         return type;
     }
     ast::type operator()(std::unique_ptr<ast::while_loop>& while_loop) {
@@ -74,6 +76,7 @@ struct typecheck_fn {
             error("while loop condition not a boolean");
         }
         ast::type type = std::invoke(*this, while_loop.block);
+        while_loop.type = type;
         return type;
     }
     ast::type operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
@@ -101,6 +104,7 @@ struct typecheck_fn {
             }
             type = t;
         }
+        switch_statement.type = type;
         return type;
     }
     ast::type operator()(ast::function_def& function_def) {
@@ -140,11 +144,10 @@ struct typecheck_fn {
             error("variable already defined in this scope");
         }
         ast::type t = std::invoke(*this, variable_def.expression);
-        if (variable_def.type && variable_def.type != t) {
+        if (variable_def.explicit_type && variable_def.explicit_type != t) {
             error("type mismatch in variable definition");
         }
-        variable_def.type = t;
-        context.scopes.back()[variable_def.identifier] = *variable_def.type;
+        context.scopes.back()[variable_def.identifier] = t;
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
@@ -168,7 +171,9 @@ struct typecheck_fn {
     }
 
     ast::type operator()(ast::expression& expression) {
-        return std::visit(*this, expression.expression);
+        ast::type type = std::visit(*this, expression.expression);
+        expression.type = type;
+        return type;
     }
     ast::type operator()(ast::identifier& identifier) {
         ast::type variable;
@@ -188,15 +193,15 @@ struct typecheck_fn {
     ast::type operator()(ast::literal& literal) {
         struct literal_visitor {
             typecheck_context& context;
-            std::optional<ast::type>& type;
+            std::optional<ast::type>& explicit_type;
             ast::type operator()(double& x) {
-                if (!type) {
-                    *type = ast::type::f32;
-                    return *type;
+                if (!explicit_type) {
+                    *explicit_type = ast::type::f32;
+                    return *explicit_type;
                 }
-                if (ast::type_is_float(*type)) {
-                    return *type;
-                } else if (ast::type_is_integer(*type)) {
+                if (ast::type_is_float(*explicit_type)) {
+                    return *explicit_type;
+                } else if (ast::type_is_integer(*explicit_type)) {
                     error("redundant values after decimal point in floating point literal converted to integer type");
                     assert(false);
                 } else {
@@ -205,23 +210,23 @@ struct typecheck_fn {
                 }
             }
             ast::type operator()(uint64_t& x) {
-                if (!type) {
-                    *type = ast::type::i32;
-                    return *type;
+                if (!explicit_type) {
+                    *explicit_type = ast::type::i32;
+                    return *explicit_type;
                 }
-                if (ast::type_is_number(*type)) {
-                    return *type;
+                if (ast::type_is_number(*explicit_type)) {
+                    return *explicit_type;
                 } else {
                     error("integer literal cannot be converted to non number type");
                     assert(false);
                 }
             }
             ast::type operator()(bool& x) {
-                if (!type) {
-                    *type = ast::type::t_bool;
-                    return *type;
+                if (!explicit_type) {
+                    *explicit_type = ast::type::t_bool;
+                    return *explicit_type;
                 }
-                if (ast::type_is_bool(*type)) {
+                if (ast::type_is_bool(*explicit_type)) {
                     return ast::type::t_bool;
                 } else {
                     error("bool literal cannot be converted to non bool type");
@@ -229,7 +234,9 @@ struct typecheck_fn {
                 }
             }
         };
-        return std::visit(literal_visitor{context, literal.type}, literal.literal);
+        ast::type type = std::visit(literal_visitor{context, literal.explicit_type}, literal.literal);
+        literal.type = type;
+        return type;
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
         std::vector<ast::type> function_parameter_type;
@@ -243,12 +250,14 @@ struct typecheck_fn {
         if (v == context.scopes.front().end()) {
             error("function called before being defined");
         }
-        return v->second;
+        ast::type type = v->second;
+        function_call->type = type;
+        return type;
     }
     ast::type operator()(std::unique_ptr<ast::binary_operator>& binary_operator) {
         ast::type l = std::invoke(*this, binary_operator->l);
         ast::type r = std::invoke(*this, binary_operator->r);
-        binary_operator->is_unsigned = ast::type_is_unsigned_integer(l);
+        ast::type type;
         switch (binary_operator->binary_operator) {
             case ast::binary_operator::A_ADD:
             case ast::binary_operator::A_SUB:
@@ -261,7 +270,8 @@ struct typecheck_fn {
                 if (!ast::type_is_number(l)) {
                     error("LHS and RHS of arithmetic operator are not numbers");
                 }
-                return l;
+                type = l;
+                break;
             case ast::binary_operator::B_SHL:
             case ast::binary_operator::B_SHR:
                 if (!ast::type_is_integer(l)) {
@@ -270,7 +280,8 @@ struct typecheck_fn {
                 if (!ast::type_is_integer(r)) {
                     error("RHS of shift operator is not an integer");
                 }
-                return l;
+                type = l;
+                break;
             case ast::binary_operator::B_AND:
             case ast::binary_operator::B_XOR:
             case ast::binary_operator::B_OR:
@@ -283,7 +294,8 @@ struct typecheck_fn {
                 if (!ast::type_is_integer(r)) {
                     error("RHS of bitwise operator is not an integer");
                 }
-                return l;
+                type = l;
+                break;
             case ast::binary_operator::L_AND:
             case ast::binary_operator::L_OR:
                 if (!ast::type_is_bool(l)) {
@@ -292,13 +304,15 @@ struct typecheck_fn {
                 if (!ast::type_is_bool(r)) {
                     error("RHS of logical operator is not a boolean");
                 }
-                return l;
+                type = l;
+                break;
             case ast::binary_operator::C_EQ:
             case ast::binary_operator::C_NE:
                 if (l != r) {
                     error("LHS and RHS of comparison operator are not of the same type");
                 }
-                return ast::type::t_bool;
+                type = ast::type::t_bool;
+                break;
             case ast::binary_operator::C_GT:
             case ast::binary_operator::C_GE:
             case ast::binary_operator::C_LT:
@@ -309,25 +323,31 @@ struct typecheck_fn {
                 if (!ast::type_is_number(l)) {
                     error("LHS and RHS of comparison operator are not numbers");
                 }
-                return ast::type::t_bool;
+                type = ast::type::t_bool;
+                break;
         }
-        assert(false);
+        binary_operator->type = type;
+        return type;
     }
     ast::type operator()(std::unique_ptr<ast::unary_operator>& unary_operator) {
         ast::type r = std::invoke(*this, unary_operator->r);
+        ast::type type;
         switch (unary_operator->unary_operator) {
             case ast::unary_operator::B_NOT:
                 if (!ast::type_is_integer(r)) {
                     error("RHS of bitwise negation is not an integer");
                 }
-                return r;
+                type = r;
+                break;
             case ast::unary_operator::L_NOT:
                 if (!ast::type_is_bool(r)) {
                     error("RHS of bitwise negation is not boolean");
                 }
-                return r;
+                type = r;
+                break;
         }
-        assert(false);
+        unary_operator->type = type;
+        return type;
     }
 };
 
