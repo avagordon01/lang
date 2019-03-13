@@ -49,6 +49,5 @@ fn u64 test(u64 a, u64 b, u64 c) {
         break;
     };
     var z = if true { 10; } else { 20; };
-    var g = while true { break 10; };
     return 10u64;
 }

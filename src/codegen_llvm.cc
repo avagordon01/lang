@@ -156,7 +156,7 @@ struct llvm_codegen_fn {
         context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
 
-        ast::type type = ast::type::t_void;
+        ast::type type = for_loop.block.type;
         llvm::PHINode* phi;
         if (type != ast::type::t_void) {
             context.builder.SetInsertPoint(merge_bb);
@@ -169,7 +169,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(loop_bb);
         llvm::Value* v = std::invoke(*this, for_loop.block);
         if (type != ast::type::t_void) {
-            context.current_loop_phi->addIncoming(v, context.builder.GetInsertBlock());
+            phi->addIncoming(v, context.builder.GetInsertBlock());
         }
         std::invoke(*this, for_loop.step);
         llvm::Value* cond = std::invoke(*this, for_loop.condition);
@@ -194,7 +194,7 @@ struct llvm_codegen_fn {
         context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
 
-        ast::type type = ast::type::t_void;
+        ast::type type = while_loop.block.type;
         llvm::PHINode* phi;
         if (type != ast::type::t_void) {
             context.builder.SetInsertPoint(merge_bb);
@@ -205,12 +205,13 @@ struct llvm_codegen_fn {
         }
 
         context.builder.SetInsertPoint(loop_bb);
-        std::invoke(*this, while_loop.block);
+        llvm::Value* block_value = std::invoke(*this, while_loop.block);
         llvm::Value* cond = std::invoke(*this, while_loop.condition);
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
         if (type != ast::type::t_void) {
+            phi->addIncoming(block_value, loop_bb);
             return phi;
         } else {
             return NULL;
