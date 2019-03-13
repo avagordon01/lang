@@ -24,6 +24,14 @@ memory
     dag or tree?
     initialisation?
     no declaration without definition/initialisation
+    if everything is single ownership from the stack
+        can we use a bump allocator??
+        bump/stack allocator on the heap
+        because there is a 1-1 mapping between stack and heap
+        nothing lives outside of its scope
+        could give us really fast allocation and deallocation
+        what about if things need to be resized?
+        maybe have a separate pool for variably sized things
 modules
     import
         import exported functions from another file
@@ -56,3 +64,18 @@ make if, switch, for, while, block expressions not statements
 SPIRV backend
     use GlslangToSpv.cpp as example
     and SpvBuilder.h as documentation
+compiletime interpreter/backend/evaluator
+    would LLVM JIT work?
+    otherwise have to store a std::variant of the types for values
+ast
+    change to a strongly typed AST, every node is typed
+    add location everywhere in the ast
+generic programming
+    think about what cool compile time behaviour and types we want
+    dependent types?
+    genericity, is a, has a, builtin type operations?
+types
+    should keep a hierarchical list of types in scope, like the variables scopes list
+    type should just be an identifier, add the builtin types to the list
+    typeid
+    add user defined types, start with array, vector, struct
