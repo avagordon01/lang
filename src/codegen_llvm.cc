@@ -372,13 +372,10 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
             codegen_context_llvm& context;
-            std::optional<ast::type> explicit_type;
+            ast::type type;
             llvm::Value* operator()(double& x) {
                 llvm::Type* llvm_type;
-                if (!explicit_type) {
-                    explicit_type = ast::type::f32;
-                }
-                switch (*explicit_type) {
+                switch (type) {
                     case ast::type::f16:
                         llvm_type = llvm::Type::getHalfTy(context.context);
                         break;
@@ -395,10 +392,7 @@ struct llvm_codegen_fn {
             }
             llvm::Value* operator()(uint64_t& x) {
                 llvm::Type* llvm_type;
-                if (!explicit_type) {
-                    explicit_type = ast::type::i32;
-                }
-                switch (*explicit_type) {
+                switch (type) {
                     case ast::type::u8:
                         llvm_type = llvm::Type::getInt8Ty(context.context);
                         break;
@@ -435,7 +429,7 @@ struct llvm_codegen_fn {
                     default:
                         assert(false);
                 }
-                if (ast::type_is_integer(*explicit_type)) {
+                if (ast::type_is_integer(type)) {
                     return llvm::ConstantInt::get(llvm_type, x);
                 } else {
                     return llvm::ConstantFP::get(llvm_type, static_cast<double>(x));
@@ -445,7 +439,7 @@ struct llvm_codegen_fn {
                 return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context.context), x);
             }
         };
-        return std::visit(literal_visitor{context, literal.explicit_type}, literal.literal);
+        return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
         llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier]);

@@ -64,6 +64,7 @@ struct typecheck_fn {
             error("for loop condition not a boolean");
         }
         ast::type type = std::invoke(*this, for_loop.block);
+        std::invoke(*this, for_loop.step);
         context.scopes.pop_back();
         for_loop.type = type;
         return type;
