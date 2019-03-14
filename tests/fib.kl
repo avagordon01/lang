@@ -7,4 +7,4 @@ export fn u32 fibonacci(u32 n) {
         a = t;
     };
     return a;
-}
+};

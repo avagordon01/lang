@@ -12,8 +12,8 @@ struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
         context.scopes.push_back({});
-        for (auto& function_def: program.function_defs) {
-            std::invoke(*this, function_def);
+        for (auto& statement: program.statements) {
+            std::invoke(*this, statement);
         }
         context.scopes.pop_back();
         return ast::type::t_void;

@@ -2,7 +2,7 @@ fn u8 internal(u8 a, u8 b, u8 c) {
     var x = 0u8;
     x = a;
     return x + b * c;
-}
+};
 export fn u8 test(u8 b, u8 c, u8 d) {
     return internal(b, c, d);
-}
+};

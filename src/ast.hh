@@ -137,6 +137,7 @@ namespace ast {
     struct statement {
         std::variant<
             ast::expression,
+            ast::function_def,
             ast::variable_def,
             ast::assignment,
             ast::s_return,
@@ -145,6 +146,6 @@ namespace ast {
         > statement;
     };
     struct program {
-        std::vector<ast::function_def> function_defs;
+        statement_list statements;
     };
 }

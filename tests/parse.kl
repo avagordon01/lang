@@ -38,7 +38,7 @@ fn other() {
     };
 
     return;
-}
+};
 fn u64 test(u64 a, u64 b, u64 c) {
     var f = 1f32;
     var x = 0;
@@ -50,4 +50,4 @@ fn u64 test(u64 a, u64 b, u64 c) {
     };
     var z = if true { 10; } else { 20; };
     return 10u64;
-}
+};
