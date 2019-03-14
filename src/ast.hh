@@ -127,6 +127,9 @@ namespace ast {
         ast::parameter_list parameter_list;
         ast::block block;
     };
+    struct struct_def {
+        ast::parameter_list fields;
+    };
     struct s_return {
         std::optional<ast::expression> expression;
     };
@@ -139,6 +142,7 @@ namespace ast {
             ast::expression,
             ast::function_def,
             ast::variable_def,
+            ast::struct_def,
             ast::assignment,
             ast::s_return,
             ast::s_break,

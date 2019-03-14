@@ -1,3 +1,8 @@
+struct test {
+    u64 a,
+    u64 b,
+    u64 c
+};
 fn other() {
     if true {
     };

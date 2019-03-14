@@ -307,6 +307,10 @@ struct llvm_codegen_fn {
 
         return f;
     }
+    llvm::Value* operator()(ast::struct_def& struct_def) {
+        //TODO
+        return NULL;
+    }
     llvm::Value* operator()(ast::s_return& s_return) {
         if (s_return.expression) {
             context.builder.CreateRet(std::invoke(*this, *s_return.expression));

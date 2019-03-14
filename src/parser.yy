@@ -64,6 +64,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token FUNCTION RETURN
 %token IMPORT EXPORT
 %token VAR
+%token STRUCT
 
 %token SEMICOLON
 %token COMMA
@@ -91,6 +92,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::while_loop> while_loop
 %type <ast::cases_list> cases_list
 %type <ast::switch_statement> switch_statement
+%type <ast::struct_def> struct_def
 %type <ast::function_def> function_def
 %type <ast::function_call> function_call
 %type <ast::s_return> return
@@ -104,6 +106,10 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 
 program: statement_list { drv.program_ast.statements = std::move($1); };
 
+struct_def: STRUCT IDENTIFIER OPEN_C_BRACKET parameter_list CLOSE_C_BRACKET {
+          }
+          ;
+
 statement_list: %empty { }
               | statement_list statement SEMICOLON {
               auto& v = $$;
@@ -114,6 +120,7 @@ statement_list: %empty { }
 
 statement: exp              { $$.statement = $1; }
          | function_def     { $$.statement = $1; }
+         | struct_def       { $$.statement = $1; }
          | assignment       { $$.statement = $1; }
          | variable_def     { $$.statement = $1; }
          | return           { $$.statement = $1; }

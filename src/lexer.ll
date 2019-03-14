@@ -122,6 +122,7 @@ switch   return yy::parser::make_SWITCH(loc);
 case     return yy::parser::make_CASE(loc);
 import   return yy::parser::make_IMPORT(loc);
 export   return yy::parser::make_EXPORT(loc);
+struct   return yy::parser::make_STRUCT(loc);
 
 bool return yy::parser::make_TYPE(ast::type::t_bool, loc);
 u8   return yy::parser::make_TYPE(ast::type::u8, loc);
