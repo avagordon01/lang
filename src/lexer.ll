@@ -76,6 +76,7 @@ false                   return yy::parser::make_LITERAL_BOOL_F(ast::raw_literal{
 [+-]?0[bB][0-1_]+       return yy::parser::make_LITERAL_INTEGER(ast::raw_literal{parse_integer(yytext, 2)}, loc);
 [+-]?[0-9]+\.[0-9]+     return yy::parser::make_LITERAL_FLOAT(ast::raw_literal{atof(yytext)}, loc);
 
+"\." return yy::parser::make_OP_ACCESS(loc);
 "="  return yy::parser::make_OP_ASSIGN(loc);
 
 "+"  return yy::parser::make_OP_A_ADD(loc);

@@ -54,6 +54,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %left OP_A_MUL OP_A_DIV OP_A_MOD
 %precedence OP_B_NOT OP_L_NOT
 
+%token OP_ACCESS
 %token OP_ASSIGN
 %token OPEN_R_BRACKET CLOSE_R_BRACKET
 %token OPEN_C_BRACKET CLOSE_C_BRACKET
@@ -93,6 +94,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::cases_list> cases_list
 %type <ast::switch_statement> switch_statement
 %type <ast::struct_def> struct_def
+%type <ast::accessor> accessor
 %type <ast::function_def> function_def
 %type <ast::function_call> function_call
 %type <ast::s_return> return
@@ -183,8 +185,8 @@ variable_def: VAR optional_type IDENTIFIER OP_ASSIGN exp {
             $$.identifier = $3;
             $$.expression = $5;
             }
-assignment: IDENTIFIER OP_ASSIGN exp {
-          $$.identifier = $1;
+assignment: accessor OP_ASSIGN exp {
+          $$.accessor = $1;
           $$.expression = $3;
           }
 optional_exp: %empty { $$ = std::nullopt; }
@@ -264,13 +266,28 @@ literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::type::t_
        | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2, ast::type::t_void}; }
        ;
 
+accessor: IDENTIFIER {
+        $$.fields.push_back({$1});
+        }
+        | accessor OP_ACCESS IDENTIFIER {
+        auto& v = $$;
+        v = $1;
+        v.fields.push_back({$3});
+        }
+        | accessor OPEN_S_BRACKET exp CLOSE_S_BRACKET {
+        auto& v = $$;
+        v = $1;
+        v.fields.push_back({$3});
+        }
+        ;
+
 exp: block            { $$.expression = std::make_unique<ast::block>($1); }
    | if_statement     { $$.expression = std::make_unique<ast::if_statement>($1); }
    | for_loop         { $$.expression = std::make_unique<ast::for_loop>($1); }
    | while_loop       { $$.expression = std::make_unique<ast::while_loop>($1); }
    | switch_statement { $$.expression = std::make_unique<ast::switch_statement>($1); }
 
-   | IDENTIFIER { $$.expression = $1; }
+   | accessor { $$.expression = std::make_unique<ast::accessor>($1); }
    | function_call { $$.expression = std::make_unique<ast::function_call>($1); }
    | literal { $$.expression = $1; }
    | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD); }

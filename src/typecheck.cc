@@ -241,6 +241,10 @@ struct typecheck_fn {
         literal.type = type;
         return type;
     }
+    ast::type operator()(std::unique_ptr<ast::accessor>& function_call) {
+        //TODO
+        return ast::type::t_void;
+    }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
         std::vector<ast::type> function_parameter_type;
         for (auto& argument: function_call->arguments) {

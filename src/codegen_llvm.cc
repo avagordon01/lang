@@ -446,6 +446,10 @@ struct llvm_codegen_fn {
         };
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
+    llvm::Value* operator()(std::unique_ptr<ast::accessor>& accessor) {
+        //TODO
+        return NULL;
+    }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
         llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier]);
         assert(function);

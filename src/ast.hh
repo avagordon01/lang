@@ -28,6 +28,7 @@ namespace ast {
     struct for_loop;
     struct while_loop;
     struct switch_statement;
+    struct accessor;
     struct expression {
         std::variant<
             std::unique_ptr<ast::block>,
@@ -35,6 +36,7 @@ namespace ast {
             std::unique_ptr<ast::for_loop>,
             std::unique_ptr<ast::while_loop>,
             std::unique_ptr<ast::switch_statement>,
+            std::unique_ptr<ast::accessor>,
             ast::identifier,
             ast::literal,
             std::unique_ptr<ast::function_call>,
@@ -93,17 +95,6 @@ namespace ast {
         ast::identifier identifier;
         ast::expression expression;
     };
-    struct assignment {
-        ast::identifier identifier;
-        ast::expression expression;
-    };
-    struct for_loop {
-        ast::variable_def initial;
-        ast::expression condition;
-        ast::assignment step;
-        ast::block block;
-        ast::type type;
-    };
     struct while_loop {
         ast::expression condition;
         ast::block block;
@@ -129,6 +120,23 @@ namespace ast {
     };
     struct struct_def {
         ast::parameter_list fields;
+    };
+    using field_access = ast::identifier;
+    using array_access = ast::expression;
+    using access = std::variant<field_access, array_access>;
+    struct accessor {
+        std::vector<ast::access> fields;
+    };
+    struct assignment {
+        ast::accessor accessor;
+        ast::expression expression;
+    };
+    struct for_loop {
+        ast::variable_def initial;
+        ast::expression condition;
+        ast::assignment step;
+        ast::block block;
+        ast::type type;
     };
     struct s_return {
         std::optional<ast::expression> expression;
