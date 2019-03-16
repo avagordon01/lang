@@ -33,12 +33,12 @@ void yy::parser::error(const location_type& l, const std::string& m) {
 #include <memory>
 std::unique_ptr<ast::unary_operator>
 new_unary_op(ast::expression r, ast::unary_operator::op op) {
-    ast::unary_operator x {std::move(r), op, ast::type::t_void};
+    ast::unary_operator x {std::move(r), op, ast::primitive_type::t_void};
     return std::make_unique<ast::unary_operator>(std::move(x));
 }
 std::unique_ptr<ast::binary_operator>
 new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op) {
-    ast::binary_operator x {std::move(l), std::move(r), op, ast::type::t_void};
+    ast::binary_operator x {std::move(l), std::move(r), op, ast::primitive_type::t_void};
     return std::make_unique<ast::binary_operator>(std::move(x));
 }
 }
@@ -148,7 +148,7 @@ cases_list: %empty { }
           | cases_list CASE literal_list block {
           auto& v = $$;
           v = $1;
-          v.push_back({$3, $4, ast::type::t_void});
+          v.push_back({$3, $4, ast::primitive_type::t_void});
           }
           ;
 switch_statement: SWITCH exp OPEN_C_BRACKET cases_list CLOSE_C_BRACKET {
@@ -175,7 +175,7 @@ function_def: optional_export FUNCTION optional_type IDENTIFIER OPEN_R_BRACKET p
             if (optional_type) {
                 $$.returntype = *optional_type;
             } else {
-                $$.returntype = ast::type::t_void;
+                $$.returntype = ast::primitive_type::t_void;
             }
             $$.parameter_list = $6;
             $$.block = $8;
@@ -260,10 +260,10 @@ block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 optional_type: %empty { $$ = std::nullopt; }
              | TYPE   { $$ = $1; }
              ;
-literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::type::t_void}; }
-       | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::type::t_void}; }
-       | LITERAL_BOOL_T optional_type  { $$ = ast::literal{$1, $2, ast::type::t_void}; }
-       | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2, ast::type::t_void}; }
+literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
+       | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
+       | LITERAL_BOOL_T optional_type  { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
+       | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
        ;
 
 accessor: IDENTIFIER {

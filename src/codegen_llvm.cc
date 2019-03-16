@@ -88,7 +88,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_block);
         ast::type type = if_statement.blocks.front().type;
         llvm::PHINode* phi;
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
                 if_statement.blocks.size(), "phi");
@@ -106,7 +106,7 @@ struct llvm_codegen_fn {
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != {ast::type::t_void}) {
+                if (type != ast::type{ast::primitive_type::t_void}) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -120,7 +120,7 @@ struct llvm_codegen_fn {
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != {ast::type::t_void}) {
+                if (type != ast::type{ast::primitive_type::t_void}) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -130,7 +130,7 @@ struct llvm_codegen_fn {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
             llvm::Value* v = std::invoke(*this, if_statement.blocks.back());
-            if (type != {ast::type::t_void}) {
+            if (type != ast::type{ast::primitive_type::t_void}) {
                 phi->addIncoming(v, basic_blocks.back());
             }
             context.builder.CreateBr(merge_block);
@@ -138,7 +138,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_block);
 
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -159,7 +159,7 @@ struct llvm_codegen_fn {
 
         ast::type type = for_loop.block.type;
         llvm::PHINode* phi;
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
@@ -169,7 +169,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(loop_bb);
         llvm::Value* v = std::invoke(*this, for_loop.block);
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             phi->addIncoming(v, context.builder.GetInsertBlock());
         }
         std::invoke(*this, for_loop.step);
@@ -178,7 +178,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -197,7 +197,7 @@ struct llvm_codegen_fn {
 
         ast::type type = while_loop.block.type;
         llvm::PHINode* phi;
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
@@ -211,7 +211,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             phi->addIncoming(block_value, loop_bb);
             return phi;
         } else {
@@ -238,7 +238,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_bb);
         ast::type type = switch_statement.cases.front().block.type;
         llvm::PHINode* phi;
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
                 num_basic_cases, "phi");
@@ -248,7 +248,7 @@ struct llvm_codegen_fn {
         for (auto& case_statement: switch_statement.cases) {
             for (auto& basic_case: case_statement.cases) {
                 llvm::Value* v = std::invoke(*this, basic_case);
-                if (type != {ast::type::t_void}) {
+                if (type != ast::type{ast::primitive_type::t_void}) {
                     phi->addIncoming(v, blocks[i]);
                 }
                 switch_inst->addCase(static_cast<llvm::ConstantInt*>(v), blocks[i]);
@@ -261,7 +261,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != {ast::type::t_void}) {
+        if (type != ast::type{ast::primitive_type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -366,13 +366,13 @@ struct llvm_codegen_fn {
             llvm::Value* operator()(double& x) {
                 llvm::Type* llvm_type;
                 switch (type) {
-                    case ast::type::f16:
+                    case ast::primitive_type::f16:
                         llvm_type = llvm::Type::getHalfTy(context.context);
                         break;
-                    case ast::type::f32:
+                    case ast::primitive_type::f32:
                         llvm_type = llvm::Type::getFloatTy(context.context);
                         break;
-                    case ast::type::f64:
+                    case ast::primitive_type::f64:
                         llvm_type = llvm::Type::getDoubleTy(context.context);
                         break;
                     default:
@@ -383,37 +383,37 @@ struct llvm_codegen_fn {
             llvm::Value* operator()(uint64_t& x) {
                 llvm::Type* llvm_type;
                 switch (type) {
-                    case ast::type::u8:
+                    case ast::primitive_type::u8:
                         llvm_type = llvm::Type::getInt8Ty(context.context);
                         break;
-                    case ast::type::u16:
+                    case ast::primitive_type::u16:
                         llvm_type = llvm::Type::getInt16Ty(context.context);
                         break;
-                    case ast::type::u32:
+                    case ast::primitive_type::u32:
                         llvm_type = llvm::Type::getInt32Ty(context.context);
                         break;
-                    case ast::type::u64:
+                    case ast::primitive_type::u64:
                         llvm_type = llvm::Type::getInt64Ty(context.context);
                         break;
-                    case ast::type::i8:
+                    case ast::primitive_type::i8:
                         llvm_type = llvm::Type::getInt8Ty(context.context);
                         break;
-                    case ast::type::i16:
+                    case ast::primitive_type::i16:
                         llvm_type = llvm::Type::getInt16Ty(context.context);
                         break;
-                    case ast::type::i32:
+                    case ast::primitive_type::i32:
                         llvm_type = llvm::Type::getInt32Ty(context.context);
                         break;
-                    case ast::type::i64:
+                    case ast::primitive_type::i64:
                         llvm_type = llvm::Type::getInt64Ty(context.context);
                         break;
-                    case ast::type::f16:
+                    case ast::primitive_type::f16:
                         llvm_type = llvm::Type::getHalfTy(context.context);
                         break;
-                    case ast::type::f32:
+                    case ast::primitive_type::f32:
                         llvm_type = llvm::Type::getFloatTy(context.context);
                         break;
-                    case ast::type::f64:
+                    case ast::primitive_type::f64:
                         llvm_type = llvm::Type::getDoubleTy(context.context);
                         break;
                     default:
