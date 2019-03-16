@@ -38,11 +38,11 @@ codegen_context_llvm& context, const ast::identifier identifier, ast::type type
 struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         return NULL;
     }
     llvm::Value* operator()(ast::statement& statement) {
@@ -53,11 +53,11 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::block& block) {
         llvm::Value* ret = NULL;
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         for (auto& statement: block.statements) {
             ret = std::invoke(*this, statement);
         }
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         return ret;
     }
     llvm::Value* operator()(std::unique_ptr<ast::if_statement>& if_statement) {
@@ -148,7 +148,7 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::for_loop& for_loop) {
         llvm::Function* f = context.builder.GetInsertBlock()->getParent();
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         std::invoke(*this, for_loop.initial);
         llvm::BasicBlock* loop_bb = llvm::BasicBlock::Create(context.context, "forloop", f);
         llvm::BasicBlock* merge_bb = llvm::BasicBlock::Create(context.context, "formerge", f);
@@ -173,7 +173,7 @@ struct llvm_codegen_fn {
         }
         std::invoke(*this, for_loop.step);
         llvm::Value* cond = std::invoke(*this, for_loop.condition);
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
@@ -291,17 +291,17 @@ struct llvm_codegen_fn {
         context.current_function_entry = bb;
         context.builder.SetInsertPoint(bb);
 
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         size_t j = 0;
         for (auto& arg: f->args()) {
             ast::parameter param = function_def.parameter_list[j++];
             llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, param.identifier, param.type);
             context.builder.CreateStore(&arg, alloca);
-            context.scopes.back()[param.identifier] = alloca;
+            context.scopes.push_item(param.identifier, alloca);
         }
 
         std::invoke(*this, function_def.block);
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
 
         llvm::verifyFunction(*f);
 
@@ -341,19 +341,11 @@ struct llvm_codegen_fn {
         llvm::Value* value = std::invoke(*this, variable_def.expression);
         llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, variable_def.identifier, variable_def.expression.type);
         context.builder.CreateStore(value, alloca);
-        context.scopes.back()[variable_def.identifier] = alloca;
+        context.scopes.push_item(variable_def.identifier, alloca);
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {
-        llvm::Value* variable;
-        auto it = context.scopes.rbegin();
-        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
-            auto v = it->find(assignment.identifier);
-            if (v != it->end()) {
-                variable = v->second;
-                break;
-            }
-        }
+        llvm::Value* variable = *context.scopes.find_item(assignment.identifier);
         llvm::Value* value = std::invoke(*this, assignment.expression);
         context.builder.CreateStore(value, variable);
         return NULL;
@@ -363,15 +355,7 @@ struct llvm_codegen_fn {
         return std::visit(*this, expression.expression);
     }
     llvm::Value* operator()(ast::identifier& identifier) {
-        llvm::Value* variable;
-        auto it = context.scopes.rbegin();
-        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
-            auto v = it->find(identifier);
-            if (v != it->end()) {
-                variable = v->second;
-                break;
-            }
-        }
+        llvm::Value* variable = *context.scopes.find_item(identifier);
         return context.builder.CreateLoad(variable, context.symbols_list[identifier].c_str());
     }
     llvm::Value* operator()(ast::literal& literal) {
