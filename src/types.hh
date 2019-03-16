@@ -13,6 +13,8 @@ namespace ast {
         i8, i16, i32, i64,
         f16, f32, f64,
     };
+    using type = primitive_type;
+    using identifier = size_t;
     struct struct_type {
         std::vector<std::pair<ast::identifier, ast::type>> fields;
     };
@@ -20,29 +22,29 @@ namespace ast {
         ast::type element_type;
         size_t length;
     };
-    using type = std::variant<primitive_type, struct_type, array_type>;
     static std::string type_to_string(type t) {
         struct type_visitor {
-            sstream s;
-            operator()(primitive_type& primitive_type) {
+            std::ostringstream s;
+            void operator()(primitive_type& primitive_type) {
                 switch (primitive_type) {
-                    case t_void:    s << "void";
-                    case t_bool:    s << "bool";
-                    case u8:        s << "u8";
-                    case u16:       s << "u16";
-                    case u32:       s << "u32";
-                    case u64:       s << "u64";
-                    case i8:        s << "i8";
-                    case i16:       s << "i16";
-                    case i32:       s << "i32";
-                    case i64:       s << "i64";
-                    case f16:       s << "f16";
-                    case f32:       s << "f32";
-                    case f64:       s << "f64";
+                    case t_void:    { s << "void";  break; }
+                    case t_bool:    { s << "bool";  break; }
+                    case u8:        { s << "u8";    break; }
+                    case u16:       { s << "u16";   break; }
+                    case u32:       { s << "u32";   break; }
+                    case u64:       { s << "u64";   break; }
+                    case i8:        { s << "i8";    break; }
+                    case i16:       { s << "i16";   break; }
+                    case i32:       { s << "i32";   break; }
+                    case i64:       { s << "i64";   break; }
+                    case f16:       { s << "f16";   break; }
+                    case f32:       { s << "f32";   break; }
+                    case f64:       { s << "f64";   break; }
                     default:        assert(false);
                 }
             }
-            operator()(struct_type& struct_type) {
+            /*
+            void operator()(struct_type& struct_type) {
                 s << "struct { ";
                 for (auto& field: struct_type.fields) {
                     std::invoke(*this, field);
@@ -50,13 +52,14 @@ namespace ast {
                 }
                 s << "}";
             }
-            operator()(array_type& array_type) {
+            void operator()(array_type& array_type) {
                 s << "array [ ";
                 std::invoke(*this, array_type.element_type);
                 s << " * " << array_type.length << " ]";
             }
+            */
         };
-        type_visitor context{};
+        type_visitor context;
         std::invoke(context, t);
         return context.s.str();
     }
