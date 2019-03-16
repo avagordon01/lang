@@ -154,10 +154,6 @@ struct typecheck_fn {
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
-        auto v = context.scopes.find_item_current_scope(assignment.identifier);
-        if (v.has_value()) {
-            error("variable already defined in this scope");
-        }
         v = context.scopes.find_item(assignment.identifier);
         if (!v.has_value) {
             error("variable used before being defined");
