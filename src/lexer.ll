@@ -125,18 +125,18 @@ import   return yy::parser::make_IMPORT(loc);
 export   return yy::parser::make_EXPORT(loc);
 struct   return yy::parser::make_STRUCT(loc);
 
-bool return yy::parser::make_TYPE(ast::primitive_type::t_bool, loc);
-u8   return yy::parser::make_TYPE(ast::primitive_type::u8, loc);
-u16  return yy::parser::make_TYPE(ast::primitive_type::u16, loc);
-u32  return yy::parser::make_TYPE(ast::primitive_type::u32, loc);
-u64  return yy::parser::make_TYPE(ast::primitive_type::u64, loc);
-i8   return yy::parser::make_TYPE(ast::primitive_type::i8, loc);
-i16  return yy::parser::make_TYPE(ast::primitive_type::i16, loc);
-i32  return yy::parser::make_TYPE(ast::primitive_type::i32, loc);
-i64  return yy::parser::make_TYPE(ast::primitive_type::i64, loc);
-f16  return yy::parser::make_TYPE(ast::primitive_type::f16, loc);
-f32  return yy::parser::make_TYPE(ast::primitive_type::f32, loc);
-f64  return yy::parser::make_TYPE(ast::primitive_type::f64, loc);
+bool return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::t_bool, loc);
+u8   return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u8, loc);
+u16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u16, loc);
+u32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u32, loc);
+u64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u64, loc);
+i8   return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i8, loc);
+i16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i16, loc);
+i32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i32, loc);
+i64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i64, loc);
+f16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f16, loc);
+f32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f32, loc);
+f64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f64, loc);
 
 [a-zA-Z_][a-zA-Z0-9_]* return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
 

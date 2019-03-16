@@ -71,7 +71,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token COMMA
 %token T_EOF 0
 
-%token <ast::type> TYPE
+%token <ast::type> PRIMITIVE_TYPE
 %token <ast::raw_literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
 %token <ast::identifier> IDENTIFIER
 
@@ -218,10 +218,10 @@ else_if_list: %empty { }
             ;
 
 parameter_list: %empty { }
-              | TYPE IDENTIFIER {
+              | PRIMITIVE_TYPE IDENTIFIER {
               $$.push_back({$1, $2});
               }
-              | parameter_list COMMA TYPE IDENTIFIER {
+              | parameter_list COMMA PRIMITIVE_TYPE IDENTIFIER {
               auto& v = $$;
               v = $1;
               v.push_back({$3, $4});
@@ -258,7 +258,7 @@ function_call: IDENTIFIER OPEN_R_BRACKET expression_list CLOSE_R_BRACKET {
 block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 
 optional_type: %empty { $$ = std::nullopt; }
-             | TYPE   { $$ = $1; }
+             | PRIMITIVE_TYPE   { $$ = $1; }
              ;
 literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
        | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
