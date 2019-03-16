@@ -17,6 +17,18 @@ public:
         sizes.back()++;
         data.push_back(std::make_pair(id, t));
     }
+    std::optional<T> find_item_shadow(ID&& id) {
+        auto l = std::find_if(data.rbegin(), data.rbegin() + sizes.back(),
+            [id](std::pair<ID, T> x) -> bool {
+                return std::get<0>(x) == id;
+            }
+        );
+        if (l != data.rbegin() + sizes.back()) {
+            return {std::get<1>(*l)};
+        } else {
+            return std::nullopt;
+        }
+    }
     std::optional<T> find_item(ID&& id) {
         auto l = std::find_if(data.rbegin(), data.rend(),
             [id](std::pair<ID, T> x) -> bool {
