@@ -10,8 +10,9 @@ CXXFLAGS = -g -std=c++17 -MMD -MP \
 LDFLAGS =
 LDLIBS = -lLLVM-7 -lSPIRV
 
+DEBUGGER = gdb -nx -q -ex run -ex quit --args
 ifdef debug
-DEBUG = gdb -nx -q -ex run -ex quit --args
+DEBUG = $(DEBUGGER)
 endif
 
 ifdef quiet
@@ -20,7 +21,7 @@ endif
 
 all: out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o
+objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o out/scopes.o
 depends := $(objects:.o=.d)
 
 out/lexer.cc out/lexer.hh: src/lexer.ll | dirs
@@ -37,9 +38,14 @@ out/compiler: $(objects) | dirs
 clean:
 	$(Q) rm -rf out
 
+type-0-tests := scopes
 type-1-tests := parse codegen
 type-2-tests := link fib gcd
-test: $(type-1-tests) $(type-2-tests)
+test: $(type-0-tests) $(type-1-tests) $(type-2-tests)
+
+$(type-0-tests): %: src/%.cc
+	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o out/$@ $<
+	$(Q) $(DEBUGGER) out/$@
 
 $(type-1-tests): %: out/compiler
 	$(Q) $(DEBUG) out/compiler tests/$@.kl out/$@.ir
