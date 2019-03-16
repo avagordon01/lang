@@ -11,11 +11,11 @@
 struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         return ast::type::t_void;
     }
     ast::type operator()(ast::statement& statement) {
@@ -26,11 +26,11 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::block& block) {
         ast::type type = ast::type::t_void;
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         for (auto& statement: block.statements) {
             type = std::invoke(*this, statement);
         }
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         block.type = type;
         return type;
     }
@@ -58,14 +58,14 @@ struct typecheck_fn {
         return std::invoke(*this, *for_loop);
     }
     ast::type operator()(ast::for_loop& for_loop) {
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         std::invoke(*this, for_loop.initial);
         if (std::invoke(*this, for_loop.condition) != ast::type::t_bool) {
             error("for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         return ast::type::t_void;
     }
     ast::type operator()(std::unique_ptr<ast::while_loop>& while_loop) {
@@ -107,18 +107,18 @@ struct typecheck_fn {
         return type;
     }
     ast::type operator()(ast::function_def& function_def) {
-        auto v = context.scopes.front().find(function_def.identifier);
-        if (v != context.scopes.front().end()) {
+        auto v = context.scopes.find_item(function_def.identifier);
+        if (v.has_value()) {
             error("function already defined");
         }
-        context.scopes.front()[function_def.identifier] = function_def.returntype;
+        context.scopes.push_item(function_def.identifier, function_def.returntype);
         context.current_function_returntype = function_def.returntype;
-        context.scopes.push_back({});
+        context.scopes.push_scope();
         for (auto& parameter: function_def.parameter_list) {
-            context.scopes.back()[parameter.identifier] = parameter.type;
+            context.scopes.push_item(parameter.identifier, parameter.type);
         }
         std::invoke(*this, function_def.block);
-        context.scopes.pop_back();
+        context.scopes.pop_scope();
         for (auto& parameter: function_def.parameter_list) {
             context.function_parameter_types[function_def.identifier].push_back(parameter.type);
         }
@@ -142,30 +142,27 @@ struct typecheck_fn {
         return ast::type::t_void;
     }
     ast::type operator()(ast::variable_def& variable_def) {
-        auto v = context.scopes.back().find(variable_def.identifier);
-        if (v != context.scopes.back().end()) {
+        auto v = context.scopes.find_item_current_scope(variable_def.identifier);
+        if (v.has_value()) {
             error("variable already defined in this scope");
         }
         ast::type t = std::invoke(*this, variable_def.expression);
         if (variable_def.explicit_type && variable_def.explicit_type != t) {
             error("type mismatch in variable definition");
         }
-        context.scopes.back()[variable_def.identifier] = t;
+        context.scopes.push_item(variable_def.identifier, t);
         return ast::type::t_void;
     }
     ast::type operator()(ast::assignment& assignment) {
-        ast::type variable;
-        auto it = context.scopes.rbegin();
-        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
-            auto v = it->find(assignment.identifier);
-            if (v != it->end()) {
-                variable = v->second;
-                break;
-            }
+        auto v = context.scopes.find_item_current_scope(assignment.identifier);
+        if (v.has_value()) {
+            error("variable already defined in this scope");
         }
-        if (it == context.scopes.rend()) {
+        v = context.scopes.find_item(assignment.identifier);
+        if (!v.has_value) {
             error("variable used before being defined");
         }
+        ast::type variable = *v;
         ast::type value = std::invoke(*this, assignment.expression);
         if (value != variable) {
             error("type mismatch in assignment");
@@ -179,19 +176,11 @@ struct typecheck_fn {
         return type;
     }
     ast::type operator()(ast::identifier& identifier) {
-        ast::type variable;
-        auto it = context.scopes.rbegin();
-        for (it = context.scopes.rbegin(); it != context.scopes.rend(); ++it) {
-            auto v = it->find(identifier);
-            if (v != it->end()) {
-                variable = v->second;
-                break;
-            }
-        }
-        if (it == context.scopes.rend()) {
+        auto v = context.scopes.find_item(identifier);
+        if (!v.has_value()) {
             error("variable used before being defined");
         }
-        return variable;
+        return *v;
     }
     ast::type operator()(ast::literal& literal) {
         struct literal_visitor {
@@ -253,11 +242,11 @@ struct typecheck_fn {
         if (function_parameter_type != context.function_parameter_types[function_call->identifier]) {
             error("type mismatch between function call parameters and function definition arguments");
         }
-        auto v = context.scopes.front().find(function_call->identifier);
-        if (v == context.scopes.front().end()) {
+        auto v = context.scopes.find_item(function_call->identifier);
+        if (!v.has_value()) {
             error("function called before being defined");
         }
-        ast::type type = v->second;
+        ast::type type = *v;
         function_call->type = type;
         return type;
     }
