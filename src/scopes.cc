@@ -11,7 +11,7 @@ int main() {
     s.push_item(1, ast::type::u32);
     assert(*s.find_item(0) == ast::type::u16);
     assert(*s.find_item(1) == ast::type::u32);
-    assert(s.find_item_shadow(2) == std::nullopt);
+    assert(s.find_item_current_scope(2) == std::nullopt);
     s.pop_scope();
     assert(*s.find_item(0) == ast::type::t_void);
     assert(*s.find_item(1) == ast::type::t_bool);
