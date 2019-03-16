@@ -20,8 +20,8 @@ namespace ast {
     using raw_literal = std::variant<double, uint64_t, bool>;
     struct literal {
         raw_literal literal;
-        std::optional<ast::type> explicit_type;
-        ast::type type;
+        std::optional<ast::primitive_type> explicit_type;
+        ast::primitive_type type;
     };
     struct block;
     struct if_statement;
@@ -91,7 +91,7 @@ namespace ast {
         ast::type type;
     };
     struct variable_def {
-        std::optional<ast::type> explicit_type;
+        std::optional<ast::primitive_type> explicit_type;
         ast::identifier identifier;
         ast::expression expression;
     };

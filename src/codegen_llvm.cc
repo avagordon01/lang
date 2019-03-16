@@ -30,6 +30,7 @@ codegen_context_llvm& context, const ast::identifier identifier, ast::type type
     llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
     llvm::BasicBlock* entry_bb = context.current_function_entry;
     context.builder.SetInsertPoint(entry_bb, entry_bb->begin());
+    //TODO create allocas for aggregate types (structs, arrays)
     llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols_list[identifier].c_str());
     context.builder.SetInsertPoint(saved_bb);
     return a;
@@ -87,7 +88,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_block);
         ast::type type = if_statement.blocks.front().type;
         llvm::PHINode* phi;
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
                 if_statement.blocks.size(), "phi");
@@ -105,7 +106,7 @@ struct llvm_codegen_fn {
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != ast::type::t_void) {
+                if (type != {ast::type::t_void}) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -119,7 +120,7 @@ struct llvm_codegen_fn {
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != ast::type::t_void) {
+                if (type != {ast::type::t_void}) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -129,7 +130,7 @@ struct llvm_codegen_fn {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
             llvm::Value* v = std::invoke(*this, if_statement.blocks.back());
-            if (type != ast::type::t_void) {
+            if (type != {ast::type::t_void}) {
                 phi->addIncoming(v, basic_blocks.back());
             }
             context.builder.CreateBr(merge_block);
@@ -137,7 +138,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_block);
 
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -158,7 +159,7 @@ struct llvm_codegen_fn {
 
         ast::type type = for_loop.block.type;
         llvm::PHINode* phi;
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
@@ -168,7 +169,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(loop_bb);
         llvm::Value* v = std::invoke(*this, for_loop.block);
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             phi->addIncoming(v, context.builder.GetInsertBlock());
         }
         std::invoke(*this, for_loop.step);
@@ -177,7 +178,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -196,7 +197,7 @@ struct llvm_codegen_fn {
 
         ast::type type = while_loop.block.type;
         llvm::PHINode* phi;
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
@@ -210,7 +211,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             phi->addIncoming(block_value, loop_bb);
             return phi;
         } else {
@@ -237,7 +238,7 @@ struct llvm_codegen_fn {
         context.builder.SetInsertPoint(merge_bb);
         ast::type type = switch_statement.cases.front().block.type;
         llvm::PHINode* phi;
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
                 num_basic_cases, "phi");
@@ -247,7 +248,7 @@ struct llvm_codegen_fn {
         for (auto& case_statement: switch_statement.cases) {
             for (auto& basic_case: case_statement.cases) {
                 llvm::Value* v = std::invoke(*this, basic_case);
-                if (type != ast::type::t_void) {
+                if (type != {ast::type::t_void}) {
                     phi->addIncoming(v, blocks[i]);
                 }
                 switch_inst->addCase(static_cast<llvm::ConstantInt*>(v), blocks[i]);
@@ -260,7 +261,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type::t_void) {
+        if (type != {ast::type::t_void}) {
             return phi;
         } else {
             return NULL;
@@ -361,7 +362,7 @@ struct llvm_codegen_fn {
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
             codegen_context_llvm& context;
-            ast::type type;
+            ast::primitive_type type;
             llvm::Value* operator()(double& x) {
                 llvm::Type* llvm_type;
                 switch (type) {
