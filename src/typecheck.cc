@@ -39,7 +39,7 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
-            if (std::invoke(*this, condition) != primitive_type{ast::primitive_type::t_bool}) {
+            if (std::invoke(*this, condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
                 error("if statement condition not a boolean");
             }
         }
@@ -60,7 +60,7 @@ struct typecheck_fn {
     ast::type operator()(ast::for_loop& for_loop) {
         context.scopes.push_scope();
         std::invoke(*this, for_loop.initial);
-        if (std::invoke(*this, for_loop.condition) != primitive_type{ast::primitive_type::t_bool}) {
+        if (std::invoke(*this, for_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
             error("for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
@@ -72,7 +72,7 @@ struct typecheck_fn {
         return std::invoke(*this, *while_loop);
     }
     ast::type operator()(ast::while_loop& while_loop) {
-        if (std::invoke(*this, while_loop.condition) != primitive_type{ast::primitive_type::t_bool}) {
+        if (std::invoke(*this, while_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
             error("while loop condition not a boolean");
         }
         std::invoke(*this, while_loop.block);
@@ -129,14 +129,14 @@ struct typecheck_fn {
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::s_return& s_return) {
-        ast::type x = s_return.expression ? std::invoke(*this, *s_return.expression) : {ast::primitive_type::t_void};
+        ast::type x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type{ast::primitive_type::t_void};
         if (x != context.current_function_returntype) {
             error("return type does not match defined function return type");
         }
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::s_break& s_break) {
-        return s_break.expression ? std::invoke(*this, *s_break.expression) : {ast::primitive_type::t_void};
+        return s_break.expression ? std::invoke(*this, *s_break.expression) : ast::type{ast::primitive_type::t_void};
     }
     ast::type operator()(ast::s_continue& s_continue) {
         return {ast::primitive_type::t_void};
@@ -154,8 +154,8 @@ struct typecheck_fn {
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::assignment& assignment) {
-        v = context.scopes.find_item(assignment.identifier);
-        if (!v.has_value) {
+        auto v = context.scopes.find_item(assignment.identifier);
+        if (!v.has_value()) {
             error("variable used before being defined");
         }
         ast::type variable = *v;
