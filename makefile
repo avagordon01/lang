@@ -1,14 +1,14 @@
 LEX = flex
 LFLAGS =
 YACC = bison -y
-YFLAGS = -d -Werror=all
+YFLAGS = -d -Werror=all -Wno-yacc
 CXX = g++
 CPPFLAGS = -Isrc -Iout
 CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
 LDFLAGS =
-LDLIBS = -lLLVM-7 -lSPIRV
+LDLIBS = -lLLVM-8 -lSPIRV
 
 DEBUGGER = gdb -nx -q -ex run -ex quit --args
 ifdef debug
@@ -21,8 +21,9 @@ endif
 
 all: out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o out/scopes.o
-depends := $(objects:.o=.d)
+objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o
+test_objects := out/scopes.o
+depends := $(objects:.o=.d) $(test_objects:.o=.d)
 
 out/lexer.cc out/lexer.hh: src/lexer.ll | dirs
 	$(Q) $(LEX) $(LFLAGS) --header-file=out/lexer.hh -o out/lexer.cc src/lexer.ll

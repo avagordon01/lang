@@ -8,7 +8,7 @@
 
 %locations
 
-%error-verbose
+%define parse.error verbose
 
 %code requires {
 #include "ast.hh"
