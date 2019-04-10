@@ -346,7 +346,7 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {
-        llvm::Value* variable = *context.scopes.find_item(assignment.identifier);
+        llvm::Value* variable = std::invoke(*this, assignment.accessor);
         llvm::Value* value = std::invoke(*this, assignment.expression);
         context.builder.CreateStore(value, variable);
         return NULL;
@@ -431,9 +431,13 @@ struct llvm_codegen_fn {
         };
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
-    llvm::Value* operator()(std::unique_ptr<ast::accessor>& accessor) {
+    llvm::Value* operator()(ast::accessor& accessor) {
+        std::optional<llvm::Value*> v = context.scopes.find_item(accessor.identifier);
         //TODO
-        return NULL;
+        return *v;
+    }
+    llvm::Value* operator()(std::unique_ptr<ast::accessor>& accessor) {
+        return std::invoke(*this, *accessor);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
         llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier]);
@@ -538,6 +542,7 @@ struct llvm_codegen_fn {
                     return context.builder.CreateFCmpUGE(l, r, "getmp");
                 }
             case ast::binary_operator::C_LT:
+                info("operands to binary operator have types", ast::type_to_string(binary_operator->l.type), ast::type_to_string(binary_operator->r.type));
                 if (l->getType()->isIntegerTy()) {
                     if (ast::type_is_unsigned_integer(binary_operator->type)) {
                         return context.builder.CreateICmpULT(l, r, "getmp");

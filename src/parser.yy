@@ -267,7 +267,7 @@ literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitiv
        ;
 
 accessor: IDENTIFIER {
-        $$.fields.push_back({$1});
+        $$.identifier = $1;
         }
         | accessor OP_ACCESS IDENTIFIER {
         auto& v = $$;

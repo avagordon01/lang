@@ -154,11 +154,7 @@ struct typecheck_fn {
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::assignment& assignment) {
-        auto v = context.scopes.find_item(assignment.identifier);
-        if (!v.has_value()) {
-            error("variable used before being defined");
-        }
-        ast::type variable = *v;
+        ast::type variable = std::invoke(*this, assignment.accessor);
         ast::type value = std::invoke(*this, assignment.expression);
         if (value != variable) {
             error("type mismatch in assignment");
@@ -226,9 +222,17 @@ struct typecheck_fn {
         literal.type = type;
         return type;
     }
-    ast::type operator()(std::unique_ptr<ast::accessor>& function_call) {
+    ast::type operator()(ast::accessor& accessor) {
+        std::optional<ast::type> v = context.scopes.find_item(accessor.identifier);
+        if (!v.has_value()) {
+            error("variable used before being defined");
+        }
+        accessor.type = *v;
         //TODO
-        return {ast::primitive_type::t_void};
+        return *v;
+    }
+    ast::type operator()(std::unique_ptr<ast::accessor>& accessor) {
+        return std::invoke(*this, *accessor);;
     }
     ast::type operator()(std::unique_ptr<ast::function_call>& function_call) {
         std::vector<ast::type> function_parameter_type;
@@ -301,7 +305,7 @@ struct typecheck_fn {
             case ast::binary_operator::C_EQ:
             case ast::binary_operator::C_NE:
                 if (l != r) {
-                    error("LHS and RHS of comparison operator are not of the same type");
+                    error("LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
                 }
                 type = {ast::primitive_type::t_bool};
                 break;
@@ -309,8 +313,9 @@ struct typecheck_fn {
             case ast::binary_operator::C_GE:
             case ast::binary_operator::C_LT:
             case ast::binary_operator::C_LE:
+                info("operands to binary comparison operator have types", ast::type_to_string(l), "and", ast::type_to_string(r));
                 if (l != r) {
-                    error("LHS and RHS of comparison operator are not of the same type");
+                    error("LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
                 }
                 if (!ast::type_is_number(l)) {
                     error("LHS and RHS of comparison operator are not numbers");

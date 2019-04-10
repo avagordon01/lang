@@ -125,7 +125,9 @@ namespace ast {
     using array_access = ast::expression;
     using access = std::variant<field_access, array_access>;
     struct accessor {
+        ast::identifier identifier;
         std::vector<ast::access> fields;
+        ast::type type;
     };
     struct assignment {
         ast::accessor accessor;
