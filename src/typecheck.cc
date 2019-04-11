@@ -8,6 +8,14 @@
 #include "ast.hh"
 #include "error.hh"
 
+ast::type accessor_access(typecheck_context& context, ast::accessor& accessor) {
+    std::optional<ast::type> v = context.scopes.find_item(accessor.identifier);
+    if (!v.has_value()) {
+        error("variable used before being defined");
+    }
+    return *v;
+}
+
 struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
@@ -154,9 +162,9 @@ struct typecheck_fn {
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::assignment& assignment) {
-        ast::type variable = std::invoke(*this, assignment.accessor);
+        ast::type access = accessor_access(context, assignment.accessor);
         ast::type value = std::invoke(*this, assignment.expression);
-        if (value != variable) {
+        if (value != access) {
             error("type mismatch in assignment");
         }
         return {ast::primitive_type::t_void};
@@ -223,13 +231,9 @@ struct typecheck_fn {
         return type;
     }
     ast::type operator()(ast::accessor& accessor) {
-        std::optional<ast::type> v = context.scopes.find_item(accessor.identifier);
-        if (!v.has_value()) {
-            error("variable used before being defined");
-        }
-        accessor.type = *v;
-        //TODO
-        return *v;
+        ast::type type = accessor_access(context, accessor);
+        accessor.type = type;
+        return type;
     }
     ast::type operator()(std::unique_ptr<ast::accessor>& accessor) {
         return std::invoke(*this, *accessor);;
