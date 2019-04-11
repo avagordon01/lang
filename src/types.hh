@@ -2,6 +2,7 @@
 
 #include <llvm/IR/Type.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <sstream>
 
@@ -110,6 +111,12 @@ namespace ast {
     }
     static bool llvm_type_is_number(llvm::Type* t) {
         return llvm_type_is_integer(t) || llvm_type_is_float(t);
+    }
+    static std::string llvm_type_to_string(llvm::Type* t) {
+        std::string str;
+        llvm::raw_string_ostream rso(str);
+        t->print(rso);
+        return rso.str();
     }
 
     static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, primitive_type t) {
