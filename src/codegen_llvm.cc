@@ -36,6 +36,10 @@ codegen_context_llvm& context, const ast::identifier identifier, ast::type type
     return a;
 }
 
+llvm::Value* accessor_access(codegen_context_llvm& context, ast::accessor& accessor) {
+    return *context.scopes.find_item(accessor.identifier);
+}
+
 struct llvm_codegen_fn {
     codegen_context_llvm& context;
     llvm::Value* operator()(ast::program& program) {
@@ -346,9 +350,9 @@ struct llvm_codegen_fn {
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {
-        llvm::Value* variable = std::invoke(*this, assignment.accessor);
+        llvm::Value* access = accessor_access(context, assignment.accessor);
         llvm::Value* value = std::invoke(*this, assignment.expression);
-        context.builder.CreateStore(value, variable);
+        context.builder.CreateStore(value, access);
         return NULL;
     }
 
@@ -432,9 +436,9 @@ struct llvm_codegen_fn {
         return std::visit(literal_visitor{context, literal.type}, literal.literal);
     }
     llvm::Value* operator()(ast::accessor& accessor) {
-        std::optional<llvm::Value*> v = context.scopes.find_item(accessor.identifier);
-        //TODO
-        return *v;
+        llvm::Value* access = accessor_access(context, accessor);
+        llvm::Value* value = context.builder.CreateLoad(access);
+        return value;
     }
     llvm::Value* operator()(std::unique_ptr<ast::accessor>& accessor) {
         return std::invoke(*this, *accessor);
