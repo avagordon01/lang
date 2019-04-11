@@ -5,9 +5,8 @@ fn f64 internal(f64 x, f64 y) {
 };
 export fn f64 average(f64 x, f64 y) {
     var f64 z = 1f64;
-    for var i = 0; i < 10; i = i {
+    for var i = 0; i < 10; i = i + 1 {
         z = x;
-        break;
     };
     return internal(z, y);
 };
