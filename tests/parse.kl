@@ -1,4 +1,4 @@
-struct test {
+type test = struct {
     u64 a,
     u64 b,
     u64 c

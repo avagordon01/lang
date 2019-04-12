@@ -18,12 +18,21 @@ namespace ast {
     using identifier = size_t;
     struct struct_type;
     struct array_type;
-    using constructed_type = std::variant<primitive_type, std::unique_ptr<struct_type>, std::unique_ptr<array_type>>;
+    using constructed_type = std::variant<
+        identifier,
+        primitive_type,
+        std::unique_ptr<struct_type>,
+        std::unique_ptr<array_type>>;
+    struct field {
+        ast::type type;
+        ast::identifier identifier;
+    };
+    using field_list = std::vector<ast::field>;
     struct struct_type {
-        std::vector<std::pair<ast::identifier, ast::constructed_type>> fields;
+        ast::field_list fields;
     };
     struct array_type {
-        ast::constructed_type element_type;
+        ast::type element_type;
         size_t length;
     };
     static std::string type_to_string(type t) {

@@ -79,3 +79,6 @@ types
     type should just be an identifier, add the builtin types to the list
     typeid
     add user defined types, start with array, vector, struct
+        first step is parsing accessors and just ignoring everything after the first identifier
+        parsing constructed type definitions
+        change type to the variant constructed type

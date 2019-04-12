@@ -312,7 +312,7 @@ struct llvm_codegen_fn {
 
         return f;
     }
-    llvm::Value* operator()(ast::struct_def& struct_def) {
+    llvm::Value* operator()(ast::type_def& type_def) {
         //TODO
         return NULL;
     }

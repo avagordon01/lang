@@ -132,7 +132,7 @@ struct typecheck_fn {
         }
         return {ast::primitive_type::t_void};
     }
-    ast::type operator()(ast::struct_def& struct_def) {
+    ast::type operator()(ast::type_def& type_def) {
         //TODO
         return {ast::primitive_type::t_void};
     }

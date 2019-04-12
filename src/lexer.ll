@@ -124,6 +124,7 @@ case     return yy::parser::make_CASE(loc);
 import   return yy::parser::make_IMPORT(loc);
 export   return yy::parser::make_EXPORT(loc);
 struct   return yy::parser::make_STRUCT(loc);
+type     return yy::parser::make_TYPE(loc);
 
 bool return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::t_bool, loc);
 u8   return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u8, loc);

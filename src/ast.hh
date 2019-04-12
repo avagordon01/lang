@@ -118,8 +118,9 @@ namespace ast {
         ast::parameter_list parameter_list;
         ast::block block;
     };
-    struct struct_def {
-        ast::parameter_list fields;
+    struct type_def {
+        ast::identifier identifier;
+        ast::constructed_type type;
     };
     using field_access = ast::identifier;
     using array_access = ast::expression;
@@ -152,7 +153,7 @@ namespace ast {
             ast::expression,
             ast::function_def,
             ast::variable_def,
-            ast::struct_def,
+            ast::type_def,
             ast::assignment,
             ast::s_return,
             ast::s_break,
