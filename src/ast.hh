@@ -99,11 +99,8 @@ namespace ast {
         ast::block block;
         ast::type type;
     };
-    struct parameter {
-        ast::type type;
-        ast::identifier identifier;
-    };
-    using parameter_list = std::vector<ast::parameter>;
+    using parameter = field;
+    using parameter_list = field_list;
     using expression_list = std::vector<ast::expression>;
     struct function_call {
         ast::identifier identifier;

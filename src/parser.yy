@@ -98,6 +98,9 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %type <ast::cases_list> cases_list
 %type <ast::switch_statement> switch_statement
 %type <ast::type_def> type_def
+%type <ast::constructed_type> type
+%type <ast::struct_type> struct_type
+%type <ast::array_type> array_type
 %type <ast::accessor> accessor
 %type <ast::function_def> function_def
 %type <ast::function_call> function_call
@@ -112,14 +115,22 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 
 program: statement_list { drv.program_ast.statements = std::move($1); };
 
-struct_type: STRUCT OPEN_C_BRACKET parameter_list CLOSE_C_BRACKET {};
-array_type: OPEN_S_BRACKET type LITERAL_INTEGER CLOSE_S_BRACKET {};
-type: PRIMITIVE_TYPE {}
-    | IDENTIFIER {}
-    | struct_type {}
-    | array_type {}
+struct_type: STRUCT OPEN_C_BRACKET parameter_list CLOSE_C_BRACKET {
+           $$.fields = $3;
+           };
+array_type: OPEN_S_BRACKET PRIMITIVE_TYPE LITERAL_INTEGER CLOSE_S_BRACKET {
+          $$.element_type = $2;
+          $$.length = $3;
+          };
+type: PRIMITIVE_TYPE { $$ = $1; }
+    | IDENTIFIER { $$ = $1; }
+    | struct_type { $$ = std::make_unique<ast::struct_type>($1); }
+    | array_type { $$ = std::make_unique<ast::array_type>($1); }
     ;
-type_def: TYPE IDENTIFIER OP_ASSIGN type {};
+type_def: TYPE IDENTIFIER OP_ASSIGN type {
+        $$.identifier = $2;
+        $$.type = $4;
+        };
 
 statement_list: %empty { }
               | statement_list statement SEMICOLON {
