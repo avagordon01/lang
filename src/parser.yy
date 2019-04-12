@@ -73,8 +73,11 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op)
 %token T_EOF 0
 
 %token <ast::type> PRIMITIVE_TYPE
-%token <ast::raw_literal> LITERAL_FLOAT LITERAL_INTEGER LITERAL_BOOL_T LITERAL_BOOL_F
-%token <ast::identifier> IDENTIFIER
+%token <double> LITERAL_FLOAT
+%token <bool> LITERAL_BOOL
+//this is a bit of a hack
+//if IDENTIFIER is a size_t and LITERAL_INTEGER is a uint64_t they clash
+%token <ast::identifier> IDENTIFIER LITERAL_INTEGER
 
 %type <ast::program> program
 %type <ast::literal> literal
@@ -268,8 +271,7 @@ optional_type: %empty { $$ = std::nullopt; }
              ;
 literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
        | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
-       | LITERAL_BOOL_T optional_type  { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
-       | LITERAL_BOOL_F optional_type  { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
+       | LITERAL_BOOL optional_type    { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
        ;
 
 accessor: IDENTIFIER {
