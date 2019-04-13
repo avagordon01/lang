@@ -4,6 +4,7 @@
 
 #include "ast.hh"
 #include "parser.hh"
+#include "error.hh"
 #define YY_DECL yy::parser::symbol_type yylex(driver& drv)
 YY_DECL;
 extern FILE *yyin;
@@ -25,8 +26,7 @@ struct driver {
     void scan_begin() {
         yyin = fopen(filename.c_str(), "r");
         if (!yyin) {
-            std::cerr << "cannot open " << filename << ": " << std::strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
+            error("cannot open", filename, ":", std::strerror(errno));
         }
     }
 

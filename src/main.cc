@@ -2,11 +2,11 @@
 #include "typecheck.hh"
 #include "codegen_llvm.hh"
 #include "codegen_spirv.hh"
+#include "error.hh"
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        std::cerr << "usage: " << argv[0] << " input.lang output.ir" << std::endl;
-        exit(EXIT_FAILURE);
+        error("usage:", argv[0], "input.lang output.ir");
     }
 
     driver driver;

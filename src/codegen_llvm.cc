@@ -599,8 +599,7 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     std::string Error;
     auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
     if (!Target) {
-        std::cerr << Error << std::endl;;
-        exit(EXIT_FAILURE);
+        error(Error);
     }
 
     auto CPU = "generic";
@@ -620,8 +619,7 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     std::error_code EC;
     llvm::raw_fd_ostream dest(ir_filename, EC, llvm::sys::fs::OpenFlags::F_None);
     if (EC) {
-        std::cerr << "Could not open file: " << EC.message() << std::endl;
-        exit(EXIT_FAILURE);
+        error("couldn't open file", EC.message());
     }
     context.module->print(dest, nullptr);
     dest.flush();
