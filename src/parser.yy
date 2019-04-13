@@ -71,7 +71,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op,
 %token COMMA
 %token T_EOF 0
 
-%token <ast::type> PRIMITIVE_TYPE
+%token <ast::type_id> PRIMITIVE_TYPE
 %token <double> LITERAL_FLOAT
 %token <bool> LITERAL_BOOL
 //this is a bit of a hack
@@ -107,7 +107,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op,
 %type <ast::s_break> break
 %type <ast::s_continue> continue
 %type <bool> optional_export
-%type <std::optional<ast::type>> optional_type
+%type <std::optional<ast::type_id>> optional_type
 %type <std::optional<ast::expression>> optional_exp
 
 %%

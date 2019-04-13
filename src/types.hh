@@ -7,14 +7,14 @@
 #include <sstream>
 
 namespace ast {
-    enum primitive_type {
+    enum primitive_type : size_t {
         t_void,
         t_bool,
         u8, u16, u32, u64,
         i8, i16, i32, i64,
         f16, f32, f64,
     };
-    using type = primitive_type;
+    using type_id = primitive_type;
     using identifier = size_t;
     struct struct_type;
     struct array_type;
@@ -24,7 +24,7 @@ namespace ast {
         std::unique_ptr<struct_type>,
         std::unique_ptr<array_type>>;
     struct field {
-        ast::type type;
+        ast::type_id type;
         ast::identifier identifier;
     };
     using field_list = std::vector<ast::field>;
@@ -32,10 +32,10 @@ namespace ast {
         ast::field_list fields;
     };
     struct array_type {
-        ast::type element_type;
+        ast::type_id element_type;
         size_t length;
     };
-    static std::string type_to_string(type t) {
+    static std::string type_to_string(ast::type_id t) {
         struct type_visitor {
             std::ostringstream s;
             void operator()(primitive_type& primitive_type) {
@@ -76,7 +76,7 @@ namespace ast {
         std::invoke(context, t);
         return context.s.str();
     }
-    static bool type_is_primitive(type t) {
+    static bool type_is_primitive(ast::type_id t) {
         //TODO can std::variant do this in a neater way?
         struct type_visitor {
             bool operator()(primitive_type& primitive_type) {

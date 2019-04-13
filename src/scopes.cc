@@ -2,7 +2,7 @@
 #include "ast.hh"
 
 int main() {
-    scopes<ast::identifier, ast::type> s;
+    scopes<ast::identifier, ast::type_id> s;
     s.push_item(0, ast::primitive_type::t_void);
     s.push_item(1, ast::primitive_type::t_bool);
     s.push_item(2, ast::primitive_type::u8);

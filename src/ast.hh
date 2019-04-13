@@ -44,7 +44,7 @@ namespace ast {
             std::unique_ptr<ast::binary_operator>,
             std::unique_ptr<ast::unary_operator>
         > expression;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct binary_operator {
@@ -55,7 +55,7 @@ namespace ast {
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct unary_operator {
@@ -63,19 +63,19 @@ namespace ast {
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
 
     using statement_list = std::vector<ast::statement>;
     struct block {
         statement_list statements;
-        ast::type type;
+        ast::type_id type;
     };
     struct if_statement {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     using optional_else = std::optional<ast::block>;
@@ -87,13 +87,13 @@ namespace ast {
     struct case_statement {
         literal_list cases;
         ast::block block;
-        ast::type type;
+        ast::type_id type;
     };
     using cases_list = std::vector<ast::case_statement>;
     struct switch_statement {
         ast::expression expression;
         cases_list cases;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct variable_def {
@@ -105,7 +105,7 @@ namespace ast {
     struct while_loop {
         ast::expression condition;
         ast::block block;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     using parameter = field;
@@ -114,13 +114,13 @@ namespace ast {
     struct function_call {
         ast::identifier identifier;
         ast::expression_list arguments;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct function_def {
         bool to_export;
         ast::identifier identifier;
-        ast::type returntype;
+        ast::type_id returntype;
         ast::parameter_list parameter_list;
         ast::block block;
         yy::location loc;
@@ -135,7 +135,7 @@ namespace ast {
     struct accessor {
         ast::identifier identifier;
         std::vector<ast::access> fields;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct assignment {
@@ -148,7 +148,7 @@ namespace ast {
         ast::expression condition;
         ast::assignment step;
         ast::block block;
-        ast::type type;
+        ast::type_id type;
         yy::location loc;
     };
     struct s_return {
