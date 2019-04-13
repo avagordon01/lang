@@ -13,7 +13,7 @@ struct codegen_context_llvm {
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
-    ::scopes<ast::identifier, llvm::AllocaInst*> scopes;
+    ::scopes<ast::identifier, llvm::AllocaInst*> variable_scopes;
     std::vector<std::string> symbols_list;
     llvm::BasicBlock* current_function_entry = NULL;
     llvm::BasicBlock* current_loop_exit = NULL;

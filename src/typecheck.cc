@@ -9,7 +9,7 @@
 #include "error.hh"
 
 ast::type accessor_access(typecheck_context& context, ast::accessor& accessor) {
-    std::optional<ast::type> v = context.scopes.find_item(accessor.identifier);
+    std::optional<ast::type> v = context.variable_scopes.find_item(accessor.identifier);
     if (!v.has_value()) {
         error(accessor.loc, "variable used before being defined");
     }
@@ -19,11 +19,11 @@ ast::type accessor_access(typecheck_context& context, ast::accessor& accessor) {
 struct typecheck_fn {
     typecheck_context& context;
     ast::type operator()(ast::program& program) {
-        context.scopes.push_scope();
+        context.variable_scopes.push_scope();
         for (auto& statement: program.statements) {
             std::invoke(*this, statement);
         }
-        context.scopes.pop_scope();
+        context.variable_scopes.pop_scope();
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::statement& statement) {
@@ -34,11 +34,11 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::block& block) {
         ast::type type = {ast::primitive_type::t_void};
-        context.scopes.push_scope();
+        context.variable_scopes.push_scope();
         for (auto& statement: block.statements) {
             type = std::invoke(*this, statement);
         }
-        context.scopes.pop_scope();
+        context.variable_scopes.pop_scope();
         block.type = type;
         return type;
     }
@@ -66,14 +66,14 @@ struct typecheck_fn {
         return std::invoke(*this, *for_loop);
     }
     ast::type operator()(ast::for_loop& for_loop) {
-        context.scopes.push_scope();
+        context.variable_scopes.push_scope();
         std::invoke(*this, for_loop.initial);
         if (std::invoke(*this, for_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
             error(for_loop.loc, "for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
-        context.scopes.pop_scope();
+        context.variable_scopes.pop_scope();
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(std::unique_ptr<ast::while_loop>& while_loop) {
@@ -115,18 +115,18 @@ struct typecheck_fn {
         return type;
     }
     ast::type operator()(ast::function_def& function_def) {
-        auto v = context.scopes.find_item(function_def.identifier);
+        auto v = context.variable_scopes.find_item(function_def.identifier);
         if (v.has_value()) {
             error(function_def.loc, "function already defined");
         }
-        context.scopes.push_item(function_def.identifier, function_def.returntype);
+        context.variable_scopes.push_item(function_def.identifier, function_def.returntype);
         context.current_function_returntype = function_def.returntype;
-        context.scopes.push_scope();
+        context.variable_scopes.push_scope();
         for (auto& parameter: function_def.parameter_list) {
-            context.scopes.push_item(parameter.identifier, parameter.type);
+            context.variable_scopes.push_item(parameter.identifier, parameter.type);
         }
         std::invoke(*this, function_def.block);
-        context.scopes.pop_scope();
+        context.variable_scopes.pop_scope();
         for (auto& parameter: function_def.parameter_list) {
             context.function_parameter_types[function_def.identifier].push_back(parameter.type);
         }
@@ -150,7 +150,7 @@ struct typecheck_fn {
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::variable_def& variable_def) {
-        auto v = context.scopes.find_item_current_scope(variable_def.identifier);
+        auto v = context.variable_scopes.find_item_current_scope(variable_def.identifier);
         if (v.has_value()) {
             error(variable_def.loc, "variable already defined in this scope");
         }
@@ -158,7 +158,7 @@ struct typecheck_fn {
         if (variable_def.explicit_type && variable_def.explicit_type != t) {
             error(variable_def.loc, "type mismatch in variable definition");
         }
-        context.scopes.push_item(variable_def.identifier, t);
+        context.variable_scopes.push_item(variable_def.identifier, t);
         return {ast::primitive_type::t_void};
     }
     ast::type operator()(ast::assignment& assignment) {
@@ -176,7 +176,7 @@ struct typecheck_fn {
         return type;
     }
     ast::type operator()(ast::identifier& identifier) {
-        auto v = context.scopes.find_item(identifier);
+        auto v = context.variable_scopes.find_item(identifier);
         if (!v.has_value()) {
             error("variable used before being defined");
         }
@@ -247,7 +247,7 @@ struct typecheck_fn {
         if (function_parameter_type != context.function_parameter_types[function_call->identifier]) {
             error(function_call->loc, "type mismatch between function call parameters and function definition arguments");
         }
-        auto v = context.scopes.find_item(function_call->identifier);
+        auto v = context.variable_scopes.find_item(function_call->identifier);
         if (!v.has_value()) {
             error(function_call->loc, "function called before being defined");
         }
