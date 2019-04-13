@@ -22,6 +22,7 @@ namespace ast {
         std::variant<double, uint64_t, bool> literal;
         std::optional<ast::primitive_type> explicit_type;
         ast::primitive_type type;
+        yy::location loc;
     };
     struct block;
     struct if_statement;
@@ -75,6 +76,7 @@ namespace ast {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
         ast::type type;
+        yy::location loc;
     };
     using optional_else = std::optional<ast::block>;
     struct else_if_list {
@@ -92,16 +94,19 @@ namespace ast {
         ast::expression expression;
         cases_list cases;
         ast::type type;
+        yy::location loc;
     };
     struct variable_def {
         std::optional<ast::primitive_type> explicit_type;
         ast::identifier identifier;
         ast::expression expression;
+        yy::location loc;
     };
     struct while_loop {
         ast::expression condition;
         ast::block block;
         ast::type type;
+        yy::location loc;
     };
     using parameter = field;
     using parameter_list = field_list;
@@ -110,6 +115,7 @@ namespace ast {
         ast::identifier identifier;
         ast::expression_list arguments;
         ast::type type;
+        yy::location loc;
     };
     struct function_def {
         bool to_export;
@@ -117,6 +123,7 @@ namespace ast {
         ast::type returntype;
         ast::parameter_list parameter_list;
         ast::block block;
+        yy::location loc;
     };
     struct type_def {
         ast::identifier identifier;
@@ -129,10 +136,12 @@ namespace ast {
         ast::identifier identifier;
         std::vector<ast::access> fields;
         ast::type type;
+        yy::location loc;
     };
     struct assignment {
         ast::accessor accessor;
         ast::expression expression;
+        yy::location loc;
     };
     struct for_loop {
         ast::variable_def initial;
@@ -140,14 +149,19 @@ namespace ast {
         ast::assignment step;
         ast::block block;
         ast::type type;
+        yy::location loc;
     };
     struct s_return {
         std::optional<ast::expression> expression;
+        yy::location loc;
     };
     struct s_break {
         std::optional<ast::expression> expression;
+        yy::location loc;
     };
-    struct s_continue {};
+    struct s_continue {
+        yy::location loc;
+    };
     struct statement {
         std::variant<
             ast::expression,

@@ -11,7 +11,7 @@
 ast::type accessor_access(typecheck_context& context, ast::accessor& accessor) {
     std::optional<ast::type> v = context.scopes.find_item(accessor.identifier);
     if (!v.has_value()) {
-        error("variable used before being defined");
+        error(accessor.loc, "variable used before being defined");
     }
     return *v;
 }
@@ -48,14 +48,14 @@ struct typecheck_fn {
     ast::type operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
             if (std::invoke(*this, condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
-                error("if statement condition not a boolean");
+                error(if_statement.loc, "if statement condition not a boolean");
             }
         }
         ast::type type = std::invoke(*this, if_statement.blocks.front());
         for (auto& block: if_statement.blocks) {
             ast::type t = std::invoke(*this, block);
             if (t != type) {
-                error("type mismatch between if statement blocks");
+                error(if_statement.loc, "type mismatch between if statement blocks");
             }
             type = t;
         }
@@ -69,7 +69,7 @@ struct typecheck_fn {
         context.scopes.push_scope();
         std::invoke(*this, for_loop.initial);
         if (std::invoke(*this, for_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
-            error("for loop condition not a boolean");
+            error(for_loop.loc, "for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
@@ -81,7 +81,7 @@ struct typecheck_fn {
     }
     ast::type operator()(ast::while_loop& while_loop) {
         if (std::invoke(*this, while_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
-            error("while loop condition not a boolean");
+            error(while_loop.loc, "while loop condition not a boolean");
         }
         std::invoke(*this, while_loop.block);
         return {ast::primitive_type::t_void};
@@ -92,22 +92,22 @@ struct typecheck_fn {
     ast::type operator()(ast::switch_statement& switch_statement) {
         ast::type switch_type = std::invoke(*this, switch_statement.expression);
         if (!type_is_integer(switch_type)) {
-            error("switch statement switch expression is not an integer");
+            error(switch_statement.loc, "switch statement switch expression is not an integer");
         }
         ast::type type = {ast::primitive_type::t_void};
         for (auto& case_statement: switch_statement.cases) {
             for (auto& case_exp: case_statement.cases) {
                 ast::type case_type = std::invoke(*this, case_exp);
                 if (!type_is_integer(case_type)) {
-                    error("switch statement switch expression is not an integer");
+                    error(switch_statement.loc, "switch statement switch expression is not an integer");
                 }
                 if (case_type != switch_type) {
-                    error("type mismatch between switch expression and case expression");
+                    error(switch_statement.loc, "type mismatch between switch expression and case expression");
                 }
             }
             ast::type t = std::invoke(*this, case_statement.block);
             if (t != type) {
-                error("type mismatch between switch statement blocks");
+                error(switch_statement.loc, "type mismatch between switch statement blocks");
             }
             type = t;
         }
@@ -117,7 +117,7 @@ struct typecheck_fn {
     ast::type operator()(ast::function_def& function_def) {
         auto v = context.scopes.find_item(function_def.identifier);
         if (v.has_value()) {
-            error("function already defined");
+            error(function_def.loc, "function already defined");
         }
         context.scopes.push_item(function_def.identifier, function_def.returntype);
         context.current_function_returntype = function_def.returntype;
@@ -139,7 +139,7 @@ struct typecheck_fn {
     ast::type operator()(ast::s_return& s_return) {
         ast::type x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type{ast::primitive_type::t_void};
         if (x != context.current_function_returntype) {
-            error("return type does not match defined function return type");
+            error(s_return.loc, "return type does not match defined function return type");
         }
         return {ast::primitive_type::t_void};
     }
@@ -152,11 +152,11 @@ struct typecheck_fn {
     ast::type operator()(ast::variable_def& variable_def) {
         auto v = context.scopes.find_item_current_scope(variable_def.identifier);
         if (v.has_value()) {
-            error("variable already defined in this scope");
+            error(variable_def.loc, "variable already defined in this scope");
         }
         ast::type t = std::invoke(*this, variable_def.expression);
         if (variable_def.explicit_type && variable_def.explicit_type != t) {
-            error("type mismatch in variable definition");
+            error(variable_def.loc, "type mismatch in variable definition");
         }
         context.scopes.push_item(variable_def.identifier, t);
         return {ast::primitive_type::t_void};
@@ -165,7 +165,7 @@ struct typecheck_fn {
         ast::type access = accessor_access(context, assignment.accessor);
         ast::type value = std::invoke(*this, assignment.expression);
         if (value != access) {
-            error("type mismatch in assignment");
+            error(assignment.loc, "type mismatch in assignment");
         }
         return {ast::primitive_type::t_void};
     }
@@ -186,6 +186,7 @@ struct typecheck_fn {
         struct literal_visitor {
             typecheck_context& context;
             std::optional<ast::type>& explicit_type;
+            yy::location& loc;
             ast::type operator()(double& x) {
                 if (!explicit_type) {
                     *explicit_type = ast::primitive_type::f32;
@@ -194,10 +195,10 @@ struct typecheck_fn {
                 if (ast::type_is_float(*explicit_type)) {
                     return *explicit_type;
                 } else if (ast::type_is_integer(*explicit_type)) {
-                    error("redundant values after decimal point in floating point literal converted to integer type");
+                    error(loc, "redundant values after decimal point in floating point literal converted to integer type");
                     assert(false);
                 } else {
-                    error("floating point literal cannot be converted to non number type");
+                    error(loc, "floating point literal cannot be converted to non number type");
                     assert(false);
                 }
             }
@@ -209,7 +210,7 @@ struct typecheck_fn {
                 if (ast::type_is_number(*explicit_type)) {
                     return *explicit_type;
                 } else {
-                    error("integer literal cannot be converted to non number type");
+                    error(loc, "integer literal cannot be converted to non number type");
                     assert(false);
                 }
             }
@@ -221,12 +222,12 @@ struct typecheck_fn {
                 if (ast::type_is_bool(*explicit_type)) {
                     return {ast::primitive_type::t_bool};
                 } else {
-                    error("bool literal cannot be converted to non bool type");
+                    error(loc, "bool literal cannot be converted to non bool type");
                     assert(false);
                 }
             }
         };
-        ast::type type = std::visit(literal_visitor{context, literal.explicit_type}, literal.literal);
+        ast::type type = std::visit(literal_visitor{context, literal.explicit_type, literal.loc}, literal.literal);
         literal.type = type;
         return type;
     }
@@ -244,11 +245,11 @@ struct typecheck_fn {
             function_parameter_type.push_back(std::invoke(*this, argument));
         }
         if (function_parameter_type != context.function_parameter_types[function_call->identifier]) {
-            error("type mismatch between function call parameters and function definition arguments");
+            error(function_call->loc, "type mismatch between function call parameters and function definition arguments");
         }
         auto v = context.scopes.find_item(function_call->identifier);
         if (!v.has_value()) {
-            error("function called before being defined");
+            error(function_call->loc, "function called before being defined");
         }
         ast::type type = *v;
         function_call->type = type;

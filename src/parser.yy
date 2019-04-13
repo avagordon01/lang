@@ -149,6 +149,7 @@ statement: exp              { $$.statement = $1; }
          | continue         { $$.statement = $1; }
          ;
 if_statement: IF exp block else_if_list optional_else {
+            $$.loc = @$;
             $$.conditions.push_back($2);
             $$.blocks.push_back($3);
             auto else_if_list = $4;
@@ -171,16 +172,19 @@ cases_list: %empty { }
           }
           ;
 switch_statement: SWITCH exp OPEN_C_BRACKET cases_list CLOSE_C_BRACKET {
+                $$.loc = @$;
                 $$.expression = $2;
                 $$.cases = $4;
                 }
 for_loop: FOR variable_def SEMICOLON exp SEMICOLON assignment block {
+        $$.loc = @$;
         $$.initial = $2;
         $$.condition = $4;
         $$.step = $6;
         $$.block = $7;
         }
 while_loop: WHILE exp block {
+          $$.loc = @$;
           $$.condition = $2;
           $$.block = $3;
           }
@@ -200,11 +204,13 @@ function_def: optional_export FUNCTION optional_type IDENTIFIER OPEN_R_BRACKET p
             $$.block = $8;
             }
 variable_def: VAR optional_type IDENTIFIER OP_ASSIGN exp {
+            $$.loc = @$;
             $$.explicit_type = $2;
             $$.identifier = $3;
             $$.expression = $5;
             }
 assignment: accessor OP_ASSIGN exp {
+          $$.loc = @$;
           $$.accessor = $1;
           $$.expression = $3;
           }
@@ -212,12 +218,16 @@ optional_exp: %empty { $$ = std::nullopt; }
             | exp { $$ = $1; }
             ;
 return: RETURN optional_exp {
+      $$.loc = @$;
       $$.expression = $2;
       }
 break: BREAK optional_exp {
+     $$.loc = @$;
      $$.expression = $2;
      }
-continue: CONTINUE { }
+continue: CONTINUE {
+        $$.loc = @$;
+        }
 
 optional_else: %empty {
              $$ = std::nullopt;
@@ -270,6 +280,7 @@ literal_list: %empty { }
                ;
 
 function_call: IDENTIFIER OPEN_R_BRACKET expression_list CLOSE_R_BRACKET {
+             $$.loc = @$;
              $$.identifier = $1;
              $$.arguments = $3;
              };
@@ -279,20 +290,23 @@ block: OPEN_C_BRACKET statement_list CLOSE_C_BRACKET { $$.statements = $2; };
 optional_type: %empty { $$ = std::nullopt; }
              | PRIMITIVE_TYPE   { $$ = $1; }
              ;
-literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
-       | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
-       | LITERAL_BOOL optional_type    { $$ = ast::literal{$1, $2, ast::primitive_type::t_void}; }
+literal: LITERAL_FLOAT optional_type   { $$ = ast::literal{$1, $2, ast::primitive_type::t_void, @$}; }
+       | LITERAL_INTEGER optional_type { $$ = ast::literal{$1, $2, ast::primitive_type::t_void, @$}; }
+       | LITERAL_BOOL optional_type    { $$ = ast::literal{$1, $2, ast::primitive_type::t_void, @$}; }
        ;
 
 accessor: IDENTIFIER {
+        $$.loc = @$;
         $$.identifier = $1;
         }
         | accessor OP_ACCESS IDENTIFIER {
+        $$.loc = @$;
         auto& v = $$;
         v = $1;
         v.fields.push_back({$3});
         }
         | accessor OPEN_S_BRACKET exp CLOSE_S_BRACKET {
+        $$.loc = @$;
         auto& v = $$;
         v = $1;
         v.fields.push_back({$3});

@@ -326,7 +326,7 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::s_break& s_break) {
         if (!context.current_loop_exit) {
-            error("cannot call break statement outside of a loop body");
+            error(s_break.loc, "cannot call break statement outside of a loop body");
         }
         if (s_break.expression) {
             llvm::Value* v = std::invoke(*this, *s_break.expression);
@@ -337,7 +337,7 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::s_continue& s_continue) {
         if (!context.current_loop_entry) {
-            error("cannot call continue statement outside of a loop body");
+            error(s_continue.loc, "cannot call continue statement outside of a loop body");
         }
         context.builder.CreateBr(context.current_loop_entry);
         return NULL;
