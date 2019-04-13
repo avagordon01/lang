@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "types.hh"
+#include "location.hh"
 
 namespace ast {
     struct function_call;
@@ -43,6 +44,7 @@ namespace ast {
             std::unique_ptr<ast::unary_operator>
         > expression;
         ast::type type;
+        yy::location loc;
     };
     struct binary_operator {
         ast::expression l, r;
@@ -53,6 +55,7 @@ namespace ast {
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
         ast::type type;
+        yy::location loc;
     };
     struct unary_operator {
         ast::expression r;
@@ -60,6 +63,7 @@ namespace ast {
             B_NOT, L_NOT,
         } unary_operator;
         ast::type type;
+        yy::location loc;
     };
 
     using statement_list = std::vector<ast::statement>;

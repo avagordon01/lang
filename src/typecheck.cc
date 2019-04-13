@@ -265,20 +265,20 @@ struct typecheck_fn {
             case ast::binary_operator::A_DIV:
             case ast::binary_operator::A_MOD:
                 if (l != r) {
-                    error("LHS and RHS of arithmetic operator are not of the same type");
+                    error(binary_operator->loc, "LHS and RHS of arithmetic operator are not of the same type");
                 }
                 if (!ast::type_is_number(l)) {
-                    error("LHS and RHS of arithmetic operator are not numbers");
+                    error(binary_operator->loc, "LHS and RHS of arithmetic operator are not numbers");
                 }
                 type = l;
                 break;
             case ast::binary_operator::B_SHL:
             case ast::binary_operator::B_SHR:
                 if (!ast::type_is_integer(l)) {
-                    error("LHS of shift operator is not an integer");
+                    error(binary_operator->loc, "LHS of shift operator is not an integer");
                 }
                 if (!ast::type_is_integer(r)) {
-                    error("RHS of shift operator is not an integer");
+                    error(binary_operator->loc, "RHS of shift operator is not an integer");
                 }
                 type = l;
                 break;
@@ -286,30 +286,30 @@ struct typecheck_fn {
             case ast::binary_operator::B_XOR:
             case ast::binary_operator::B_OR:
                 if (l != r) {
-                    error("LHS and RHS of bitwise operator are not of the same type");
+                    error(binary_operator->loc, "LHS and RHS of bitwise operator are not of the same type");
                 }
                 if (!ast::type_is_integer(l)) {
-                    error("LHS of bitwise operator is not an integer");
+                    error(binary_operator->loc, "LHS of bitwise operator is not an integer");
                 }
                 if (!ast::type_is_integer(r)) {
-                    error("RHS of bitwise operator is not an integer");
+                    error(binary_operator->loc, "RHS of bitwise operator is not an integer");
                 }
                 type = l;
                 break;
             case ast::binary_operator::L_AND:
             case ast::binary_operator::L_OR:
                 if (!ast::type_is_bool(l)) {
-                    error("LHS of logical operator is not a boolean");
+                    error(binary_operator->loc, "LHS of logical operator is not a boolean");
                 }
                 if (!ast::type_is_bool(r)) {
-                    error("RHS of logical operator is not a boolean");
+                    error(binary_operator->loc, "RHS of logical operator is not a boolean");
                 }
                 type = l;
                 break;
             case ast::binary_operator::C_EQ:
             case ast::binary_operator::C_NE:
                 if (l != r) {
-                    error("LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
+                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
                 }
                 type = {ast::primitive_type::t_bool};
                 break;
@@ -317,12 +317,11 @@ struct typecheck_fn {
             case ast::binary_operator::C_GE:
             case ast::binary_operator::C_LT:
             case ast::binary_operator::C_LE:
-                info("operands to binary comparison operator have types", ast::type_to_string(l), "and", ast::type_to_string(r));
                 if (l != r) {
-                    error("LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
+                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
                 }
                 if (!ast::type_is_number(l)) {
-                    error("LHS and RHS of comparison operator are not numbers");
+                    error(binary_operator->loc, "LHS and RHS of comparison operator are not numbers");
                 }
                 type = {ast::primitive_type::t_bool};
                 break;
@@ -336,13 +335,13 @@ struct typecheck_fn {
         switch (unary_operator->unary_operator) {
             case ast::unary_operator::B_NOT:
                 if (!ast::type_is_integer(r)) {
-                    error("RHS of bitwise negation is not an integer");
+                    error(unary_operator->loc, "RHS of bitwise negation is not an integer");
                 }
                 type = r;
                 break;
             case ast::unary_operator::L_NOT:
                 if (!ast::type_is_bool(r)) {
-                    error("RHS of bitwise negation is not boolean");
+                    error(unary_operator->loc, "RHS of bitwise negation is not boolean");
                 }
                 type = r;
                 break;

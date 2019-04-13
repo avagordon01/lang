@@ -5,10 +5,9 @@
 %define api.value.type variant
 %define api.value.automove
 %define parse.assert
+%define parse.error verbose
 
 %locations
-
-%define parse.error verbose
 
 %code requires {
 #include "ast.hh"
@@ -32,13 +31,13 @@ void yy::parser::error(const location_type& l, const std::string& m) {
 
 #include <memory>
 std::unique_ptr<ast::unary_operator>
-new_unary_op(ast::expression r, ast::unary_operator::op op) {
-    ast::unary_operator x {std::move(r), op, ast::primitive_type::t_void};
+new_unary_op(ast::expression r, ast::unary_operator::op op, yy::location& loc) {
+    ast::unary_operator x {std::move(r), op, ast::primitive_type::t_void, loc};
     return std::make_unique<ast::unary_operator>(std::move(x));
 }
 std::unique_ptr<ast::binary_operator>
-new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op) {
-    ast::binary_operator x {std::move(l), std::move(r), op, ast::primitive_type::t_void};
+new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op, yy::location& loc) {
+    ast::binary_operator x {std::move(l), std::move(r), op, ast::primitive_type::t_void, loc};
     return std::make_unique<ast::binary_operator>(std::move(x));
 }
 }
@@ -309,29 +308,29 @@ exp: block            { $$.expression = std::make_unique<ast::block>($1); }
    | accessor { $$.expression = std::make_unique<ast::accessor>($1); }
    | function_call { $$.expression = std::make_unique<ast::function_call>($1); }
    | literal { $$.expression = $1; }
-   | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD); }
-   | exp OP_A_SUB exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_SUB); }
-   | exp OP_A_MUL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MUL); }
-   | exp OP_A_DIV exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_DIV); }
-   | exp OP_A_MOD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MOD); }
+   | exp OP_A_ADD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_ADD, @$); }
+   | exp OP_A_SUB exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_SUB, @$); }
+   | exp OP_A_MUL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MUL, @$); }
+   | exp OP_A_DIV exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_DIV, @$); }
+   | exp OP_A_MOD exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::A_MOD, @$); }
 
-   | exp OP_B_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_AND); }
-   | exp OP_B_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_OR ); }
-   | exp OP_B_XOR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_XOR); }
-   | OP_B_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::B_NOT); }
-   | exp OP_B_SHL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHL); }
-   | exp OP_B_SHR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHR); }
+   | exp OP_B_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_AND, @$); }
+   | exp OP_B_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_OR , @$); }
+   | exp OP_B_XOR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_XOR, @$); }
+   | OP_B_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::B_NOT, @$); }
+   | exp OP_B_SHL exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHL, @$); }
+   | exp OP_B_SHR exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::B_SHR, @$); }
 
-   | exp OP_C_EQ  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_EQ ); }
-   | exp OP_C_NE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_NE ); }
-   | exp OP_C_GT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GT ); }
-   | exp OP_C_GE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GE ); }
-   | exp OP_C_LT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LT ); }
-   | exp OP_C_LE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LE ); }
+   | exp OP_C_EQ  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_EQ , @$); }
+   | exp OP_C_NE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_NE , @$); }
+   | exp OP_C_GT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GT , @$); }
+   | exp OP_C_GE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_GE , @$); }
+   | exp OP_C_LT  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LT , @$); }
+   | exp OP_C_LE  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::C_LE , @$); }
 
-   | exp OP_L_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_AND); }
-   | exp OP_L_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_OR ); }
-   | OP_L_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::L_NOT); }
+   | exp OP_L_AND exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_AND, @$); }
+   | exp OP_L_OR  exp { $$.expression = new_binary_op($1, $3, ast::binary_operator::L_OR , @$); }
+   | OP_L_NOT exp     { $$.expression = new_unary_op($2, ast::unary_operator::L_NOT, @$); }
 
    | OPEN_R_BRACKET exp CLOSE_R_BRACKET { $$ = $2; }
    ;

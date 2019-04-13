@@ -13,15 +13,16 @@ struct driver {
     yy::location location;
     std::unordered_map<std::string, ast::identifier> symbols_map;
     std::vector<std::string> symbols_list;
-    void parse(const std::string& filename) {
-        location.initialize();
-        scan_begin(filename);
+    std::string filename;
+    void parse() {
+        location.initialize(&filename);
+        scan_begin();
         yy::parser parser(*this);
         parser.parse();
         scan_end();
     }
 
-    void scan_begin(const std::string& filename) {
+    void scan_begin() {
         yyin = fopen(filename.c_str(), "r");
         if (!yyin) {
             std::cerr << "cannot open " << filename << ": " << std::strerror(errno) << std::endl;

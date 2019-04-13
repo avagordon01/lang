@@ -546,7 +546,6 @@ struct llvm_codegen_fn {
                     return context.builder.CreateFCmpUGE(l, r, "getmp");
                 }
             case ast::binary_operator::C_LT:
-                info("operands to binary operator have types", ast::type_to_string(binary_operator->l.type), ast::type_to_string(binary_operator->r.type));
                 if (l->getType()->isIntegerTy()) {
                     if (ast::type_is_unsigned_integer(binary_operator->type)) {
                         return context.builder.CreateICmpULT(l, r, "getmp");
