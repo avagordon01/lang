@@ -35,10 +35,6 @@ modules
         to typecheck and generate calls to external functions
     generate c header
     top-level definition order unimportant
-aggregate types
-    arrays, structs, vectors
-    getelementptr
-    multiple return? tuples
 make if, switch, for, while, block expressions not statements
     move the current_loop_{entry,exit,phi} from global context to function parameters
     then we can have easily nested loops
@@ -64,18 +60,20 @@ SPIRV backend
 compiletime interpreter/backend/evaluator
     would LLVM JIT work?
     otherwise have to store a std::variant of the types for values
-ast
-    change to a strongly typed AST, every node is typed
-    add location everywhere in the ast
 generic programming
     think about what cool compile time behaviour and types we want
     dependent types?
     genericity, is a, has a, builtin type operations?
-types
-    should keep a hierarchical list of types in scope, like the variables scopes list
-    type should just be an identifier, add the builtin types to the list
-    typeid
-    add user defined types, start with array, vector, struct
-        first step is parsing accessors and just ignoring everything after the first identifier
-        parsing constructed type definitions
-        change type to the variant constructed type
+user defined types
+    for the mvp
+        only named types, no anonymous types
+        operators only for primitive types
+        only type_def on primitive_types, no structs or arrays
+
+    how should primitive_type and type_id be combined?
+    want to be able to compare a single size_t
+    add type_ids to the end of the primitive_type enum
+
+    allow types and variables with the same name
+        just don't do any checking
+        the parse/ast structure should make it clear what is a type and what is a variable
