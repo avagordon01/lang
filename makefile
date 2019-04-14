@@ -45,7 +45,7 @@ type-1-tests := parse codegen
 type-2-tests := link fib gcd
 test: $(type-0-tests) $(type-1-tests) $(type-2-tests)
 
-$(type-0-tests): %: src/%.cc | dirs
+$(type-0-tests): %: src/%.cc | dirs out/compiler
 	$(Q) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(LDLIBS) -o out/$@ $<
 	$(Q) $(DEBUG) out/$@
 
