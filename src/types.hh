@@ -7,14 +7,15 @@
 #include <sstream>
 
 namespace ast {
-    enum primitive_type : size_t {
+    enum type_id : size_t {
         t_void,
         t_bool,
         u8, u16, u32, u64,
         i8, i16, i32, i64,
         f16, f32, f64,
     };
-    using type_id = primitive_type;
+    using primitive_type = type_id;
+    constexpr size_t num_primitive_types = ast::primitive_type::f64 + 1;
     using identifier = size_t;
     struct struct_type;
     struct array_type;
@@ -77,19 +78,7 @@ namespace ast {
         return context.s.str();
     }
     static bool type_is_primitive(ast::type_id t) {
-        //TODO can std::variant do this in a neater way?
-        struct type_visitor {
-            bool operator()(primitive_type& primitive_type) {
-                return true;
-            }
-            bool operator()(struct_type& struct_type) {
-                return false;
-            }
-            bool operator()(array_type& array_type) {
-                return false;
-            }
-        };
-        return std::invoke(type_visitor{}, t);
+        return t < ast::num_primitive_types;
     }
     static bool type_is_bool(primitive_type t) {
         return t == t_bool;
