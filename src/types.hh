@@ -36,66 +36,49 @@ namespace ast {
         ast::type_id element_type;
         size_t length;
     };
-    static std::string type_to_string(ast::type_id t) {
-        struct type_visitor {
-            std::ostringstream s;
-            void operator()(primitive_type& primitive_type) {
-                switch (primitive_type) {
-                    case t_void:    { s << "void";  break; }
-                    case t_bool:    { s << "bool";  break; }
-                    case u8:        { s << "u8";    break; }
-                    case u16:       { s << "u16";   break; }
-                    case u32:       { s << "u32";   break; }
-                    case u64:       { s << "u64";   break; }
-                    case i8:        { s << "i8";    break; }
-                    case i16:       { s << "i16";   break; }
-                    case i32:       { s << "i32";   break; }
-                    case i64:       { s << "i64";   break; }
-                    case f16:       { s << "f16";   break; }
-                    case f32:       { s << "f32";   break; }
-                    case f64:       { s << "f64";   break; }
-                    default:        assert(false);
-                }
-            }
-            /*
-            void operator()(struct_type& struct_type) {
-                s << "struct { ";
-                for (auto& field: struct_type.fields) {
-                    std::invoke(*this, field);
-                    s << " ";
-                }
-                s << "}";
-            }
-            void operator()(array_type& array_type) {
-                s << "array [ ";
-                std::invoke(*this, array_type.element_type);
-                s << " * " << array_type.length << " ]";
-            }
-            */
-        };
-        type_visitor context;
-        std::invoke(context, t);
-        return context.s.str();
-    }
     static bool type_is_primitive(ast::type_id t) {
         return t < ast::num_primitive_types;
     }
-    static bool type_is_bool(primitive_type t) {
+    static std::string type_to_string(ast::type_id t) {
+        std::ostringstream s;
+        if (type_is_primitive(t)) {
+            switch (t) {
+                case t_void:    { s << "void";  break; }
+                case t_bool:    { s << "bool";  break; }
+                case u8:        { s << "u8";    break; }
+                case u16:       { s << "u16";   break; }
+                case u32:       { s << "u32";   break; }
+                case u64:       { s << "u64";   break; }
+                case i8:        { s << "i8";    break; }
+                case i16:       { s << "i16";   break; }
+                case i32:       { s << "i32";   break; }
+                case i64:       { s << "i64";   break; }
+                case f16:       { s << "f16";   break; }
+                case f32:       { s << "f32";   break; }
+                case f64:       { s << "f64";   break; }
+                default:        assert(false);
+            }
+        } else {
+            //TODO
+        }
+        return s.str();
+    }
+    static bool type_is_bool(ast::type_id t) {
         return t == t_bool;
     }
-    static bool type_is_integer(primitive_type t) {
+    static bool type_is_integer(ast::type_id t) {
         return t >= u8 && t <= i64;
     }
-    static bool type_is_signed_integer(primitive_type t) {
+    static bool type_is_signed_integer(ast::type_id t) {
         return t >= i8 && t <= i64;
     }
-    static bool type_is_unsigned_integer(primitive_type t) {
+    static bool type_is_unsigned_integer(ast::type_id t) {
         return t >= u8 && t <= u64;
     }
-    static bool type_is_float(primitive_type t) {
+    static bool type_is_float(ast::type_id t) {
         return t >= f16 && t <= f64;
     }
-    static bool type_is_number(primitive_type t) {
+    static bool type_is_number(ast::type_id t) {
         return t >= u8 && t <= f64;
     }
     static bool llvm_type_is_bool(llvm::Type* t) {
