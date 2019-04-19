@@ -133,7 +133,11 @@ struct typecheck_fn {
         return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::type_def& type_def) {
-        //TODO
+        auto t = context.type_scopes.find_item_current_scope(type_def.type_id);
+        if (t.has_value()) {
+            error(type_def.loc, "type already defined in this scope");
+        }
+        context.type_scopes.push_item(type_def.type_id, std::move(type_def.type));
         return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::s_return& s_return) {

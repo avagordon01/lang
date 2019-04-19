@@ -128,6 +128,7 @@ namespace ast {
     struct type_def {
         ast::type_id type_id;
         ast::type type;
+        yy::location loc;
     };
     using field_access = ast::identifier;
     using array_access = ast::expression;
