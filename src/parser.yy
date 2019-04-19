@@ -97,7 +97,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op,
 %type <ast::cases_list> cases_list
 %type <ast::switch_statement> switch_statement
 %type <ast::type_def> type_def
-%type <ast::constructed_type> type
+%type <ast::type> type
 %type <ast::struct_type> struct_type
 %type <ast::array_type> array_type
 %type <ast::accessor> accessor

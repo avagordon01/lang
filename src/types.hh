@@ -18,7 +18,7 @@ namespace ast {
     using identifier = size_t;
     struct struct_type;
     struct array_type;
-    using constructed_type = std::variant<
+    using type = std::variant<
         ast::type_id,
         std::unique_ptr<struct_type>,
         std::unique_ptr<array_type>>;

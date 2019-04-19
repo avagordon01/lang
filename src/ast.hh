@@ -127,7 +127,7 @@ namespace ast {
     };
     struct type_def {
         ast::type_id type_id;
-        ast::constructed_type type;
+        ast::type type;
     };
     using field_access = ast::identifier;
     using array_access = ast::expression;
