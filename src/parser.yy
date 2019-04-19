@@ -122,13 +122,13 @@ array_type: OPEN_S_BRACKET PRIMITIVE_TYPE LITERAL_INTEGER CLOSE_S_BRACKET {
           $$.length = $3;
           };
 type: PRIMITIVE_TYPE { $$ = $1; }
-    | IDENTIFIER { $$ = static_cast<ast::type_id>($1); }
+    | IDENTIFIER { $$ = ast::type_id{$1 + ast::num_primitive_types}; }
     | struct_type { $$ = std::make_unique<ast::struct_type>($1); }
     | array_type { $$ = std::make_unique<ast::array_type>($1); }
     ;
 type_def: TYPE IDENTIFIER OP_ASSIGN type {
         $$.loc = @$;
-        $$.type_id = static_cast<ast::type_id>($2);
+        $$.type_id = ast::type_id{$2 + ast::num_primitive_types};
         $$.type = $4;
         };
 

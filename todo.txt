@@ -69,13 +69,3 @@ user defined types
         only named types, no anonymous types
         operators only for primitive types
         only type_def on primitive_types, no structs or arrays
-
-    how should primitive_type and type_id be combined?
-    want to be able to compare a single size_t
-    add type_ids to the end of the primitive_type enum
-
-    allow types and variables with the same name
-        just don't do any checking
-        the parse/ast structure should make it clear what is a type and what is a variable
-
-    should it be the parser or typechecker distinguishing between variable names and type names?
