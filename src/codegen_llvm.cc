@@ -302,7 +302,7 @@ struct llvm_codegen_fn {
             ast::parameter param = function_def.parameter_list[j++];
             llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, param.identifier, param.type);
             context.builder.CreateStore(&arg, alloca);
-            context.variable_scopes.push_item(param.identifier, alloca);
+            context.variable_scopes.push_item(param.identifier, std::move(alloca));
         }
 
         std::invoke(*this, function_def.block);
@@ -346,7 +346,7 @@ struct llvm_codegen_fn {
         llvm::Value* value = std::invoke(*this, variable_def.expression);
         llvm::AllocaInst* alloca = CreateEntryBlockAlloca(context, variable_def.identifier, variable_def.expression.type);
         context.builder.CreateStore(value, alloca);
-        context.variable_scopes.push_item(variable_def.identifier, alloca);
+        context.variable_scopes.push_item(variable_def.identifier, std::move(alloca));
         return NULL;
     }
     llvm::Value* operator()(ast::assignment& assignment) {

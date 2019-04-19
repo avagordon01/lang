@@ -119,11 +119,11 @@ struct typecheck_fn {
         if (v.has_value()) {
             error(function_def.loc, "function already defined");
         }
-        context.variable_scopes.push_item(function_def.identifier, function_def.returntype);
+        context.variable_scopes.push_item(function_def.identifier, std::move(function_def.returntype));
         context.current_function_returntype = function_def.returntype;
         context.variable_scopes.push_scope();
         for (auto& parameter: function_def.parameter_list) {
-            context.variable_scopes.push_item(parameter.identifier, parameter.type);
+            context.variable_scopes.push_item(parameter.identifier, std::move(parameter.type));
         }
         std::invoke(*this, function_def.block);
         context.variable_scopes.pop_scope();
@@ -158,7 +158,7 @@ struct typecheck_fn {
         if (variable_def.explicit_type && variable_def.explicit_type != t) {
             error(variable_def.loc, "type mismatch in variable definition");
         }
-        context.variable_scopes.push_item(variable_def.identifier, t);
+        context.variable_scopes.push_item(variable_def.identifier, std::move(t));
         return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::assignment& assignment) {
