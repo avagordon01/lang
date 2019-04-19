@@ -24,7 +24,7 @@ struct typecheck_fn {
             std::invoke(*this, statement);
         }
         context.variable_scopes.pop_scope();
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::statement& statement) {
         return std::visit(*this, statement.statement);
@@ -33,7 +33,7 @@ struct typecheck_fn {
         return std::invoke(*this, *block);
     }
     ast::type_id operator()(ast::block& block) {
-        ast::type_id type = {ast::primitive_type::t_void};
+        ast::type_id type = {ast::type_id::t_void};
         context.variable_scopes.push_scope();
         for (auto& statement: block.statements) {
             type = std::invoke(*this, statement);
@@ -47,7 +47,7 @@ struct typecheck_fn {
     }
     ast::type_id operator()(ast::if_statement& if_statement) {
         for (auto& condition: if_statement.conditions) {
-            if (std::invoke(*this, condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
+            if (std::invoke(*this, condition) != ast::type_id::t_bool) {
                 error(if_statement.loc, "if statement condition not a boolean");
             }
         }
@@ -68,23 +68,23 @@ struct typecheck_fn {
     ast::type_id operator()(ast::for_loop& for_loop) {
         context.variable_scopes.push_scope();
         std::invoke(*this, for_loop.initial);
-        if (std::invoke(*this, for_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
+        if (std::invoke(*this, for_loop.condition) != ast::type_id::t_bool) {
             error(for_loop.loc, "for loop condition not a boolean");
         }
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
         context.variable_scopes.pop_scope();
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(std::unique_ptr<ast::while_loop>& while_loop) {
         return std::invoke(*this, *while_loop);
     }
     ast::type_id operator()(ast::while_loop& while_loop) {
-        if (std::invoke(*this, while_loop.condition) != ast::primitive_type{ast::primitive_type::t_bool}) {
+        if (std::invoke(*this, while_loop.condition) != ast::type_id::t_bool) {
             error(while_loop.loc, "while loop condition not a boolean");
         }
         std::invoke(*this, while_loop.block);
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
         return std::invoke(*this, *switch_statement);
@@ -94,7 +94,7 @@ struct typecheck_fn {
         if (!type_is_integer(switch_type)) {
             error(switch_statement.loc, "switch statement switch expression is not an integer");
         }
-        ast::type_id type = {ast::primitive_type::t_void};
+        ast::type_id type = {ast::type_id::t_void};
         for (auto& case_statement: switch_statement.cases) {
             for (auto& case_exp: case_statement.cases) {
                 ast::type_id case_type = std::invoke(*this, case_exp);
@@ -130,24 +130,24 @@ struct typecheck_fn {
         for (auto& parameter: function_def.parameter_list) {
             context.function_parameter_types[function_def.identifier].push_back(parameter.type);
         }
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::type_def& type_def) {
         //TODO
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::s_return& s_return) {
-        ast::type_id x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type_id{ast::primitive_type::t_void};
+        ast::type_id x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type_id::t_void;
         if (x != context.current_function_returntype) {
             error(s_return.loc, "return type does not match defined function return type");
         }
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::s_break& s_break) {
-        return s_break.expression ? std::invoke(*this, *s_break.expression) : ast::type_id{ast::primitive_type::t_void};
+        return s_break.expression ? std::invoke(*this, *s_break.expression) : ast::type_id::t_void;
     }
     ast::type_id operator()(ast::s_continue& s_continue) {
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::variable_def& variable_def) {
         auto v = context.variable_scopes.find_item_current_scope(variable_def.identifier);
@@ -159,7 +159,7 @@ struct typecheck_fn {
             error(variable_def.loc, "type mismatch in variable definition");
         }
         context.variable_scopes.push_item(variable_def.identifier, t);
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
     ast::type_id operator()(ast::assignment& assignment) {
         ast::type_id access = accessor_access(context, assignment.accessor);
@@ -167,7 +167,7 @@ struct typecheck_fn {
         if (value != access) {
             error(assignment.loc, "type mismatch in assignment");
         }
-        return {ast::primitive_type::t_void};
+        return {ast::type_id::t_void};
     }
 
     ast::type_id operator()(ast::expression& expression) {
@@ -189,7 +189,7 @@ struct typecheck_fn {
             yy::location& loc;
             ast::type_id operator()(double& x) {
                 if (!explicit_type) {
-                    *explicit_type = ast::primitive_type::f32;
+                    *explicit_type = ast::type_id::f32;
                     return *explicit_type;
                 }
                 if (ast::type_is_float(*explicit_type)) {
@@ -204,7 +204,7 @@ struct typecheck_fn {
             }
             ast::type_id operator()(uint64_t& x) {
                 if (!explicit_type) {
-                    *explicit_type = ast::primitive_type::i32;
+                    *explicit_type = ast::type_id::i32;
                     return *explicit_type;
                 }
                 if (ast::type_is_number(*explicit_type)) {
@@ -216,11 +216,11 @@ struct typecheck_fn {
             }
             ast::type_id operator()(bool& x) {
                 if (!explicit_type) {
-                    *explicit_type = {ast::primitive_type::t_bool};
+                    *explicit_type = {ast::type_id::t_bool};
                     return *explicit_type;
                 }
                 if (ast::type_is_bool(*explicit_type)) {
-                    return {ast::primitive_type::t_bool};
+                    return {ast::type_id::t_bool};
                 } else {
                     error(loc, "bool literal cannot be converted to non bool type");
                     assert(false);
@@ -312,7 +312,7 @@ struct typecheck_fn {
                 if (l != r) {
                     error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
                 }
-                type = {ast::primitive_type::t_bool};
+                type = {ast::type_id::t_bool};
                 break;
             case ast::binary_operator::C_GT:
             case ast::binary_operator::C_GE:
@@ -324,7 +324,7 @@ struct typecheck_fn {
                 if (!ast::type_is_number(l)) {
                     error(binary_operator->loc, "LHS and RHS of comparison operator are not numbers");
                 }
-                type = {ast::primitive_type::t_bool};
+                type = {ast::type_id::t_bool};
                 break;
         }
         binary_operator->type = type;

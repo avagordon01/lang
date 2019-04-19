@@ -130,19 +130,19 @@ struct   return yy::parser::make_STRUCT(loc);
 type     return yy::parser::make_TYPE(loc);
 (const|auto|sizeof|offsetof|static|repl|cpu|simd|gpu|fpga) reserved_token(loc, yytext);
 
-bool return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::t_bool, loc);
-u8   return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u8, loc);
-u16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u16, loc);
-u32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u32, loc);
-u64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::u64, loc);
-i8   return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i8, loc);
-i16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i16, loc);
-i32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i32, loc);
-i64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::i64, loc);
+bool return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::t_bool, loc);
+u8   return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u8, loc);
+u16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u16, loc);
+u32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u32, loc);
+u64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u64, loc);
+i8   return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i8, loc);
+i16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i16, loc);
+i32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i32, loc);
+i64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i64, loc);
 f8   reserved_token(loc, yytext);
-f16  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f16, loc);
-f32  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f32, loc);
-f64  return yy::parser::make_PRIMITIVE_TYPE(ast::primitive_type::f64, loc);
+f16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f16, loc);
+f32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f32, loc);
+f64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f64, loc);
 
 [a-zA-Z_][a-zA-Z0-9_]* return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
 

@@ -14,14 +14,12 @@ namespace ast {
         i8, i16, i32, i64,
         f16, f32, f64,
     };
-    using primitive_type = type_id;
-    constexpr size_t num_primitive_types = ast::primitive_type::f64 + 1;
+    constexpr size_t num_primitive_types = ast::type_id::f64 + 1;
     using identifier = size_t;
     struct struct_type;
     struct array_type;
     using constructed_type = std::variant<
-        identifier,
-        primitive_type,
+        ast::type_id,
         std::unique_ptr<struct_type>,
         std::unique_ptr<array_type>>;
     struct field {
@@ -100,7 +98,7 @@ namespace ast {
         return rso.str();
     }
 
-    static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, primitive_type t) {
+    static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, ast::type_id t) {
         //TODO update this to construct aggregate types in LLVM
         switch (t) {
             case t_void:

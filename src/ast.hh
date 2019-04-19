@@ -20,8 +20,8 @@ namespace ast {
 
     struct literal {
         std::variant<double, uint64_t, bool> literal;
-        std::optional<ast::primitive_type> explicit_type;
-        ast::primitive_type type;
+        std::optional<ast::type_id> explicit_type;
+        ast::type_id type;
         yy::location loc;
     };
     struct block;
@@ -97,7 +97,7 @@ namespace ast {
         yy::location loc;
     };
     struct variable_def {
-        std::optional<ast::primitive_type> explicit_type;
+        std::optional<ast::type_id> explicit_type;
         ast::identifier identifier;
         ast::expression expression;
         yy::location loc;

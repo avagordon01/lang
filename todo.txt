@@ -78,7 +78,4 @@ user defined types
         just don't do any checking
         the parse/ast structure should make it clear what is a type and what is a variable
 
-    remove all usage of primitive_type
-    rename all primitive_types to type_id?
-
     should it be the parser or typechecker distinguishing between variable names and type names?
