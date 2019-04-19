@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        error("usage:", argv[0], "input.lang output.ir");
+        error("usage:", argv[0], "input.kl output.ir");
     }
 
     driver driver;

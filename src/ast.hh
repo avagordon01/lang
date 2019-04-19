@@ -126,7 +126,7 @@ namespace ast {
         yy::location loc;
     };
     struct type_def {
-        ast::identifier identifier;
+        ast::type_id type_id;
         ast::constructed_type type;
     };
     using field_access = ast::identifier;

@@ -127,7 +127,7 @@ type: PRIMITIVE_TYPE { $$ = $1; }
     | array_type { $$ = std::make_unique<ast::array_type>($1); }
     ;
 type_def: TYPE IDENTIFIER OP_ASSIGN type {
-        $$.identifier = $2;
+        $$.type_id = static_cast<ast::type_id>($2);
         $$.type = $4;
         };
 
