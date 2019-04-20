@@ -22,6 +22,35 @@ $ make test
 $ make test debug=1 #will drop into a GDB session when something goes wrong
 ```
 
+## status
+
+- frontend
+  - [x] basic imperative language
+  - [x] control flow (if/for/while/switch/functions)
+  - [x] primitive types (bool, {u,i,f}{8,16,32,64})
+  - [x] linkable with C
+  - [ ] user defined types
+    - [ ] structs
+    - [ ] arrays
+  - [ ] builtin functions
+    - [ ] casts
+    - [ ] maths
+    - [ ] advanced bitwise
+  - [ ] memory
+    - [ ] heap backed variables
+  - [ ] modules
+    - [ ] import/export functions from other files
+    - [ ] generate or read C headers
+  - [ ] generic programming
+    - [ ] compiletime type things
+- backend
+  - [x] LLVM backend
+  - [ ] SPIR-V backend
+  - [ ] evaluator/interpreter
+    - [ ] arbitrary compiletime execution
+  - [ ] switching between backends at arbitrary code locations
+    - [ ] transparent transfer between processors (CPU, SIMD, GPU, ...)
+
 ## ideas
 - halide and futhark inspiration
   - futhark is a language compiler written in haskell generating opencl
