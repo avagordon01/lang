@@ -1,0 +1,13 @@
+bugfix break, continue instructions dont actually get compiled to assembly from IR
+    what
+    if you compile the IR manually with llc then assembler it works...
+    either my invocation of passes is wrong
+    or its a bug in llvm assembly output
+    what
+    llc, clang and everything else uses legacy
+    no examples of using modern passmanager and cant find a way to emit machine code
+
+    could narrow down the difference between my invocation and theirs
+    or just invoke their command line
+        could get nice CLI for free, and possibly optimisation etc
+    would it stop us from compiling fine-grained modules for different targets? CPU/GPU?

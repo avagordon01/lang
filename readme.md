@@ -23,7 +23,6 @@ $ make test debug=1 #will drop into a GDB session when something goes wrong
 ```
 
 ## status
-
 - frontend
   - [x] basic imperative language
   - [x] control flow (if/for/while/switch/functions)
@@ -38,11 +37,17 @@ $ make test debug=1 #will drop into a GDB session when something goes wrong
     - [ ] advanced bitwise
   - [ ] memory
     - [ ] heap backed variables
+    - [ ] compiler knows all aliasing (or no aliasing)
+    - [ ] pointers like C++ references and unique_ptrs
+    - [ ] initialisation?
+    - [ ] custom allocators
   - [ ] modules
-    - [ ] import/export functions from other files
-    - [ ] generate or read C headers
+    - [ ] import/export definitions from/to other kl files
+    - [ ] import/export definitions from/to C files
+    - [ ] top level file definition order unimportant
   - [ ] generic programming
     - [ ] compiletime type things
+    - [ ] builtins type functions for "is a", "has a"
 - backend
   - [x] LLVM backend
   - [ ] SPIR-V backend

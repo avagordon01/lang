@@ -1,40 +1,3 @@
-bugfix break, continue instructions dont actually get compiled to assembly from IR
-    what
-    if you compile the IR manually with llc then assembler it works...
-    either my invocation of passes is wrong
-    or its a bug in llvm assembly output
-    what
-    llc, clang and everything else uses legacy
-    no examples of using modern passmanager and cant find a way to emit machine code
-
-    could narrow down the difference between my invocation and theirs
-    or just invoke their command line
-        could get nice CLI for free, and possibly optimisation etc
-    would it stop us from compiling fine-grained modules for different targets? CPU/GPU?
-codegen
-    casts/conversions from one type to another
-    builtins for math and bitwise operations
-memory
-    no aliasing
-    everything is reachable from the stack?
-    unique_ptr
-    dag or tree?
-    initialisation?
-    no declaration without definition/initialisation
-    if everything is single ownership from the stack
-        can we use a bump allocator??
-        bump/stack allocator on the heap
-        because there is a 1-1 mapping between stack and heap
-        nothing lives outside of its scope
-        could give us really fast allocation and deallocation
-        what about if things need to be resized?
-        maybe have a separate pool for variably sized things
-modules
-    import
-        import exported functions from another file
-        to typecheck and generate calls to external functions
-    generate c header
-    top-level definition order unimportant
 make if, switch, for, while, block expressions not statements
     move the current_loop_{entry,exit,phi} from global context to function parameters
     then we can have easily nested loops
@@ -54,18 +17,10 @@ make if, switch, for, while, block expressions not statements
 
     not sure what for and while should return yet
     maybe vector or iterator like rust or python
-SPIRV backend
-    use GlslangToSpv.cpp as example
-    and SpvBuilder.h as documentation
-compiletime interpreter/backend/evaluator
-    would LLVM JIT work?
-    otherwise have to store a std::variant of the types for values
-generic programming
-    think about what cool compile time behaviour and types we want
-    dependent types?
-    genericity, is a, has a, builtin type operations?
 user defined types
     for the mvp
         only named types, no anonymous types
+            what if an accessor doesn't access all the way down to a primitive_type?
+            have to generate a type_id for the intermediate type
         operators only for primitive types
         only type_def on primitive_types, no structs or arrays
