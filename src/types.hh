@@ -37,29 +37,54 @@ namespace ast {
     static bool type_is_primitive(ast::type_id t) {
         return t < ast::num_primitive_types;
     }
-    static std::string type_to_string(ast::type_id t) {
-        std::ostringstream s;
-        if (type_is_primitive(t)) {
-            switch (t) {
-                case t_void:    { s << "void";  break; }
-                case t_bool:    { s << "bool";  break; }
-                case u8:        { s << "u8";    break; }
-                case u16:       { s << "u16";   break; }
-                case u32:       { s << "u32";   break; }
-                case u64:       { s << "u64";   break; }
-                case i8:        { s << "i8";    break; }
-                case i16:       { s << "i16";   break; }
-                case i32:       { s << "i32";   break; }
-                case i64:       { s << "i64";   break; }
-                case f16:       { s << "f16";   break; }
-                case f32:       { s << "f32";   break; }
-                case f64:       { s << "f64";   break; }
-                default:        assert(false);
+    static std::string type_to_string(const ast::type& type, std::vector<std::string>& symbols_list) {
+        struct type_printer_fn {
+            type_printer_fn(std::vector<std::string>& sl) : symbols_list(sl) {};
+            std::ostringstream s;
+            std::vector<std::string>& symbols_list;
+            void operator()(ast::type_id type_id) {
+                if (type_is_primitive(type_id)) {
+                    switch (type_id) {
+                        case t_void:    { s << "void";  break; }
+                        case t_bool:    { s << "bool";  break; }
+                        case u8:        { s << "u8";    break; }
+                        case u16:       { s << "u16";   break; }
+                        case u32:       { s << "u32";   break; }
+                        case u64:       { s << "u64";   break; }
+                        case i8:        { s << "i8";    break; }
+                        case i16:       { s << "i16";   break; }
+                        case i32:       { s << "i32";   break; }
+                        case i64:       { s << "i64";   break; }
+                        case f16:       { s << "f16";   break; }
+                        case f32:       { s << "f32";   break; }
+                        case f64:       { s << "f64";   break; }
+                        default:        assert(false);
+                    }
+                } else {
+                    s << symbols_list[static_cast<size_t>(type_id) - num_primitive_types];
+                }
             }
-        } else {
-            //TODO
-        }
-        return s.str();
+            void operator()(const std::unique_ptr<ast::struct_type>& struct_type) {
+                s << "struct { ";
+                for (auto field: struct_type->fields) {
+                    std::invoke(*this, field.type);
+                    s << " ";
+                    s << symbols_list[field.identifier];
+                    s << "; ";
+                }
+                s << "}";
+            }
+            void operator()(const std::unique_ptr<ast::array_type>& array_type) {
+                s << "[";
+                std::invoke(*this, array_type->element_type);
+                s << " ";
+                s << array_type->length;
+                s << "]";
+            }
+        };
+        type_printer_fn type_printer_fn{symbols_list};
+        std::visit(type_printer_fn, type);
+        return type_printer_fn.s.str();
     }
     static bool type_is_bool(ast::type_id t) {
         return t == t_bool;
@@ -99,35 +124,39 @@ namespace ast {
     }
 
     static llvm::Type* type_to_llvm_type(llvm::LLVMContext &context, ast::type_id t) {
-        //TODO update this to construct aggregate types in LLVM
-        switch (t) {
-            case t_void:
-                return llvm::Type::getVoidTy(context);
-            case t_bool:
-                return llvm::Type::getInt1Ty(context);
-            case u8:
-                return llvm::Type::getInt8Ty(context);
-            case u16:
-                return llvm::Type::getInt16Ty(context);
-            case u32:
-                return llvm::Type::getInt32Ty(context);
-            case u64:
-                return llvm::Type::getInt64Ty(context);
-            case i8:
-                return llvm::Type::getInt8Ty(context);
-            case i16:
-                return llvm::Type::getInt16Ty(context);
-            case i32:
-                return llvm::Type::getInt32Ty(context);
-            case i64:
-                return llvm::Type::getInt64Ty(context);
-            case f16:
-                return llvm::Type::getHalfTy(context);
-            case f32:
-                return llvm::Type::getFloatTy(context);
-            case f64:
-                return llvm::Type::getDoubleTy(context);
-        }
-        assert(false);
+        struct type_codegen_fn {
+            llvm::LLVMContext &context;
+            llvm::Type* operator()(ast::type_id type_id) {
+                switch (type_id) {
+                    case t_void: return llvm::Type::getVoidTy(context);
+                    case t_bool: return llvm::Type::getInt1Ty(context);
+                    case u8:     return llvm::Type::getInt8Ty(context);
+                    case u16:    return llvm::Type::getInt16Ty(context);
+                    case u32:    return llvm::Type::getInt32Ty(context);
+                    case u64:    return llvm::Type::getInt64Ty(context);
+                    case i8:     return llvm::Type::getInt8Ty(context);
+                    case i16:    return llvm::Type::getInt16Ty(context);
+                    case i32:    return llvm::Type::getInt32Ty(context);
+                    case i64:    return llvm::Type::getInt64Ty(context);
+                    case f16:    return llvm::Type::getHalfTy(context);
+                    case f32:    return llvm::Type::getFloatTy(context);
+                    case f64:    return llvm::Type::getDoubleTy(context);
+                    default:     assert(false);
+                }
+            }
+            llvm::Type* operator()(const std::unique_ptr<ast::struct_type>& struct_type) {
+                std::vector<llvm::Type*> fields;
+                for (auto field: struct_type->fields) {
+                    fields.push_back(std::invoke(*this, field.type));
+                }
+                bool packed = false;
+                return llvm::StructType::get(context, llvm::ArrayRef<llvm::Type*>{fields}, packed);
+            }
+            llvm::Type* operator()(const std::unique_ptr<ast::array_type>& array_type) {
+                llvm::Type* element_type = std::invoke(*this, array_type->element_type);
+                return llvm::ArrayType::get(element_type, array_type->length);
+            }
+        };
+        return std::visit(type_codegen_fn{context}, ast::type{t});
     }
 }

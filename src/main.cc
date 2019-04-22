@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
     driver.parse();
 
     typecheck_context typecheck_context;
+    typecheck_context.symbols_list = driver.symbols_list;
     typecheck(typecheck_context, driver.program_ast);
 
     codegen_context_llvm codegen_context_llvm;

@@ -314,7 +314,7 @@ struct typecheck_fn {
             case ast::binary_operator::C_EQ:
             case ast::binary_operator::C_NE:
                 if (l != r) {
-                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
+                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l, context.symbols_list), "and", ast::type_to_string(r, context.symbols_list));
                 }
                 type = {ast::type_id::t_bool};
                 break;
@@ -323,7 +323,7 @@ struct typecheck_fn {
             case ast::binary_operator::C_LT:
             case ast::binary_operator::C_LE:
                 if (l != r) {
-                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l), "and", ast::type_to_string(r));
+                    error(binary_operator->loc, "LHS and RHS of comparison operator are not of the same type. have", ast::type_to_string(l, context.symbols_list), "and", ast::type_to_string(r, context.symbols_list));
                 }
                 if (!ast::type_is_number(l)) {
                     error(binary_operator->loc, "LHS and RHS of comparison operator are not numbers");
