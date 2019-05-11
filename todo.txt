@@ -24,3 +24,15 @@ user defined types
             have to generate a type_id for the intermediate type
         operators only for primitive types
         only type_def on primitive_types, no structs or arrays
+    variable_def requires an assignment
+        zero initialise variable_def and dont have an assignment
+        literals/constants of aggregate types
+        everything should be zero initialised if its not explicitly initialised
+        but its inconsistent to have zero initialisation for structs and arrays and not for primitive types
+lexing/parsing identifiers
+    could map generic `identifier` to a `variable_id`, `type_id`, `function_id`
+    lexer uses lookup_or_insert to unique/map generic `identifiers`
+    use a parser lookup_or_insert function for each
+    would keep them contiguous, could use vectors instead of maps
+    and be more typey
+    mapping back to the actual string would be harder though
