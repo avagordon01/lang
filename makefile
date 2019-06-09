@@ -9,7 +9,7 @@ CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
 	-Wno-unused-function -Wno-unused-parameter
 LDFLAGS =
-LDLIBS = -lLLVM-8 -lSPIRV
+LDLIBS = -lLLVM-8 -lSPIRV -lglslang
 
 DEBUGGER = gdb -nx -q -ex run -ex quit --args
 ifdef debug
@@ -22,7 +22,7 @@ endif
 
 all: out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/codegen_spirv.o out/typecheck.o
+objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/codegen_spirv.o out/typecheck.o out/glslangtospv.o out/logger.o
 test_objects := out/scopes.o
 depends := $(objects:.o=.d) $(test_objects:.o=.d)
 
