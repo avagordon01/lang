@@ -1,6 +1,7 @@
 #include <iostream>
 #include <functional>
 #include <map>
+#include <optional>
 
 #include "error.hh"
 
@@ -28,7 +29,7 @@ enum class token_type : int {
     LITERAL_BOOL, LITERAL_INTEGER, LITERAL_FLOAT,
     IDENTIFIER,
 };
-std::map<token_type, int> operator_precendece = {
+std::map<token_type, int> operator_precedence = {
     {token_type::OP_L_OR,   0},
     {token_type::OP_L_AND,  1},
     {token_type::OP_C_EQ,   2},
@@ -102,6 +103,15 @@ struct parser_context {
         } else {
             error("parser: expected", t, "got", current_token);
             return false;
+        }
+    }
+
+    std::optional<int> get_precedence() {
+        auto it = operator_precedence.find(current_token);
+        if (it == operator_precedence.end()) {
+            return std::make_optional(it->second);
+        } else {
+            return std::nullopt;
         }
     }
 
@@ -306,5 +316,59 @@ struct parser_context {
             error("parser: expected statement. got", current_token);
         }
     }
-    bool parse_exp();
+    bool parse_exp() {
+        auto LHS = parse_exp_primary();
+        auto RHS = parse_exp_inner(0);
+        return true;
+    }
+    bool parse_exp_paren() {
+        if (accept(token_type::OPEN_R_BRACKET)) {
+            parse_exp_primary();
+            expect(token_type::CLOSE_R_BRACKET);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    bool parse_exp_primary() {
+        if (
+            parse_function_call() ||
+            parse_accessor() ||
+            parse_literal() ||
+            parse_exp_paren()
+        ) {
+            return true;
+        } else {
+            error("parser: expected function call, accessor or literal. got", current_token);
+            return false;
+        }
+    }
+    bool parse_exp_inner(int min_precedence) {
+        while (true) {
+            std::optional<int> prec = get_precedence();
+            if (!prec) {
+                error("parser: expected binary operator. got", current_token);
+                return false;
+            }
+            if (*prec < min_precedence) {
+                return true;
+            }
+            token_type bin_op = current_token;
+            next_token();
+
+            bool rhs = parse_exp_primary();
+            if (!rhs) {
+                return false;
+            }
+
+            std::optional<int> next_prec = get_precedence();
+            if (*prec < *next_prec) {
+                rhs = parse_exp_inner(*prec + 1);
+                if (!rhs) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 };
