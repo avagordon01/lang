@@ -22,7 +22,7 @@ endif
 
 all: out/compiler
 
-objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o
+objects := out/lexer.o out/parser.o out/main.o out/codegen_llvm.o out/typecheck.o out/alt-parser.o
 test_objects := out/scopes.o
 depends := $(objects:.o=.d) $(test_objects:.o=.d)
 

@@ -1,3 +1,7 @@
+modifying the parser is hard
+    especially in adding lists of things
+    could move from bison parser generator to predictive parser
+
 make if, switch, for, while, block expressions not statements
     move the current_loop_{entry,exit,phi} from global context to function parameters
     then we can have easily nested loops
