@@ -58,7 +58,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op,
 %token OPEN_R_BRACKET CLOSE_R_BRACKET
 %token OPEN_C_BRACKET CLOSE_C_BRACKET
 %token OPEN_S_BRACKET CLOSE_S_BRACKET
-%token IF ELSE
+%token IF ELIF ELSE
 %token FOR WHILE BREAK CONTINUE
 %token SWITCH CASE
 %token FUNCTION RETURN
@@ -84,7 +84,7 @@ new_binary_op(ast::expression l, ast::expression r, ast::binary_operator::op op,
 %type <ast::statement> statement
 %type <ast::block> block
 %type <ast::optional_else> optional_else
-%type <ast::else_if_list> else_if_list
+%type <ast::elif_list> elif_list
 %type <ast::statement_list> statement_list
 %type <ast::parameter_list> parameter_list
 %type <ast::expression_list> expression_list
@@ -149,15 +149,15 @@ statement: exp              { $$.statement = $1; }
          | break            { $$.statement = $1; }
          | continue         { $$.statement = $1; }
          ;
-if_statement: IF exp block else_if_list optional_else {
+if_statement: IF exp block elif_list optional_else {
             $$.loc = @$;
             $$.conditions.push_back($2);
             $$.blocks.push_back($3);
-            auto else_if_list = $4;
-            for (auto& t: else_if_list.conditions) {
+            auto elif_list = $4;
+            for (auto& t: elif_list.conditions) {
                 $$.conditions.emplace_back(std::move(t));
             }
-            for (auto& t: else_if_list.blocks) {
+            for (auto& t: elif_list.blocks) {
                 $$.blocks.emplace_back(std::move(t));
             }
             auto optional_else = $5;
@@ -238,12 +238,12 @@ optional_else: %empty {
              }
              ;
 
-else_if_list: %empty { }
-            | else_if_list ELSE IF exp block {
+elif_list: %empty { }
+            | elif_list ELIF exp block {
             auto& v = $$;
             v = $1;
-            v.conditions.push_back($4);
-            v.blocks.push_back($5);
+            v.conditions.push_back($3);
+            v.blocks.push_back($4);
             }
             ;
 

@@ -79,7 +79,7 @@ namespace ast {
         yy::location loc;
     };
     using optional_else = std::optional<ast::block>;
-    struct else_if_list {
+    struct elif_list {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
     };
