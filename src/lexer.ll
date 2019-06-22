@@ -3,6 +3,7 @@
 %{
 #include "driver.hh"
 #include "parser.hh"
+#include "error.hh"
 %}
 
 %{
@@ -11,7 +12,7 @@
 #include <unordered_map>
 
 void reserved_token(yy::location& loc, char* yytext) {
-    throw yy::parser::syntax_error(loc, "reserved token " + std::string(yytext) + " cannot currently be used");
+    error(loc, "reserved token", yytext, "cannot currently be used");
 }
 uint64_t parse_integer(char *s, size_t base) {
     size_t value = 0;
@@ -156,4 +157,4 @@ f64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f64, loc);
 
 <<EOF>> return yy::parser::make_T_EOF(loc);
 
-. throw yy::parser::syntax_error(loc, "unexpected token: " + std::string(yytext));
+. error(loc, "unexpected token", yytext);
