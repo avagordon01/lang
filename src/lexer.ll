@@ -14,30 +14,45 @@
 void reserved_token(yy::location& loc, char* yytext) {
     error(loc, "reserved token", yytext, "cannot currently be used");
 }
-uint64_t parse_integer(char *s, size_t base) {
-    size_t value = 0;
-    int sign = 1;
+uint64_t parse_integer(char *s, yy::location& loc) {
+    //parse sign
+    bool positive = true;
     if (*s == '+') {
         s++;
     } else if (*s == '-') {
-        sign = -1;
+        positive = false;
         s++;
     }
-    if (base != 10) {
-        s += 2;
-    }
-    while (*s != '\0') {
-        value *= base;
-        if (*s >= '0' && *s <= '9') {
-            value += *s - '0';
-        } else if (*s >= 'a' && *s <= 'z') {
-            value += *s - 'a';
-        } else if (*s >= 'A' && *s <= 'Z') {
-            value += *s - 'A';
+    //parse base
+    uint8_t base = 10;
+    if (*s == '0') {
+        s++;
+        if (*s == 'b' || *s == 'B') {
+            base =  2; s++;
+        } else if (*s == 'o' || *s == 'O') {
+            base =  8; s++;
+        } else if (*s == 'x' || *s == 'X') {
+            base = 16; s++;
         }
-        s++;
     }
-    return sign * value;
+    //parse digits
+    uint64_t value = 0;
+    for (; *s != 0; s++) {
+        value *= base;
+        if (base <= 10 && *s >= '0' && *s <= '0' + base - 1) {
+            value += *s - '0';
+        } else if (base <= 32 && *s >= '0' && *s <= '9') {
+            value += *s - '0';
+        } else if (base <= 32 && *s >= 'a' && *s <= 'a' + base - 11) {
+            value += *s - 'a';
+        } else if (base <= 32 && *s >= 'A' && *s <= 'A' + base - 11) {
+            value += *s - 'A';
+        } else if (*s == '_' || *s == ',') {
+        } else {
+            error(loc, "unrecognised digit in base", base, "number literal", *s);
+        }
+    }
+    return positive ? value : -value;
 }
 
 ast::identifier lookup_or_insert(char* c, driver& driver) {
@@ -60,6 +75,10 @@ ast::identifier lookup_or_insert(char* c, driver& driver) {
 #define YY_USER_ACTION loc.columns(yyleng);
 %}
 
+integer     [+-]?([0-9_]+|0[bBoOxX][0-9a-zA-Z_,]+)
+float       [+-]?[0-9]+\.[0-9]+
+identifier  [a-zA-Z_][a-zA-Z0-9_]*
+
 %%
 
 %{
@@ -71,14 +90,6 @@ loc.step();
 \n+  loc.lines(yyleng); loc.step();
 ";"  return yy::parser::make_SEMICOLON(loc);
 ","  return yy::parser::make_COMMA(loc);
-
-true                    return yy::parser::make_LITERAL_BOOL(true, loc);
-false                   return yy::parser::make_LITERAL_BOOL(false, loc);
-[+-]?[0-9_]+            return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, 10), loc);
-[+-]?0[xX][0-9a-fA-F_]+ return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, 16), loc);
-[+-]?0[oO][0-7_]+       return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, 8), loc);
-[+-]?0[bB][0-1_]+       return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, 2), loc);
-[+-]?[0-9]+\.[0-9]+     return yy::parser::make_LITERAL_FLOAT(atof(yytext), loc);
 
 "\." return yy::parser::make_OP_ACCESS(loc);
 "="  return yy::parser::make_OP_ASSIGN(loc);
@@ -146,7 +157,12 @@ f16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f16, loc);
 f32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f32, loc);
 f64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f64, loc);
 
-[a-zA-Z_][a-zA-Z0-9_]* return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
+true        return yy::parser::make_LITERAL_BOOL(true, loc);
+false       return yy::parser::make_LITERAL_BOOL(false, loc);
+{integer}   return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, loc), loc);
+{float}     return yy::parser::make_LITERAL_FLOAT(strtod(yytext, nullptr), loc);
+
+{identifier} return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
 
 "//".*
 
