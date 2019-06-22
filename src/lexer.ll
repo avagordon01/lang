@@ -2,7 +2,6 @@
 
 %{
 #include "driver.hh"
-#include "parser.hh"
 #include "error.hh"
 %}
 
@@ -88,81 +87,81 @@ loc.step();
 
 " "+ loc.step();
 \n+  loc.lines(yyleng); loc.step();
-";"  return yy::parser::make_SEMICOLON(loc);
-","  return yy::parser::make_COMMA(loc);
+";"  return token_type::SEMICOLON;
+","  return token_type::COMMA;
 
-"\." return yy::parser::make_OP_ACCESS(loc);
-"="  return yy::parser::make_OP_ASSIGN(loc);
+"\." return token_type::OP_ACCESS;
+"="  return token_type::OP_ASSIGN;
 
-"+"  return yy::parser::make_OP_A_ADD(loc);
-"-"  return yy::parser::make_OP_A_SUB(loc);
-"*"  return yy::parser::make_OP_A_MUL(loc);
-"/"  return yy::parser::make_OP_A_DIV(loc);
-"%"  return yy::parser::make_OP_A_MOD(loc);
+"+"  return token_type::OP_A_ADD;
+"-"  return token_type::OP_A_SUB;
+"*"  return token_type::OP_A_MUL;
+"/"  return token_type::OP_A_DIV;
+"%"  return token_type::OP_A_MOD;
 
-"&"  return yy::parser::make_OP_B_AND(loc);
-"|"  return yy::parser::make_OP_B_OR(loc);
-"^"  return yy::parser::make_OP_B_XOR(loc);
-"~"  return yy::parser::make_OP_B_NOT(loc);
-"<<" return yy::parser::make_OP_B_SHL(loc);
-">>" return yy::parser::make_OP_B_SHR(loc);
+"&"  return token_type::OP_B_AND;
+"|"  return token_type::OP_B_OR;
+"^"  return token_type::OP_B_XOR;
+"~"  return token_type::OP_B_NOT;
+"<<" return token_type::OP_B_SHL;
+">>" return token_type::OP_B_SHR;
 
-"&&" return yy::parser::make_OP_L_AND(loc);
-"||" return yy::parser::make_OP_L_OR(loc);
-"!"  return yy::parser::make_OP_L_NOT(loc);
+"&&" return token_type::OP_L_AND;
+"||" return token_type::OP_L_OR;
+"!"  return token_type::OP_L_NOT;
 
-"==" return yy::parser::make_OP_C_EQ(loc);
-"!=" return yy::parser::make_OP_C_NE(loc);
-">"  return yy::parser::make_OP_C_GT(loc);
-">=" return yy::parser::make_OP_C_GE(loc);
-"<"  return yy::parser::make_OP_C_LT(loc);
-"<=" return yy::parser::make_OP_C_LE(loc);
+"==" return token_type::OP_C_EQ;
+"!=" return token_type::OP_C_NE;
+">"  return token_type::OP_C_GT;
+">=" return token_type::OP_C_GE;
+"<"  return token_type::OP_C_LT;
+"<=" return token_type::OP_C_LE;
 
-"("  return yy::parser::make_OPEN_R_BRACKET(loc);
-")"  return yy::parser::make_CLOSE_R_BRACKET(loc);
-"["  return yy::parser::make_OPEN_S_BRACKET(loc);
-"]"  return yy::parser::make_CLOSE_S_BRACKET(loc);
-"{"  return yy::parser::make_OPEN_C_BRACKET(loc);
-"}"  return yy::parser::make_CLOSE_C_BRACKET(loc);
+"("  return token_type::OPEN_R_BRACKET;
+")"  return token_type::CLOSE_R_BRACKET;
+"["  return token_type::OPEN_S_BRACKET;
+"]"  return token_type::CLOSE_S_BRACKET;
+"{"  return token_type::OPEN_C_BRACKET;
+"}"  return token_type::CLOSE_C_BRACKET;
 
-var      return yy::parser::make_VAR(loc);
-if       return yy::parser::make_IF(loc);
-elif     return yy::parser::make_ELIF(loc);
-else     return yy::parser::make_ELSE(loc);
-for      return yy::parser::make_FOR(loc);
-while    return yy::parser::make_WHILE(loc);
-fn       return yy::parser::make_FUNCTION(loc);
-return   return yy::parser::make_RETURN(loc);
-break    return yy::parser::make_BREAK(loc);
-continue return yy::parser::make_CONTINUE(loc);
-switch   return yy::parser::make_SWITCH(loc);
-case     return yy::parser::make_CASE(loc);
-import   return yy::parser::make_IMPORT(loc);
-export   return yy::parser::make_EXPORT(loc);
-struct   return yy::parser::make_STRUCT(loc);
-type     return yy::parser::make_TYPE(loc);
+var      return token_type::VAR;
+if       return token_type::IF;
+elif     return token_type::ELIF;
+else     return token_type::ELSE;
+for      return token_type::FOR;
+while    return token_type::WHILE;
+fn       return token_type::FUNCTION;
+return   return token_type::RETURN;
+break    return token_type::BREAK;
+continue return token_type::CONTINUE;
+switch   return token_type::SWITCH;
+case     return token_type::CASE;
+import   return token_type::IMPORT;
+export   return token_type::EXPORT;
+struct   return token_type::STRUCT;
+type     return token_type::TYPE;
 (const|auto|sizeof|offsetof|static|repl|cpu|simd|gpu|fpga) reserved_token(loc, yytext);
 
-bool return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::t_bool, loc);
-u8   return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u8, loc);
-u16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u16, loc);
-u32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u32, loc);
-u64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::u64, loc);
-i8   return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i8, loc);
-i16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i16, loc);
-i32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i32, loc);
-i64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::i64, loc);
+bool drv.current_param = ast::type_id::t_bool; return token_type::PRIMITIVE_TYPE;
+u8   drv.current_param = ast::type_id::u8; return token_type::PRIMITIVE_TYPE;
+u16  drv.current_param = ast::type_id::u16; return token_type::PRIMITIVE_TYPE;
+u32  drv.current_param = ast::type_id::u32; return token_type::PRIMITIVE_TYPE;
+u64  drv.current_param = ast::type_id::u64; return token_type::PRIMITIVE_TYPE;
+i8   drv.current_param = ast::type_id::i8; return token_type::PRIMITIVE_TYPE;
+i16  drv.current_param = ast::type_id::i16; return token_type::PRIMITIVE_TYPE;
+i32  drv.current_param = ast::type_id::i32; return token_type::PRIMITIVE_TYPE;
+i64  drv.current_param = ast::type_id::i64; return token_type::PRIMITIVE_TYPE;
 f8   reserved_token(loc, yytext);
-f16  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f16, loc);
-f32  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f32, loc);
-f64  return yy::parser::make_PRIMITIVE_TYPE(ast::type_id::f64, loc);
+f16  drv.current_param = ast::type_id::f16; return token_type::PRIMITIVE_TYPE;
+f32  drv.current_param = ast::type_id::f32; return token_type::PRIMITIVE_TYPE;
+f64  drv.current_param = ast::type_id::f64; return token_type::PRIMITIVE_TYPE;
 
-true        return yy::parser::make_LITERAL_BOOL(true, loc);
-false       return yy::parser::make_LITERAL_BOOL(false, loc);
-{integer}   return yy::parser::make_LITERAL_INTEGER(parse_integer(yytext, loc), loc);
-{float}     return yy::parser::make_LITERAL_FLOAT(strtod(yytext, nullptr), loc);
+true        drv.current_param = true; return token_type::LITERAL_BOOL;
+false       drv.current_param = false; return token_type::LITERAL_BOOL;
+{integer}   drv.current_param = parse_integer(yytext, loc); return token_type::LITERAL_INTEGER;
+{float}     drv.current_param = static_cast<double>(strtod(yytext, nullptr)); return token_type::LITERAL_FLOAT;
 
-{identifier} return yy::parser::make_IDENTIFIER(lookup_or_insert(yytext, drv), loc);
+{identifier} drv.current_param = lookup_or_insert(yytext, drv); return token_type::IDENTIFIER;
 
 "//".*
 
@@ -171,6 +170,6 @@ false       return yy::parser::make_LITERAL_BOOL(false, loc);
 <COMMENT>.
 <COMMENT>\n+  loc.lines(yyleng); loc.step();
 
-<<EOF>> return yy::parser::make_T_EOF(loc);
+<<EOF>> return token_type::T_EOF;
 
 . error(loc, "unexpected token", yytext);
