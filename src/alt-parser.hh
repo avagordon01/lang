@@ -38,9 +38,10 @@ struct driver;
 
 struct parser_context {
     driver& drv;
-    parser_context(driver& drv_): drv(drv_) {};
+    parser_context(driver& drv_);
 
     token_type current_token;
+    token_type lookahead_token;
 
     void next_token();
     bool accept(token_type t);
@@ -49,34 +50,32 @@ struct parser_context {
     std::optional<int> get_precedence();
 
     template<typename T>
-    bool parse_list(T parse);
+    void parse_list(T parse, token_type delim);
     template<typename T>
-    bool parse_list(T parse, token_type sep, token_type delim);
+    void parse_list(T parse, token_type sep, token_type delim);
 
-    bool parse_program();
-    bool parse_if_statement();
-    bool parse_for_loop();
-    bool parse_while_loop();
-    bool parse_switch_statement();
-    bool parse_function_def();
-    bool parse_function_call();
-    bool parse_type_def();
-    bool parse_assignment();
-    bool parse_variable_def();
-    bool parse_return();
-    bool parse_break();
-    bool parse_continue();
-    bool parse_block();
-    bool parse_access();
-    bool parse_accessor();
-    bool parse_type();
-    bool parse_struct_type();
-    bool parse_array_type();
-    bool parse_literal();
-    bool parse_literal_integer();
-    bool parse_statement();
-    bool parse_exp();
-    bool parse_exp_paren();
-    bool parse_exp_primary();
-    bool parse_exp_inner(int min_precedence);
+    void parse_program();
+    void parse_if_statement();
+    void parse_for_loop();
+    void parse_while_loop();
+    void parse_switch_statement();
+    void parse_function_def();
+    void parse_function_call();
+    void parse_type_def();
+    void parse_assignment();
+    void parse_variable_def();
+    void parse_return();
+    void parse_break();
+    void parse_continue();
+    void parse_block();
+    void parse_access();
+    void parse_accessor();
+    void parse_type();
+    void parse_struct_type();
+    void parse_array_type();
+    void parse_literal();
+    void parse_literal_integer();
+    void parse_top_level_statement();
+    void parse_statement();
+    void parse_exp();
 };

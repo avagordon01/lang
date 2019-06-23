@@ -7,7 +7,7 @@ CXX = g++
 CPPFLAGS = -Isrc -Iout
 CXXFLAGS = -g -std=c++17 -MMD -MP \
 	-Werror -Wall -Wextra -Wpedantic \
-	-Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-parentheses
+	-Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-parentheses -Wno-switch
 LDFLAGS =
 LDLIBS = -lLLVM-8 -lSPIRV
 
