@@ -115,6 +115,7 @@ false                   return yy::parser::make_LITERAL_BOOL(false, loc);
 
 var      return yy::parser::make_VAR(loc);
 if       return yy::parser::make_IF(loc);
+elif     return yy::parser::make_ELIF(loc);
 else     return yy::parser::make_ELSE(loc);
 for      return yy::parser::make_FOR(loc);
 while    return yy::parser::make_WHILE(loc);

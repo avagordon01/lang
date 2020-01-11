@@ -12,26 +12,26 @@ fn other() {
     };
 
     if true {
-    } else if true {
+    } elif true {
     };
 
     if true {
-    } else if true {
+    } elif true {
     } else {
     };
 
     if true {
-    } else if true {
-    } else if true {
-    } else if true {
-    } else if true {
+    } elif true {
+    } elif true {
+    } elif true {
+    } elif true {
     };
 
     if true {
-    } else if true {
-    } else if true {
-    } else if true {
-    } else if true {
+    } elif true {
+    } elif true {
+    } elif true {
+    } elif true {
     } else {
     };
 
