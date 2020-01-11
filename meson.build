@@ -17,19 +17,18 @@ add_global_arguments(
 )
 
 flex = find_program('flex')
-lgen = generator(
-  flex,
-  output: ['@BASENAME@.cc', '@BASENAME@.hh'],
-  arguments: ['--outfile=@OUTPUT0@', '--header-file=@OUTPUT1@', '@INPUT@'],
+lexer = custom_target('lexer',
+  input: ['src/lexer.ll'],
+  output: ['lexer.cc', 'lexer.hh'],
+  command: [flex, '--outfile=@OUTPUT0@', '--header-file=@OUTPUT1@', '@INPUT@'],
 )
-lfiles = lgen.process('src/lexer.ll')
 
 bison = find_program('bison')
 yflags = ['-y', '-d', '-Werror=all', '-Wno-yacc']
-pgen = generator(
-  bison,
-  output: ['@BASENAME@.cc', '@BASENAME@.hh'],
-  arguments: yflags + ['--output=@OUTPUT0@', '--defines=@OUTPUT1@', '@INPUT@'],
+parser = custom_target('parser',
+  input: ['src/parser.yy'],
+  output: ['parser.cc', 'parser.hh', 'location.hh'],
+  command: [bison] + yflags + ['--output=@OUTPUT0@', '--defines=@OUTPUT1@', '@INPUT@'],
 )
 
 llvm_dep = dependency('llvm')
@@ -44,7 +43,7 @@ compiler = executable(
     'src/codegen_llvm.cc',
     'src/typecheck.cc',
     'src/alt-parser.cc',
-    lfiles,
+    lexer,
   ],
   include_directories: 'src',
   dependencies: [
@@ -63,7 +62,7 @@ foreach test_name: type_0_tests
     test_name,
     [
       'src' / test_name + '.cc',
-      lfiles,
+      lexer,
     ],
     include_directories: 'src',
     dependencies: [
