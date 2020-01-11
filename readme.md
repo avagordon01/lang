@@ -6,8 +6,6 @@ Meson and Ninja are used as the build system. Flex and Bison are used for tokeni
 
 ```# pacman -S meson ninja flex bison llvm-libs glslang```
 
-(if the version of llvm-libs is 9 rather than 8, change `-lLLVM-8` in `meson.build` to `-lLLVM-9`, it might work)
-
 Alternatively, a [nix](https://nixos.org/nix/) derivation is provided. This can be used either by doing `nix-build`, or entering a `nix-shell` and entering the following commands.
 
 ## building

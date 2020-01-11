@@ -17,7 +17,7 @@ add_global_arguments(
 )
 
 llvm_dep = declare_dependency(
-  link_args: '-lLLVM-8',
+  link_args: '-lLLVM',
 )
 spirv_dep = declare_dependency(
   link_args: '-lSPIRV',
