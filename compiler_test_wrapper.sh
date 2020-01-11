@@ -3,7 +3,7 @@
 type="$1"
 shift
 
-set -eux
+set -eu
 
 input_raw="$1"
 input="${input_raw%.*}"
