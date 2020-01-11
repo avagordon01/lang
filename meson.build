@@ -15,13 +15,6 @@ add_global_arguments(
   language: 'cpp'
 )
 
-llvm_dep = declare_dependency(
-  link_args: '-lLLVM',
-)
-spirv_dep = declare_dependency(
-  link_args: '-lSPIRV',
-)
-
 flex = find_program('flex')
 lgen = generator(
   flex,
@@ -38,6 +31,11 @@ pgen = generator(
   arguments: yflags + ['--output=@OUTPUT0@', '--defines=@OUTPUT1@', '@INPUT@'],
 )
 pfiles = pgen.process('src/parser.yy')
+
+llvm_dep = dependency('llvm')
+spirv_dep = declare_dependency(
+  link_args: '-lSPIRV',
+)
 
 compiler = executable(
   'compiler',
