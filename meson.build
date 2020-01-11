@@ -12,7 +12,6 @@ project(
 add_global_arguments(
   '-Wno-unused-parameter',
   '-Wno-unused-function',
-  '-Wno-maybe-uninitialized',
   language: 'cpp'
 )
 

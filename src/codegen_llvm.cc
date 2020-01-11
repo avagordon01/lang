@@ -241,7 +241,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_bb);
         ast::type_id type = switch_statement.cases.front().block.type;
-        llvm::PHINode* phi;
+        llvm::PHINode* phi {};
         if (type != ast::type_id::t_void) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
