@@ -40,7 +40,7 @@ std::string token_type_names[] = {
     "(", ")",
     "{", "}",
     "[", "]",
-    "if", "else",
+    "if", "elif", "else",
     "for", "while",
     "break", "continue",
     "switch", "case",
