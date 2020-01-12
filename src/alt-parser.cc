@@ -100,15 +100,12 @@ std::optional<int> parser_context::get_precedence() {
 template<typename T>
 void parser_context::parse_list(T parse, token_type delim) {
     while (current_token != delim) {
-        next_token();
         std::invoke(parse, this);
     }
-    next_token();
 }
 template<typename T>
 void parser_context::parse_list(T parse, token_type sep, token_type delim) {
-    while (current_token != delim) {
-        next_token();
+    while (!accept(delim)) {
         std::invoke(parse, this);
         if (accept(sep)) {
             if (accept(delim)) {
@@ -120,11 +117,10 @@ void parser_context::parse_list(T parse, token_type sep, token_type delim) {
             error("parser: expected", sep, "or", delim, "got", current_token);
         }
     }
-    next_token();
 }
 
 void parser_context::parse_program() {
-    parse_list(&parser_context::parse_statement, token_type::T_EOF);
+    parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::T_EOF);
 }
 void parser_context::parse_if_statement() {
     expect(token_type::IF);
@@ -224,17 +220,28 @@ void parser_context::parse_accessor() {
     expect(token_type::IDENTIFIER);
     parse_list(&parser_context::parse_access, token_type::T_EOF);
     //TODO
+    assert(false);
 }
 void parser_context::parse_type() {
-    expect(token_type::PRIMITIVE_TYPE);
+    switch (current_token) {
+        case token_type::PRIMITIVE_TYPE: parse_primitive_type(); break;
+        case token_type::IDENTIFIER: /*TODO*/ assert(false); break;
+        case token_type::STRUCT: parse_struct_type(); break;
+        case token_type::OPEN_S_BRACKET: parse_array_type(); break;
+        default: assert(false);
+    }
+}
+void parser_context::parse_primitive_type() {
+    accept(token_type::PRIMITIVE_TYPE);
+}
+void parser_context::parse_field() {
+    parse_type();
     expect(token_type::IDENTIFIER);
-    parse_struct_type();
-    parse_array_type();
 }
 void parser_context::parse_struct_type() {
     expect(token_type::STRUCT);
     expect(token_type::OPEN_C_BRACKET);
-    parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_C_BRACKET);
+    parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_C_BRACKET);
 }
 void parser_context::parse_array_type() {
     expect(token_type::OPEN_S_BRACKET);
@@ -291,5 +298,6 @@ void parser_context::parse_statement() {
     }
 }
 void parser_context::parse_exp() {
+    //TODO
     assert(false);
 }

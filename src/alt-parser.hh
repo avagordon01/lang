@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "error.hh"
+#include "ast.hh"
 
 enum class token_type : int {
     T_EOF = 0,
@@ -71,6 +72,8 @@ struct parser_context {
     void parse_access();
     void parse_accessor();
     void parse_type();
+    void parse_primitive_type();
+    void parse_field();
     void parse_struct_type();
     void parse_array_type();
     void parse_literal();
