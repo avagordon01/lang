@@ -153,10 +153,10 @@ void parser_context::parse_list(T parse) {
 template<typename T>
 void parser_context::parse_list_sep(T parse, token_type sep) {
     do {
-        std::invoke(parse, this);
+        if (!maybe(parse)) {
+            break;
+        };
     } while (accept(sep));
-    //TODO optional trailing separator
-    //TODO possibly empty lists
 }
 template<typename T>
 void parser_context::parse_list(T parse, token_type delim) {
