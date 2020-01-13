@@ -33,6 +33,10 @@ enum class token_type : int {
     IDENTIFIER,
 };
 
+enum class associativity {
+    left, right,
+};
+
 using param_type = std::variant<ast::type_id, bool, uint64_t, double>;
 
 struct driver;
@@ -46,12 +50,20 @@ struct parser_context {
 
     void next_token();
     bool accept(token_type t);
-    bool expect(token_type t);
+    bool expect(token_type t, bool fatal);
 
-    std::optional<int> get_precedence();
+    bool is_operator(token_type t);
+    int get_precedence(token_type t);
+    associativity get_associativity(token_type t);
 
     template<typename T>
+    bool maybe(T parse);
+    template<typename T>
+    void parse_list(T parse);
+    template<typename T>
     void parse_list(T parse, token_type delim);
+    template<typename T>
+    void parse_list_sep(T parse, token_type sep);
     template<typename T>
     void parse_list(T parse, token_type sep, token_type delim);
 
@@ -71,7 +83,7 @@ struct parser_context {
     void parse_block();
     void parse_access();
     void parse_accessor();
-    void parse_type();
+    void parse_type(bool fatal = true);
     void parse_primitive_type();
     void parse_field();
     void parse_struct_type();
@@ -81,4 +93,7 @@ struct parser_context {
     void parse_top_level_statement();
     void parse_statement();
     void parse_exp();
+    void parse_exp_atom();
+    token_type parse_operator();
+    void parse_exp_at_precedence(int current_precedence);
 };
