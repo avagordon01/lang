@@ -94,8 +94,18 @@ parser_context::parser_context(driver& drv_) : drv(drv_) {
 }
 
 void parser_context::next_token() {
-    current_token = lookahead_token;
-    lookahead_token = yylex(drv);
+    if (!buffering) {
+        if (buffer.empty()) {
+            current_token = yylex(drv);
+        } else {
+            current_token = buffer.front();
+            buffer.pop_front();
+        }
+    } else {
+        current_token = yylex(drv);
+        buffer.push_back(current_token);
+    }
+    std::cerr << current_token << " ";
 }
 bool parser_context::accept(token_type t) {
     if (current_token == t) {
@@ -211,7 +221,7 @@ void parser_context::parse_switch_statement() {
 void parser_context::parse_function_def() {
     accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
-    parse_type();
+    maybe(parse_type);
     expect(token_type::IDENTIFIER);
     expect(token_type::OPEN_R_BRACKET);
     parse_list(

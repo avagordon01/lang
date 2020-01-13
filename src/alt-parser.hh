@@ -2,8 +2,7 @@
 
 #include <iostream>
 #include <functional>
-#include <map>
-#include <optional>
+#include <deque>
 
 #include "error.hh"
 #include "ast.hh"
@@ -45,8 +44,10 @@ struct parser_context {
     driver& drv;
     parser_context(driver& drv_);
 
-    token_type current_token;
-    token_type lookahead_token;
+    bool buffering = false;
+    std::deque<token_type> buffer {};
+    token_type current_token {};
+    token_type lookahead_token {};
 
     void next_token();
     bool accept(token_type t);
