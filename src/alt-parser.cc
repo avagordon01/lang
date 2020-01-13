@@ -1,10 +1,17 @@
 #include <iostream>
 #include <functional>
 #include <deque>
+#include <sstream>
 
-#include "error.hh"
 #include "driver.hh"
 #include "alt-parser.hh"
+
+template<typename ... Ts>
+static void perror(Ts ... args) {
+    std::stringstream ss{};
+    ((ss << args << " "), ...);
+    throw parse_error(ss.str());
+}
 
 std::string token_type_names[] = {
     "||", "&&",
@@ -65,10 +72,10 @@ int parser_context::get_precedence(token_type t) {
             case token_type::OP_B_NOT:
             case token_type::OP_L_NOT:  return 9;
             default: 
-                error("no precedence for operator", t);
+                perror("no precedence for operator", t);
         }
     } else {
-        error("token", t, "is not an operator");
+        perror("token", t, "is not an operator");
     }
     assert(false);
 }
@@ -82,15 +89,13 @@ associativity parser_context::get_associativity(token_type t) {
                 return associativity::left;
         }
     } else {
-        error("token", t, "is not an operator");
+        perror("token", t, "is not an operator");
     }
     assert(false);
 }
 
 parser_context::parser_context(driver& drv_) : drv(drv_) {
     next_token();
-    next_token();
-    std::cerr << current_token << " ";
 }
 
 void parser_context::next_token() {
@@ -115,12 +120,12 @@ bool parser_context::accept(token_type t) {
         return false;
     }
 }
-bool parser_context::expect(token_type t, bool fatal = true) {
+bool parser_context::expect(token_type t) {
     if (accept(t)) {
         return true;
     } else {
-        if (fatal) {
-            error("parser: expected", t, "got", current_token);
+        if (!buffering) {
+            perror("parser: expected", t, "got", current_token);
             assert(false);
         } else {
             return false;
@@ -131,12 +136,14 @@ bool parser_context::expect(token_type t, bool fatal = true) {
 template<typename T>
 bool parser_context::maybe(T parse) {
     buffering = true;
-    bool res = std::invoke(parse, this, false);
-    buffering = false;
-    if (res) {
-        buffer.clear();
+    try {
+        std::invoke(parse, this);
+    } catch (parse_error& e) {
+        return false;
     }
-    return res;
+    buffering = false;
+    buffer.clear();
+    return true;
 }
 
 template<typename T>
@@ -168,7 +175,7 @@ void parser_context::parse_list(T parse, token_type sep, token_type delim) {
         } else if (accept(delim)) {
             break;
         } else {
-            error("parser: expected", sep, "or", delim, "got", current_token);
+            perror("parser: expected", sep, "or", delim, "got", current_token);
         }
     }
 }
@@ -221,7 +228,7 @@ void parser_context::parse_switch_statement() {
 void parser_context::parse_function_def() {
     accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
-    maybe(parse_type);
+    maybe(&parser_context::parse_type);
     expect(token_type::IDENTIFIER);
     expect(token_type::OPEN_R_BRACKET);
     parse_list(
@@ -251,12 +258,13 @@ void parser_context::parse_assignment() {
 void parser_context::parse_variable_def() {
     expect(token_type::VAR);
     expect(token_type::IDENTIFIER);
-    parse_type(false);
+    maybe(&parser_context::parse_type);
     expect(token_type::OP_ASSIGN);
     parse_exp();
 }
 void parser_context::parse_return() {
     expect(token_type::RETURN);
+    maybe(&parser_context::parse_exp);
 }
 void parser_context::parse_break() {
     expect(token_type::BREAK);
@@ -275,7 +283,7 @@ void parser_context::parse_accessor() {
     //TODO
     //parse_list(&parser_context::parse_access, token_type::T_EOF);
 }
-void parser_context::parse_type(bool fatal) {
+void parser_context::parse_type() {
     switch (current_token) {
         case token_type::PRIMITIVE_TYPE: parse_primitive_type(); break;
         //TODO
@@ -283,8 +291,8 @@ void parser_context::parse_type(bool fatal) {
         case token_type::STRUCT: parse_struct_type(); break;
         case token_type::OPEN_S_BRACKET: parse_array_type(); break;
         default:
-            if (fatal) {
-                error("parser expected type");
+            if (!buffering) {
+                perror("parser expected type");
             } else {
                 return;
             }
@@ -313,9 +321,9 @@ void parser_context::parse_literal() {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
         case token_type::LITERAL_FLOAT: accept(current_token); break;
-        default: error("parser expected literal");
+        default: perror("parser expected literal");
     }
-    parse_type(false);
+    maybe(&parser_context::parse_type);
 }
 void parser_context::parse_literal_integer() {
     expect(token_type::LITERAL_INTEGER);
@@ -325,7 +333,7 @@ void parser_context::parse_top_level_statement() {
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
-        default: error("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
+        default: perror("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
 }
 void parser_context::parse_statement() {
@@ -338,16 +346,16 @@ void parser_context::parse_statement() {
         case token_type::BREAK:     parse_break(); break;
         case token_type::CONTINUE:  parse_continue(); break;
         case token_type::IDENTIFIER:
-            if (lookahead_token == token_type::OP_ASSIGN) {
-                parse_assignment();
+            if (maybe(&parser_context::parse_assignment)) {
+            } else if (maybe(&parser_context::parse_exp)) {
             } else {
-                parse_exp();
+                perror("parser expected assignment or expression after token", current_token);
             }
             break;
         default:
             parse_exp();
             //TODO
-            //error("parser expected statement. got", current_token);
+            //perror("parser expected statement. got", current_token);
     }
 }
 void parser_context::parse_exp() {
@@ -364,13 +372,10 @@ void parser_context::parse_exp_atom() {
         case token_type::FOR:       parse_for_loop(); break;
         case token_type::WHILE:     parse_while_loop(); break;
         case token_type::IDENTIFIER:
-            switch (lookahead_token) {
-                case token_type::OPEN_R_BRACKET:
-                    parse_function_call();
-                    break;
-                default:
-                    parse_accessor();
-                    break;
+            if (maybe(&parser_context::parse_function_call)) {
+            } else if (maybe(&parser_context::parse_accessor)) {
+            } else {
+                perror("parser expected function call or accessor after token", current_token);
             }
             break;
         case token_type::OPEN_R_BRACKET: parse_exp_atom(); break;
@@ -383,7 +388,7 @@ token_type parser_context::parse_operator() {
         accept(t);
         return t;
     } else {
-        error("parser expected operator. got", t);
+        perror("parser expected operator. got", t);
     }
     assert(false);
 }

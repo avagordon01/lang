@@ -3,8 +3,8 @@
 #include <iostream>
 #include <functional>
 #include <deque>
+#include <exception>
 
-#include "error.hh"
 #include "ast.hh"
 
 enum class token_type : int {
@@ -40,6 +40,10 @@ using param_type = std::variant<ast::type_id, bool, uint64_t, double>;
 
 struct driver;
 
+struct parse_error : std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
 struct parser_context {
     driver& drv;
     parser_context(driver& drv_);
@@ -51,7 +55,7 @@ struct parser_context {
 
     void next_token();
     bool accept(token_type t);
-    bool expect(token_type t, bool fatal);
+    bool expect(token_type t);
 
     bool is_operator(token_type t);
     int get_precedence(token_type t);
@@ -84,7 +88,7 @@ struct parser_context {
     void parse_block();
     void parse_access();
     void parse_accessor();
-    void parse_type(bool fatal = true);
+    void parse_type();
     void parse_primitive_type();
     void parse_field();
     void parse_struct_type();
