@@ -48,14 +48,13 @@ struct parser_context {
     driver& drv;
     parser_context(driver& drv_);
 
-    bool buffering = false;
+    size_t buffer_loc;
     std::deque<token_type> buffer {};
     token_type current_token {};
-    token_type lookahead_token {};
 
     void next_token();
     bool accept(token_type t);
-    bool expect(token_type t);
+    void expect(token_type t);
 
     bool is_operator(token_type t);
     int get_precedence(token_type t);
@@ -99,6 +98,5 @@ struct parser_context {
     void parse_statement();
     void parse_exp();
     void parse_exp_atom();
-    token_type parse_operator();
     void parse_exp_at_precedence(int current_precedence);
 };

@@ -6,13 +6,6 @@
 #include "driver.hh"
 #include "alt-parser.hh"
 
-template<typename ... Ts>
-static void perror(Ts ... args) {
-    std::stringstream ss{};
-    ((ss << args << " "), ...);
-    throw parse_error(ss.str());
-}
-
 std::string token_type_names[] = {
     "||", "&&",
     "==", "!=", ">", "<", ">=", "<=",
@@ -36,6 +29,12 @@ std::string token_type_names[] = {
     "literal bool", "literal integer", "literal float",
     "identifier",
 };
+template<typename... Ts>
+[[noreturn]] static void perror(Ts... args) {
+    std::stringstream ss{};
+    ((ss << args << " "), ...);
+    throw parse_error(ss.str());
+}
 std::ostream& operator<<(std::ostream& os, token_type& t) {
     if (t == token_type::T_EOF) {
         os << "end of file";
@@ -77,7 +76,6 @@ int parser_context::get_precedence(token_type t) {
     } else {
         perror("token", t, "is not an operator");
     }
-    assert(false);
 }
 associativity parser_context::get_associativity(token_type t) {
     if (is_operator(t)) {
@@ -91,26 +89,19 @@ associativity parser_context::get_associativity(token_type t) {
     } else {
         perror("token", t, "is not an operator");
     }
-    assert(false);
 }
 
 parser_context::parser_context(driver& drv_) : drv(drv_) {
+    buffer_loc = -1;
     next_token();
 }
 
 void parser_context::next_token() {
-    if (!buffering) {
-        if (buffer.empty()) {
-            current_token = yylex(drv);
-        } else {
-            current_token = buffer.front();
-            buffer.pop_front();
-        }
-    } else {
-        current_token = yylex(drv);
-        buffer.push_back(current_token);
+    buffer_loc++;
+    if (buffer_loc >= buffer.size()) {
+        buffer.push_back(yylex(drv));
     }
-    std::cerr << current_token << " ";
+    current_token = buffer[buffer_loc];
 }
 bool parser_context::accept(token_type t) {
     if (current_token == t) {
@@ -120,35 +111,28 @@ bool parser_context::accept(token_type t) {
         return false;
     }
 }
-bool parser_context::expect(token_type t) {
-    if (accept(t)) {
-        return true;
-    } else {
-        if (!buffering) {
-            perror("parser: expected", t, "got", current_token);
-            assert(false);
-        } else {
-            return false;
-        }
+void parser_context::expect(token_type t) {
+    if (!accept(t)) {
+        perror("parser: expected", t, "got", current_token);
     }
 }
 
 template<typename T>
 bool parser_context::maybe(T parse) {
-    buffering = true;
+    size_t buffer_stop = buffer_loc;
     try {
         std::invoke(parse, this);
     } catch (parse_error& e) {
+        buffer_loc = buffer_stop;
+        current_token = buffer[buffer_loc];
         return false;
     }
-    buffering = false;
-    buffer.clear();
     return true;
 }
 
 template<typename T>
 void parser_context::parse_list(T parse) {
-    while (std::invoke(parse, this, false)) {}
+    while (maybe(parse)) {}
 }
 template<typename T>
 void parser_context::parse_list_sep(T parse, token_type sep) {
@@ -284,22 +268,14 @@ void parser_context::parse_accessor() {
     //parse_list(&parser_context::parse_access, token_type::T_EOF);
 }
 void parser_context::parse_type() {
-    switch (current_token) {
-        case token_type::PRIMITIVE_TYPE: parse_primitive_type(); break;
-        //TODO
-        //case token_type::IDENTIFIER: assert(false); break;
-        case token_type::STRUCT: parse_struct_type(); break;
-        case token_type::OPEN_S_BRACKET: parse_array_type(); break;
-        default:
-            if (!buffering) {
-                perror("parser expected type");
-            } else {
-                return;
-            }
+    if (maybe(&parser_context::parse_primitive_type)) {
+    } else if (maybe(&parser_context::parse_struct_type)) {
+    } else {
+        perror("parser expected type. got", current_token);
     }
 }
 void parser_context::parse_primitive_type() {
-    accept(token_type::PRIMITIVE_TYPE);
+    expect(token_type::PRIMITIVE_TYPE);
 }
 void parser_context::parse_field() {
     parse_type();
@@ -320,10 +296,13 @@ void parser_context::parse_literal() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
-        case token_type::LITERAL_FLOAT: accept(current_token); break;
-        default: perror("parser expected literal");
+        case token_type::LITERAL_FLOAT:
+            expect(current_token);
+            maybe(&parser_context::parse_type);
+            break;
+        default:
+            perror("parser expected literal. got", current_token);
     }
-    maybe(&parser_context::parse_type);
 }
 void parser_context::parse_literal_integer() {
     expect(token_type::LITERAL_INTEGER);
@@ -353,9 +332,10 @@ void parser_context::parse_statement() {
             }
             break;
         default:
-            parse_exp();
-            //TODO
-            //perror("parser expected statement. got", current_token);
+            if (maybe(&parser_context::parse_exp)) {
+            } else {
+                perror("parser expected statement. got", current_token);
+            }
     }
 }
 void parser_context::parse_exp() {
@@ -378,28 +358,22 @@ void parser_context::parse_exp_atom() {
                 perror("parser expected function call or accessor after token", current_token);
             }
             break;
-        case token_type::OPEN_R_BRACKET: parse_exp_atom(); break;
+        case token_type::OPEN_R_BRACKET:
+            expect(token_type::OPEN_R_BRACKET);
+            parse_exp();
+            expect(token_type::CLOSE_R_BRACKET);
+            break;
     }
-}
-
-token_type parser_context::parse_operator() {
-    auto t = current_token;
-    if (is_operator(t)) {
-        accept(t);
-        return t;
-    } else {
-        perror("parser expected operator. got", t);
-    }
-    assert(false);
 }
 
 void parser_context::parse_exp_at_precedence(int current_precedence) {
     parse_exp_atom();
     while (true) {
-        if (!is_operator(current_token)) {
+        token_type t = current_token;
+        if (!is_operator(t)) {
             break;
         }
-        token_type t = parse_operator();
+        accept(t);
         int p = get_precedence(t);
         if (p >= current_precedence) {
             break;
