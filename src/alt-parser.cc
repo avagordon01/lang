@@ -35,7 +35,7 @@ bool parser_context::accept(token_type t) {
 }
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
-        error("parser: expected", t, "got", current_token);
+        error("parser expected", t, "got", current_token);
     }
 }
 
@@ -81,7 +81,7 @@ void parser_context::parse_list(T parse, token_type sep, token_type delim) {
         } else if (accept(delim)) {
             break;
         } else {
-            error("parser: expected", sep, "or", delim, "got", current_token);
+            error("parser expected", sep, "or", delim, "got", current_token);
         }
     }
 }
@@ -294,6 +294,8 @@ void parser_context::parse_exp_atom() {
             parse_exp();
             expect(token_type::CLOSE_R_BRACKET);
             break;
+        default:
+            error("parser expected expression atom. got", current_token);
     }
 }
 

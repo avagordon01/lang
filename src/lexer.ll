@@ -172,4 +172,4 @@ false       drv.current_param = false; return token_type::LITERAL_BOOL;
 
 <<EOF>> return token_type::T_EOF;
 
-. error(loc, "unexpected token", yytext);
+. error(loc, "lexer unexpected input", yytext);
