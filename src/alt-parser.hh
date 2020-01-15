@@ -53,6 +53,8 @@ struct parser_context {
     void parse_break();
     void parse_continue();
     void parse_block();
+    void parse_field_access();
+    void parse_array_access();
     void parse_access();
     void parse_accessor();
     void parse_type();

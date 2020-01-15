@@ -178,16 +178,25 @@ void parser_context::parse_break() {
 void parser_context::parse_continue() {
     expect(token_type::CONTINUE);
 }
-void parser_context::parse_access() {
+void parser_context::parse_field_access() {
     expect(token_type::OP_ACCESS);
+    expect(token_type::IDENTIFIER);
+}
+void parser_context::parse_array_access() {
     expect(token_type::OPEN_S_BRACKET);
     parse_exp();
     expect(token_type::CLOSE_S_BRACKET);
 }
+void parser_context::parse_access() {
+    if (maybe(&parser_context::parse_field_access)) {
+    } else if (maybe(&parser_context::parse_array_access)) {
+    } else {
+        error("parser expected accessor. got");
+    }
+}
 void parser_context::parse_accessor() {
     expect(token_type::IDENTIFIER);
-    //TODO
-    //parse_list(&parser_context::parse_access, token_type::T_EOF);
+    parse_list(&parser_context::parse_access);
 }
 void parser_context::parse_type() {
     if (maybe(&parser_context::parse_primitive_type)) {
