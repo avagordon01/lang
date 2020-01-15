@@ -4,7 +4,7 @@
 #include <iostream>
 
 template<typename ... Ts>
-static void error(Ts ... args) {
+[[noreturn]] static void error(Ts ... args) {
     ((std::cerr << args << " "), ...) << std::endl;
     exit(EXIT_FAILURE);
 }

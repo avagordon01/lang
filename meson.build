@@ -43,6 +43,7 @@ compiler = executable(
     'src/codegen_llvm.cc',
     'src/typecheck.cc',
     'src/alt-parser.cc',
+    'src/tokens.cc',
     lexer,
   ],
   include_directories: 'src',
