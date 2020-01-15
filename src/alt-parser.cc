@@ -7,7 +7,7 @@
 #include "alt-parser.hh"
 
 template<typename... Ts>
-[[noreturn]] static void perror(Ts... args) {
+[[noreturn]] static void error(Ts... args) {
     std::stringstream ss{};
     ((ss << args << " "), ...);
     throw parse_error(ss.str());
@@ -35,7 +35,7 @@ bool parser_context::accept(token_type t) {
 }
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
-        perror("parser: expected", t, "got", current_token);
+        error("parser: expected", t, "got", current_token);
     }
 }
 
@@ -81,7 +81,7 @@ void parser_context::parse_list(T parse, token_type sep, token_type delim) {
         } else if (accept(delim)) {
             break;
         } else {
-            perror("parser: expected", sep, "or", delim, "got", current_token);
+            error("parser: expected", sep, "or", delim, "got", current_token);
         }
     }
 }
@@ -193,7 +193,7 @@ void parser_context::parse_type() {
     if (maybe(&parser_context::parse_primitive_type)) {
     } else if (maybe(&parser_context::parse_struct_type)) {
     } else {
-        perror("parser expected type. got", current_token);
+        error("parser expected type. got", current_token);
     }
 }
 void parser_context::parse_primitive_type() {
@@ -223,7 +223,7 @@ void parser_context::parse_literal() {
             maybe(&parser_context::parse_type);
             break;
         default:
-            perror("parser expected literal. got", current_token);
+            error("parser expected literal. got", current_token);
     }
 }
 void parser_context::parse_literal_integer() {
@@ -234,7 +234,7 @@ void parser_context::parse_top_level_statement() {
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
-        default: perror("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
+        default: error("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
 }
 void parser_context::parse_statement() {
@@ -250,13 +250,13 @@ void parser_context::parse_statement() {
             if (maybe(&parser_context::parse_assignment)) {
             } else if (maybe(&parser_context::parse_exp)) {
             } else {
-                perror("parser expected assignment or expression after token", current_token);
+                error("parser expected assignment or expression after token", current_token);
             }
             break;
         default:
             if (maybe(&parser_context::parse_exp)) {
             } else {
-                perror("parser expected statement. got", current_token);
+                error("parser expected statement. got", current_token);
             }
     }
 }
@@ -277,7 +277,7 @@ void parser_context::parse_exp_atom() {
             if (maybe(&parser_context::parse_function_call)) {
             } else if (maybe(&parser_context::parse_accessor)) {
             } else {
-                perror("parser expected function call or accessor after token", current_token);
+                error("parser expected function call or accessor after token", current_token);
             }
             break;
         case token_type::OPEN_R_BRACKET:
