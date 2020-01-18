@@ -21,8 +21,9 @@ struct parser_context {
     parser_context(driver& drv_);
 
     size_t buffer_loc;
-    std::deque<token_type> buffer {};
+    std::deque<std::pair<token_type, param_type>> buffer {};
     token_type current_token {};
+    param_type current_param {};
 
     void next_token();
     bool accept(token_type t);

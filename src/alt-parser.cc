@@ -21,9 +21,10 @@ parser_context::parser_context(driver& drv_) : drv(drv_) {
 void parser_context::next_token() {
     buffer_loc++;
     if (buffer_loc >= buffer.size()) {
-        buffer.push_back(yylex(drv));
+        buffer.push_back({yylex(drv), drv.current_param});
     }
-    current_token = buffer[buffer_loc];
+    current_token = buffer[buffer_loc].first;
+    current_param = buffer[buffer_loc].second;
 }
 bool parser_context::accept(token_type t) {
     if (current_token == t) {
@@ -46,7 +47,8 @@ std::optional<T> parser_context::maybe(T (parser_context::*parse)()) {
         return std::move(std::optional<T>{std::move(std::invoke(parse, this))});
     } catch (parse_error& e) {
         buffer_loc = buffer_stop;
-        current_token = buffer[buffer_loc];
+        current_token = buffer[buffer_loc].first;
+        current_param = buffer[buffer_loc].second;
         return std::nullopt;
     }
 }
