@@ -29,44 +29,45 @@ struct parser_context {
     void expect(token_type t);
 
     template<typename T>
-    bool maybe(T parse);
+    std::optional<T> maybe(T (parser_context::*parse)());
     template<typename T>
-    void parse_list(T parse);
+    std::vector<T> parse_list(T (parser_context::*parse)());
     template<typename T>
-    void parse_list(T parse, token_type delim);
+    std::vector<T> parse_list(T (parser_context::*parse)(), token_type delim);
     template<typename T>
-    void parse_list_sep(T parse, token_type sep);
+    std::vector<T> parse_list_sep(T (parser_context::*parse)(), token_type sep);
     template<typename T>
-    void parse_list(T parse, token_type sep, token_type delim);
+    std::vector<T> parse_list(T (parser_context::*parse)(), token_type sep, token_type delim);
 
-    void parse_program();
-    void parse_if_statement();
-    void parse_for_loop();
-    void parse_while_loop();
-    void parse_switch_statement();
-    void parse_function_def();
-    void parse_function_call();
-    void parse_type_def();
-    void parse_assignment();
-    void parse_variable_def();
-    void parse_return();
-    void parse_break();
-    void parse_continue();
-    void parse_block();
-    void parse_field_access();
-    void parse_array_access();
-    void parse_access();
-    void parse_accessor();
-    void parse_type();
-    void parse_primitive_type();
-    void parse_field();
-    void parse_struct_type();
-    void parse_array_type();
-    void parse_literal();
-    void parse_literal_integer();
-    void parse_top_level_statement();
-    void parse_statement();
-    void parse_exp();
-    void parse_exp_atom();
-    void parse_exp_at_precedence(int current_precedence);
+    ast::program parse_program();
+    ast::if_statement parse_if_statement();
+    ast::for_loop parse_for_loop();
+    ast::while_loop parse_while_loop();
+    ast::case_statement parse_case();
+    ast::switch_statement parse_switch_statement();
+    ast::function_def parse_function_def();
+    ast::function_call parse_function_call();
+    ast::type_def parse_type_def();
+    ast::assignment parse_assignment();
+    ast::variable_def parse_variable_def();
+    ast::s_return parse_return();
+    ast::s_break parse_break();
+    ast::s_continue parse_continue();
+    ast::block parse_block();
+    ast::field_access parse_field_access();
+    ast::array_access parse_array_access();
+    ast::access parse_access();
+    ast::accessor parse_accessor();
+    ast::type parse_type();
+    ast::type_id parse_primitive_type();
+    ast::field parse_field();
+    ast::struct_type parse_struct_type();
+    ast::array_type parse_array_type();
+    ast::literal parse_literal();
+    uint64_t parse_literal_integer();
+    ast::statement parse_top_level_statement();
+    ast::statement parse_statement();
+    ast::expression parse_exp();
+    ast::expression parse_exp_atom();
+    ast::expression parse_exp_at_precedence(int current_precedence);
 };

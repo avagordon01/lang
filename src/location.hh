@@ -6,7 +6,7 @@ namespace yy {
 
 class position {
 public:
-    explicit position(
+    position(
         std::string* f = nullptr,
         unsigned l = 1u,
         unsigned c = 1u
@@ -105,9 +105,9 @@ public:
         end(e)
     {}
 
-    explicit location(const position& p = position ()): begin (p), end (p) {}
+    location(const position& p = position ()): begin (p), end (p) {}
 
-    explicit location(
+    location(
         std::string* f,
         unsigned l = 1u,
         unsigned c = 1u

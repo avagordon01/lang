@@ -40,40 +40,65 @@ void parser_context::expect(token_type t) {
 }
 
 template<typename T>
-bool parser_context::maybe(T parse) {
+std::optional<T> parser_context::maybe(T (parser_context::*parse)()) {
     size_t buffer_stop = buffer_loc;
     try {
-        std::invoke(parse, this);
+        return std::move(std::optional<T>{std::move(std::invoke(parse, this))});
     } catch (parse_error& e) {
         buffer_loc = buffer_stop;
         current_token = buffer[buffer_loc];
-        return false;
+        return std::nullopt;
     }
-    return true;
 }
 
 template<typename T>
-void parser_context::parse_list(T parse) {
-    while (maybe(parse)) {}
-}
-template<typename T>
-void parser_context::parse_list_sep(T parse, token_type sep) {
-    do {
-        if (!maybe(parse)) {
-            break;
-        };
-    } while (accept(sep));
-}
-template<typename T>
-void parser_context::parse_list(T parse, token_type delim) {
-    while (!accept(delim)) {
-        std::invoke(parse, this);
+std::vector<T> parser_context::parse_list(T (parser_context::*parse)()) {
+    std::vector<T> list;
+    while (true) {
+        auto res = std::move(maybe(parse));
+        if (res) {
+            list.emplace_back(std::move(res.value()));
+        } else {
+            return list;
+        }
     }
 }
 template<typename T>
-void parser_context::parse_list(T parse, token_type sep, token_type delim) {
-    while (!accept(delim)) {
-        std::invoke(parse, this);
+std::vector<T> parser_context::parse_list_sep(T (parser_context::*parse)(), token_type sep) {
+    std::vector<T> list;
+    while (true) {
+        auto res = std::move(maybe(parse));
+        if (!res) {
+            break;
+        }
+        list.emplace_back(std::move(res.value()));
+        if (!accept(sep)) {
+            break;
+        }
+    }
+    return list;
+}
+template<typename T>
+std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_type delim) {
+    std::vector<T> list;
+    while (true) {
+        auto res = std::move(std::invoke(parse, this));
+        list.emplace_back(std::move(res));
+        if (accept(delim)) {
+            break;
+        }
+    }
+    return list;
+}
+template<typename T>
+std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_type sep, token_type delim) {
+    std::vector<T> list;
+    while (true) {
+        if (accept(delim)) {
+            break;
+        }
+        auto res = std::move(std::invoke(parse, this));
+        list.emplace_back(std::move(res));
         if (accept(sep)) {
             if (accept(delim)) {
                 break;
@@ -84,16 +109,19 @@ void parser_context::parse_list(T parse, token_type sep, token_type delim) {
             error("parser expected", sep, "or", delim, "got", current_token);
         }
     }
+    return list;
 }
 
-void parser_context::parse_program() {
+ast::program parser_context::parse_program() {
     parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
+    return {};
 }
-void parser_context::parse_block() {
+ast::block parser_context::parse_block() {
     expect(token_type::OPEN_C_BRACKET);
     parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
+    return {};
 }
-void parser_context::parse_if_statement() {
+ast::if_statement parser_context::parse_if_statement() {
     expect(token_type::IF);
     parse_exp();
     parse_block();
@@ -104,8 +132,9 @@ void parser_context::parse_if_statement() {
     if (accept(token_type::ELSE)) {
         parse_block();
     }
+    return {};
 }
-void parser_context::parse_for_loop() {
+ast::for_loop parser_context::parse_for_loop() {
     expect(token_type::FOR);
     parse_variable_def();
     expect(token_type::SEMICOLON);
@@ -113,117 +142,132 @@ void parser_context::parse_for_loop() {
     expect(token_type::SEMICOLON);
     parse_assignment();
     parse_block();
+    return {};
 }
-void parser_context::parse_while_loop() {
+ast::while_loop parser_context::parse_while_loop() {
     expect(token_type::WHILE);
     parse_exp();
     parse_block();
+    return {};
 }
-void parser_context::parse_switch_statement() {
+ast::case_statement parser_context::parse_case() {
+    expect(token_type::CASE);
+    parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
+    parse_block();
+    return {};
+}
+ast::switch_statement parser_context::parse_switch_statement() {
     expect(token_type::SWITCH);
     parse_exp();
     expect(token_type::OPEN_C_BRACKET);
-    parse_list(
-        [](parser_context* ctx) {
-            ctx->expect(token_type::CASE);
-            ctx->parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
-            ctx->parse_block();
-        }
-    , token_type::CLOSE_C_BRACKET);
+    parse_list(&parser_context::parse_case, token_type::CLOSE_C_BRACKET);
+    return {};
 }
-void parser_context::parse_function_def() {
+ast::function_def parser_context::parse_function_def() {
     accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
     maybe(&parser_context::parse_type);
     expect(token_type::IDENTIFIER);
     expect(token_type::OPEN_R_BRACKET);
-    parse_list(
-        [](parser_context* ctx) {
-            ctx->parse_type();
-            ctx->expect(token_type::IDENTIFIER);
-        }
-    , token_type::COMMA, token_type::CLOSE_R_BRACKET);
+    parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_R_BRACKET);
     parse_block();
+    return {};
 }
-void parser_context::parse_function_call() {
+ast::function_call parser_context::parse_function_call() {
     expect(token_type::IDENTIFIER);
     expect(token_type::OPEN_R_BRACKET);
     parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_R_BRACKET);
+    return {};
 }
-void parser_context::parse_type_def() {
+ast::type_def parser_context::parse_type_def() {
     expect(token_type::TYPE);
     expect(token_type::IDENTIFIER);
     expect(token_type::OP_ASSIGN);
     parse_type();
+    return {};
 }
-void parser_context::parse_assignment() {
+ast::assignment parser_context::parse_assignment() {
     parse_accessor();
     expect(token_type::OP_ASSIGN);
     parse_exp();
+    return {};
 }
-void parser_context::parse_variable_def() {
+ast::variable_def parser_context::parse_variable_def() {
     expect(token_type::VAR);
     expect(token_type::IDENTIFIER);
     maybe(&parser_context::parse_type);
     expect(token_type::OP_ASSIGN);
     parse_exp();
+    return {};
 }
-void parser_context::parse_return() {
+ast::s_return parser_context::parse_return() {
     expect(token_type::RETURN);
     maybe(&parser_context::parse_exp);
+    return {};
 }
-void parser_context::parse_break() {
+ast::s_break parser_context::parse_break() {
     expect(token_type::BREAK);
+    return {};
 }
-void parser_context::parse_continue() {
+ast::s_continue parser_context::parse_continue() {
     expect(token_type::CONTINUE);
+    return {};
 }
-void parser_context::parse_field_access() {
+ast::field_access parser_context::parse_field_access() {
     expect(token_type::OP_ACCESS);
     expect(token_type::IDENTIFIER);
+    return {};
 }
-void parser_context::parse_array_access() {
+ast::array_access parser_context::parse_array_access() {
     expect(token_type::OPEN_S_BRACKET);
     parse_exp();
     expect(token_type::CLOSE_S_BRACKET);
+    return {};
 }
-void parser_context::parse_access() {
+ast::access parser_context::parse_access() {
     if (maybe(&parser_context::parse_field_access)) {
     } else if (maybe(&parser_context::parse_array_access)) {
     } else {
         error("parser expected accessor. got");
     }
+    return {};
 }
-void parser_context::parse_accessor() {
+ast::accessor parser_context::parse_accessor() {
     expect(token_type::IDENTIFIER);
     parse_list(&parser_context::parse_access);
+    return {};
 }
-void parser_context::parse_type() {
+ast::type parser_context::parse_type() {
     if (maybe(&parser_context::parse_primitive_type)) {
     } else if (maybe(&parser_context::parse_struct_type)) {
     } else {
         error("parser expected type. got", current_token);
     }
+    return {};
 }
-void parser_context::parse_primitive_type() {
+ast::type_id parser_context::parse_primitive_type() {
     expect(token_type::PRIMITIVE_TYPE);
+    return {};
 }
-void parser_context::parse_field() {
+ast::field parser_context::parse_field() {
     parse_type();
     expect(token_type::IDENTIFIER);
+    return {};
 }
-void parser_context::parse_struct_type() {
+ast::struct_type parser_context::parse_struct_type() {
     expect(token_type::STRUCT);
     expect(token_type::OPEN_C_BRACKET);
     parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_C_BRACKET);
+    return {};
 }
-void parser_context::parse_array_type() {
+ast::array_type parser_context::parse_array_type() {
     expect(token_type::OPEN_S_BRACKET);
     parse_type();
     parse_literal_integer();
     expect(token_type::CLOSE_S_BRACKET);
+    return {};
 }
-void parser_context::parse_literal() {
+ast::literal parser_context::parse_literal() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
@@ -234,19 +278,22 @@ void parser_context::parse_literal() {
         default:
             error("parser expected literal. got", current_token);
     }
+    return {};
 }
-void parser_context::parse_literal_integer() {
+uint64_t parser_context::parse_literal_integer() {
     expect(token_type::LITERAL_INTEGER);
+    return {};
 }
-void parser_context::parse_top_level_statement() {
+ast::statement parser_context::parse_top_level_statement() {
     switch (current_token) {
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
         default: error("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
+    return {};
 }
-void parser_context::parse_statement() {
+ast::statement parser_context::parse_statement() {
     switch (current_token) {
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
@@ -268,12 +315,14 @@ void parser_context::parse_statement() {
                 error("parser expected statement. got", current_token);
             }
     }
+    return {};
 }
-void parser_context::parse_exp() {
+ast::expression parser_context::parse_exp() {
     parse_exp_at_precedence(100);
+    return {};
 }
 
-void parser_context::parse_exp_atom() {
+ast::expression parser_context::parse_exp_atom() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
@@ -297,9 +346,10 @@ void parser_context::parse_exp_atom() {
         default:
             error("parser expected expression atom. got", current_token);
     }
+    return {};
 }
 
-void parser_context::parse_exp_at_precedence(int current_precedence) {
+ast::expression parser_context::parse_exp_at_precedence(int current_precedence) {
     parse_exp_atom();
     while (true) {
         token_type t = current_token;
@@ -318,4 +368,5 @@ void parser_context::parse_exp_at_precedence(int current_precedence) {
             parse_exp_at_precedence(p);
         }
     }
+    return {};
 }
