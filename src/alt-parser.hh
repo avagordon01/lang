@@ -12,15 +12,13 @@ using param_type = std::variant<ast::type_id, bool, uint64_t, double>;
 
 struct driver;
 
-struct parse_error : std::runtime_error {
-    using std::runtime_error::runtime_error;
-};
-
 struct parser_context {
     driver& drv;
-    parser_context(driver& drv_);
+    parser_context(driver& drv_) : drv(drv_) {
+        next_token();
+    };
 
-    size_t buffer_loc;
+    size_t buffer_loc = -1;
     std::deque<std::pair<token_type, param_type>> buffer {};
     token_type current_token {};
     param_type current_param {};
