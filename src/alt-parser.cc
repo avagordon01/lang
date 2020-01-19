@@ -89,7 +89,7 @@ ast::function_def parser_context::parse_function_def() {
     ast::function_def f {};
     f.to_export = accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
-    auto t = std::move(maybe(&parser_context::parse_primitive_type));
+    auto t = std::move(maybe(&parser_context::parse_named_type));
     if (t) {
         f.returntype = std::move(t.value());
     }
@@ -109,7 +109,8 @@ ast::function_call parser_context::parse_function_call() {
 ast::type_def parser_context::parse_type_def() {
     ast::type_def t {};
     expect(token_type::TYPE);
-    t.type_id = std::move(parse_type_id());
+    //FIXME
+    expectp(token_type::IDENTIFIER);
     expect(token_type::OP_ASSIGN);
     t.type = std::move(parse_type());
     return t;
@@ -174,11 +175,23 @@ ast::accessor parser_context::parse_accessor() {
     a.fields = std::move(parse_list(&parser_context::parse_access));
     return a;
 }
+ast::type_id parser_context::parse_named_type() {
+    switch (current_token) {
+        case token_type::PRIMITIVE_TYPE:
+            expectp(token_type::PRIMITIVE_TYPE);
+            return {};
+        case token_type::IDENTIFIER:
+            expectp(token_type::IDENTIFIER);
+            return {};
+        default:
+            error(drv.location, "parser expected named type. got", current_token);
+    }
+}
 ast::type parser_context::parse_type() {
     ast::type t {};
-    auto p = std::move(maybe(&parser_context::parse_primitive_type));
-    if (p) {
-        t = p.value();
+    auto n = std::move(maybe(&parser_context::parse_named_type));
+    if (n) {
+        t = n.value();
         return t;
     }
     auto s = std::move(maybe(&parser_context::parse_struct_type));

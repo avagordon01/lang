@@ -61,6 +61,7 @@ struct parser_context {
     ast::access parse_access();
     ast::accessor parse_accessor();
     ast::type parse_type();
+    ast::type_id parse_named_type();
     ast::type_id parse_primitive_type();
     ast::field parse_field();
     ast::struct_type parse_struct_type();
