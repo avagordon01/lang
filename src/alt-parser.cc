@@ -234,7 +234,8 @@ ast::assignment parser_context::parse_assignment() {
 ast::variable_def parser_context::parse_variable_def() {
     ast::variable_def v {};
     expect(token_type::VAR);
-    v.explicit_type = std::move(maybe(&parser_context::parse_type_id));
+    accept(token_type::PRIMITIVE_TYPE);
+    expect(token_type::IDENTIFIER);
     expect(token_type::OP_ASSIGN);
     v.expression = std::move(parse_exp());
     return v;
