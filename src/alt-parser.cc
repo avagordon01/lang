@@ -36,7 +36,7 @@ bool parser_context::accept(token_type t) {
 }
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
-        error("parser expected", t, "got", current_token);
+        error(drv.location, "parser expected", t, "got", current_token);
     }
 }
 param_type parser_context::expectp(token_type t) {
@@ -113,7 +113,7 @@ std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_ty
         } else if (accept(delim)) {
             break;
         } else {
-            error("parser expected", sep, "or", delim, "got", current_token);
+            error(drv.location, "parser expected", sep, "or", delim, "got", current_token);
         }
     }
     return list;
@@ -276,7 +276,7 @@ ast::access parser_context::parse_access() {
     if (a) {
         return std::move(a.value());
     }
-    error("parser expected accessor. got");
+    error(drv.location, "parser expected accessor. got");
 }
 ast::accessor parser_context::parse_accessor() {
     ast::accessor a {};
@@ -301,7 +301,7 @@ ast::type parser_context::parse_type() {
         t = std::move(std::make_unique<ast::array_type>(std::move(a.value())));
         return t;
     }
-    error("parser expected type. got", current_token);
+    error(drv.location, "parser expected type. got", current_token);
 }
 ast::type_id parser_context::parse_primitive_type() {
     ast::type_id t = std::get<ast::type_id>(expectp(token_type::PRIMITIVE_TYPE));
@@ -343,7 +343,7 @@ ast::literal parser_context::parse_literal() {
             l.explicit_type = std::move(maybe(&parser_context::parse_primitive_type));
             break;
         default:
-            error("parser expected literal. got", current_token);
+            error(drv.location, "parser expected literal. got", current_token);
     }
     return l;
 }
@@ -357,7 +357,7 @@ ast::statement parser_context::parse_top_level_statement() {
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
-        default: error("parser expected top level statement: one of function def, type def, or variable def. got", current_token);
+        default: error(drv.location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
     return {};
 }
@@ -375,13 +375,13 @@ ast::statement parser_context::parse_statement() {
             if (maybe(&parser_context::parse_assignment)) {
             } else if (maybe(&parser_context::parse_exp)) {
             } else {
-                error("parser expected assignment or expression after token", current_token);
+                error(drv.location, "parser expected assignment or expression after token", current_token);
             }
             break;
         default:
             if (maybe(&parser_context::parse_exp)) {
             } else {
-                error("parser expected statement. got", current_token);
+                error(drv.location, "parser expected statement. got", current_token);
             }
     }
     return {};
@@ -404,7 +404,7 @@ ast::expression parser_context::parse_exp_atom() {
             if (maybe(&parser_context::parse_function_call)) {
             } else if (maybe(&parser_context::parse_accessor)) {
             } else {
-                error("parser expected function call or accessor after token", current_token);
+                error(drv.location, "parser expected function call or accessor after token", current_token);
             }
             break;
         case token_type::OPEN_R_BRACKET:
@@ -413,7 +413,7 @@ ast::expression parser_context::parse_exp_atom() {
             expect(token_type::CLOSE_R_BRACKET);
             break;
         default:
-            error("parser expected expression atom. got", current_token);
+            error(drv.location, "parser expected expression atom. got", current_token);
     }
     return {};
 }
