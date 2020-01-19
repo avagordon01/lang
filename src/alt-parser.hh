@@ -28,6 +28,7 @@ struct parser_context {
     void next_token();
     bool accept(token_type t);
     void expect(token_type t);
+    param_type expectp(token_type t);
 
     template<typename T>
     std::optional<T> maybe(T (parser_context::*parse)());
