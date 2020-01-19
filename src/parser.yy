@@ -192,15 +192,10 @@ while_loop: WHILE exp block {
 optional_export: %empty { $$ = false; }
                | EXPORT { $$ = true; }
                ;
-function_def: optional_export FUNCTION optional_type IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
+function_def: optional_export FUNCTION PRIMITIVE_TYPE IDENTIFIER OPEN_R_BRACKET parameter_list CLOSE_R_BRACKET block {
             $$.to_export = $1;
+            $$.returntype = $3;
             $$.identifier = $4;
-            auto optional_type = $3;
-            if (optional_type) {
-                $$.returntype = *optional_type;
-            } else {
-                $$.returntype = ast::type_id::t_void;
-            }
             $$.parameter_list = $6;
             $$.block = $8;
             }

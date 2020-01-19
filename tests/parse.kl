@@ -3,7 +3,7 @@ type test = struct {
     u64 b,
     u64 c
 };
-fn other() {
+fn void other() {
     if true {
     };
 
