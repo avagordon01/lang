@@ -121,9 +121,14 @@ std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_ty
 
 ast::program parser_context::parse_program() {
     ast::program p {};
-    p.statements = std::move(
-        parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF)
-    );
+    try {
+        p.statements = std::move(
+            parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF)
+        );
+    } catch (parse_error& e) {
+        std::cerr << e.what() << std::endl;
+        exit(1);
+    }
     return p;
 }
 ast::block parser_context::parse_block() {
