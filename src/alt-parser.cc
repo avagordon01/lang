@@ -354,6 +354,7 @@ ast::literal_integer parser_context::parse_literal_integer() {
 }
 ast::statement parser_context::parse_top_level_statement() {
     switch (current_token) {
+        case token_type::EXPORT:
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
@@ -363,6 +364,7 @@ ast::statement parser_context::parse_top_level_statement() {
 }
 ast::statement parser_context::parse_statement() {
     switch (current_token) {
+        case token_type::EXPORT:
         case token_type::FUNCTION:  parse_function_def(); break;
         case token_type::TYPE:      parse_type_def(); break;
         case token_type::VAR:       parse_variable_def(); break;
