@@ -386,7 +386,7 @@ ast::statement parser_context::parse_statement() {
     return {};
 }
 ast::expression parser_context::parse_exp() {
-    parse_exp_at_precedence(100);
+    parse_exp_at_precedence(0);
     return {};
 }
 
@@ -420,21 +420,18 @@ ast::expression parser_context::parse_exp_atom() {
 ast::expression parser_context::parse_exp_at_precedence(int current_precedence) {
     parse_exp_atom();
     while (true) {
-        token_type t = current_token;
-        if (!is_operator(t)) {
+        if (!is_operator(current_token)) {
             break;
         }
-        accept(t);
-        int p = get_precedence(t);
-        if (p >= current_precedence) {
+        auto p = get_precedence(current_token);
+        if (p < current_precedence) {
             break;
         }
-        auto a = get_associativity(t);
-        if (a == associativity::left) {
-            parse_exp_at_precedence(p + 1);
-        } else {
-            parse_exp_at_precedence(p);
-        }
+        auto a = get_associativity(current_token);
+        accept(current_token);
+        parse_exp_at_precedence(
+            a == associativity::left ? p + 1 : p
+        );
     }
     return {};
 }
