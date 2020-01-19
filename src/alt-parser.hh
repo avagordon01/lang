@@ -46,6 +46,8 @@ struct parser_context {
     ast::while_loop parse_while_loop();
     ast::case_statement parse_case();
     ast::switch_statement parse_switch_statement();
+    ast::identifier parse_identifier();
+    ast::type_id parse_type_id();
     ast::function_def parse_function_def();
     ast::function_call parse_function_call();
     ast::type_def parse_type_def();
@@ -65,7 +67,7 @@ struct parser_context {
     ast::struct_type parse_struct_type();
     ast::array_type parse_array_type();
     ast::literal parse_literal();
-    uint64_t parse_literal_integer();
+    ast::literal_integer parse_literal_integer();
     ast::statement parse_top_level_statement();
     ast::statement parse_statement();
     ast::expression parse_exp();

@@ -18,8 +18,9 @@ namespace ast {
 
     using identifier = size_t;
 
+    using literal_integer = uint64_t;
     struct literal {
-        std::variant<double, uint64_t, bool> literal;
+        std::variant<double, literal_integer, bool> literal;
         std::optional<ast::type_id> explicit_type;
         ast::type_id type;
         yy::location loc;
@@ -83,9 +84,8 @@ namespace ast {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
     };
-    using literal_list = std::vector<ast::literal>;
     struct case_statement {
-        literal_list cases;
+        std::vector<literal_integer> cases;
         ast::block block;
         ast::type_id type;
     };
