@@ -91,7 +91,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_block);
         ast::type_id type = if_statement.blocks.front().type;
-        llvm::PHINode* phi;
+        llvm::PHINode* phi = nullptr;
         if (type != ast::type_id::t_void) {
             phi = context.builder.CreatePHI(
                 ast::type_to_llvm_type(context.context, type),
@@ -142,11 +142,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_block);
 
-        if (type != ast::type_id::t_void) {
-            return phi;
-        } else {
-            return NULL;
-        }
+        return phi;
     }
     llvm::Value* operator()(std::unique_ptr<ast::for_loop>& for_loop) {
         return std::invoke(*this, *for_loop);
@@ -162,7 +158,7 @@ struct llvm_codegen_fn {
         context.builder.CreateBr(loop_bb);
 
         ast::type_id type = for_loop.block.type;
-        llvm::PHINode* phi;
+        llvm::PHINode* phi = nullptr;
         if (type != ast::type_id::t_void) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
@@ -182,11 +178,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type_id::t_void) {
-            return phi;
-        } else {
-            return NULL;
-        }
+        return phi;
     }
     llvm::Value* operator()(std::unique_ptr<ast::while_loop>& while_loop) {
         return std::invoke(*this, *while_loop);
@@ -200,7 +192,7 @@ struct llvm_codegen_fn {
         context.builder.CreateBr(loop_bb);
 
         ast::type_id type = while_loop.block.type;
-        llvm::PHINode* phi;
+        llvm::PHINode* phi = nullptr;
         if (type != ast::type_id::t_void) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
@@ -217,10 +209,8 @@ struct llvm_codegen_fn {
 
         if (type != ast::type_id::t_void) {
             phi->addIncoming(block_value, loop_bb);
-            return phi;
-        } else {
-            return NULL;
         }
+        return phi;
     }
     llvm::Value* operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
         return std::invoke(*this, *switch_statement);
