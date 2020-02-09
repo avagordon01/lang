@@ -24,7 +24,7 @@ struct typecheck_fn {
             std::invoke(*this, statement);
         }
         context.variable_scopes.pop_scope();
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::statement& statement) {
         return std::visit(*this, statement.statement);
@@ -33,7 +33,7 @@ struct typecheck_fn {
         return std::invoke(*this, *block);
     }
     ast::type_id operator()(ast::block& block) {
-        ast::type_id type = {ast::type_id::t_void};
+        ast::type_id type = ast::type_id::t_void;
         context.variable_scopes.push_scope();
         for (auto& statement: block.statements) {
             type = std::invoke(*this, statement);
@@ -74,7 +74,7 @@ struct typecheck_fn {
         std::invoke(*this, for_loop.block);
         std::invoke(*this, for_loop.step);
         context.variable_scopes.pop_scope();
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(std::unique_ptr<ast::while_loop>& while_loop) {
         return std::invoke(*this, *while_loop);
@@ -84,7 +84,7 @@ struct typecheck_fn {
             error(while_loop.loc, "while loop condition not a boolean");
         }
         std::invoke(*this, while_loop.block);
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(std::unique_ptr<ast::switch_statement>& switch_statement) {
         return std::invoke(*this, *switch_statement);
@@ -94,7 +94,7 @@ struct typecheck_fn {
         if (!type_is_integer(switch_type)) {
             error(switch_statement.loc, "switch statement switch expression is not an integer");
         }
-        ast::type_id type = {ast::type_id::t_void};
+        ast::type_id type = ast::type_id::t_void;
         for (auto& case_statement: switch_statement.cases) {
             for (auto& case_exp: case_statement.cases) {
                 ast::type_id case_type = std::invoke(*this, case_exp);
@@ -130,7 +130,7 @@ struct typecheck_fn {
         for (auto& parameter: function_def.parameter_list) {
             context.function_parameter_types[function_def.identifier].push_back(parameter.type);
         }
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::type_def& type_def) {
         auto t = context.type_scopes.find_item_current_scope(type_def.type_id);
@@ -138,20 +138,20 @@ struct typecheck_fn {
             error(type_def.loc, "type already defined in this scope");
         }
         context.type_scopes.push_item(type_def.type_id, std::move(type_def.type));
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::s_return& s_return) {
         ast::type_id x = s_return.expression ? std::invoke(*this, *s_return.expression) : ast::type_id::t_void;
         if (x != context.current_function_returntype) {
             error(s_return.loc, "return type does not match defined function return type");
         }
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::s_break& s_break) {
         return s_break.expression ? std::invoke(*this, *s_break.expression) : ast::type_id::t_void;
     }
     ast::type_id operator()(ast::s_continue& s_continue) {
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::variable_def& variable_def) {
         auto v = context.variable_scopes.find_item_current_scope(variable_def.identifier);
@@ -163,7 +163,7 @@ struct typecheck_fn {
             error(variable_def.loc, "type mismatch in variable definition");
         }
         context.variable_scopes.push_item(variable_def.identifier, std::move(t));
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
     ast::type_id operator()(ast::assignment& assignment) {
         ast::type_id access = accessor_access(context, assignment.accessor);
@@ -171,7 +171,7 @@ struct typecheck_fn {
         if (value != access) {
             error(assignment.loc, "type mismatch in assignment");
         }
-        return {ast::type_id::t_void};
+        return ast::type_id::t_void;
     }
 
     ast::type_id operator()(ast::expression& expression) {
@@ -224,7 +224,7 @@ struct typecheck_fn {
                     return *explicit_type;
                 }
                 if (ast::type_is_bool(*explicit_type)) {
-                    return {ast::type_id::t_bool};
+                    return ast::type_id::t_bool;
                 } else {
                     error(loc, "bool literal cannot be converted to non bool type");
                     assert(false);
