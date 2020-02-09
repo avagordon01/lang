@@ -7,9 +7,7 @@
 ast::program parser_context::parse_program() {
     ast::program p {};
     try {
-        p.statements = std::move(
-            parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF)
-        );
+        p.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
     } catch (parse_error& e) {
         std::cerr << e.what() << std::endl;
         exit(1);
@@ -19,58 +17,54 @@ ast::program parser_context::parse_program() {
 ast::block parser_context::parse_block() {
     expect(token_type::OPEN_C_BRACKET);
     ast::block b {};
-    b.statements = std::move(
-        parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET)
-    );
+    b.statements = parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
     return b;
 }
 ast::if_statement parser_context::parse_if_statement() {
     expect(token_type::IF);
     ast::if_statement s {};
-    s.conditions.emplace_back(std::move(parse_exp()));
-    s.blocks.emplace_back(std::move(parse_block()));
+    s.conditions.emplace_back(parse_exp());
+    s.blocks.emplace_back(parse_block());
     while (accept(token_type::ELIF)) {
-        s.conditions.emplace_back(std::move(parse_exp()));
-        s.blocks.emplace_back(std::move(parse_block()));
+        s.conditions.emplace_back(parse_exp());
+        s.blocks.emplace_back(parse_block());
     }
     if (accept(token_type::ELSE)) {
-        s.blocks.emplace_back(std::move(parse_block()));
+        s.blocks.emplace_back(parse_block());
     }
     return s;
 }
 ast::for_loop parser_context::parse_for_loop() {
     expect(token_type::FOR);
     ast::for_loop s {};
-    s.initial = std::move(parse_variable_def());
+    s.initial = parse_variable_def();
     expect(token_type::SEMICOLON);
-    s.condition = std::move(parse_exp());
+    s.condition = parse_exp();
     expect(token_type::SEMICOLON);
-    s.step = std::move(parse_assignment());
-    s.block = std::move(parse_block());
+    s.step = parse_assignment();
+    s.block = parse_block();
     return s;
 }
 ast::while_loop parser_context::parse_while_loop() {
     expect(token_type::WHILE);
     ast::while_loop s {};
-    s.condition = std::move(parse_exp());
-    s.block = std::move(parse_block());
+    s.condition = parse_exp();
+    s.block = parse_block();
     return s;
 }
 ast::case_statement parser_context::parse_case() {
     expect(token_type::CASE);
     ast::case_statement c {};
-    c.cases = std::move(
-        parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA)
-    );
-    c.block = std::move(parse_block());
+    c.cases = parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
+    c.block = parse_block();
     return c;
 }
 ast::switch_statement parser_context::parse_switch_statement() {
     expect(token_type::SWITCH);
     ast::switch_statement s {};
-    s.expression = std::move(parse_exp());
+    s.expression = parse_exp();
     expect(token_type::OPEN_C_BRACKET);
-    s.cases = std::move(parse_list(&parser_context::parse_case, token_type::CLOSE_C_BRACKET));
+    s.cases = parse_list(&parser_context::parse_case, token_type::CLOSE_C_BRACKET);
     return s;
 }
 ast::identifier parser_context::parse_identifier() {
@@ -88,7 +82,7 @@ ast::function_def parser_context::parse_function_def() {
     ast::function_def f {};
     f.to_export = accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
-    auto t = std::move(maybe(&parser_context::parse_named_type));
+    auto t = maybe(&parser_context::parse_named_type);
     if (t) {
         f.returntype = std::move(t.value());
     }
@@ -100,9 +94,9 @@ ast::function_def parser_context::parse_function_def() {
 }
 ast::function_call parser_context::parse_function_call() {
     ast::function_call f {};
-    f.identifier = std::move(parse_identifier());
+    f.identifier = parse_identifier();
     expect(token_type::OPEN_R_BRACKET);
-    f.arguments = std::move(parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_R_BRACKET));
+    f.arguments = parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_R_BRACKET);
     return f;
 }
 ast::type_def parser_context::parse_type_def() {
@@ -110,14 +104,14 @@ ast::type_def parser_context::parse_type_def() {
     expect(token_type::TYPE);
     parse_identifier();
     expect(token_type::OP_ASSIGN);
-    t.type = std::move(parse_type());
+    t.type = parse_type();
     return t;
 }
 ast::assignment parser_context::parse_assignment() {
     ast::assignment a {};
-    a.accessor = std::move(parse_accessor());
+    a.accessor = parse_accessor();
     expect(token_type::OP_ASSIGN);
-    a.expression = std::move(parse_exp());
+    a.expression = parse_exp();
     return a;
 }
 ast::variable_def parser_context::parse_variable_def() {
@@ -126,13 +120,13 @@ ast::variable_def parser_context::parse_variable_def() {
     accept(token_type::PRIMITIVE_TYPE);
     expect(token_type::IDENTIFIER);
     expect(token_type::OP_ASSIGN);
-    v.expression = std::move(parse_exp());
+    v.expression = parse_exp();
     return v;
 }
 ast::s_return parser_context::parse_return() {
     ast::s_return r {};
     expect(token_type::RETURN);
-    r.expression = std::move(maybe(&parser_context::parse_exp));
+    r.expression = maybe(&parser_context::parse_exp);
     return r;
 }
 ast::s_break parser_context::parse_break() {
@@ -148,18 +142,18 @@ ast::s_continue parser_context::parse_continue() {
 ast::field_access parser_context::parse_field_access() {
     ast::field_access f {};
     expect(token_type::OP_ACCESS);
-    f = std::move(parse_identifier());
+    f = parse_identifier();
     return f;
 }
 ast::array_access parser_context::parse_array_access() {
     ast::array_access a {};
     expect(token_type::OPEN_S_BRACKET);
-    a = std::move(parse_exp());
+    a = parse_exp();
     expect(token_type::CLOSE_S_BRACKET);
     return a;
 }
 ast::access parser_context::parse_access() {
-    auto f = std::move(maybe(&parser_context::parse_field_access));
+    auto f = maybe(&parser_context::parse_field_access);
     if (f) {
         return std::move(f.value());
     }
@@ -171,8 +165,8 @@ ast::access parser_context::parse_access() {
 }
 ast::accessor parser_context::parse_accessor() {
     ast::accessor a {};
-    a.identifier = std::move(parse_identifier());
-    a.fields = std::move(parse_list(&parser_context::parse_access));
+    a.identifier = parse_identifier();
+    a.fields = parse_list(&parser_context::parse_access);
     return a;
 }
 ast::type_id parser_context::parse_named_type() {
@@ -187,19 +181,19 @@ ast::type_id parser_context::parse_named_type() {
 }
 ast::type parser_context::parse_type() {
     ast::type t {};
-    auto n = std::move(maybe(&parser_context::parse_named_type));
+    auto n = maybe(&parser_context::parse_named_type);
     if (n) {
         t = n.value();
         return t;
     }
-    auto s = std::move(maybe(&parser_context::parse_struct_type));
+    auto s = maybe(&parser_context::parse_struct_type);
     if (s) {
-        t = std::move(std::make_unique<ast::struct_type>(std::move(s.value())));
+        t = std::make_unique<ast::struct_type>(std::move(s.value()));
         return t;
     }
-    auto a = std::move(maybe(&parser_context::parse_array_type));
+    auto a = maybe(&parser_context::parse_array_type);
     if (a) {
-        t = std::move(std::make_unique<ast::array_type>(std::move(a.value())));
+        t = std::make_unique<ast::array_type>(std::move(a.value()));
         return t;
     }
     error(drv.location, "parser expected type. got", current_token);
@@ -234,15 +228,15 @@ ast::literal parser_context::parse_literal() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
             l.literal = std::get<bool>(expectp(current_token));
-            l.explicit_type = std::move(maybe(&parser_context::parse_primitive_type));
+            l.explicit_type = maybe(&parser_context::parse_primitive_type);
             break;
         case token_type::LITERAL_INTEGER:
             l.literal = std::get<uint64_t>(expectp(current_token));
-            l.explicit_type = std::move(maybe(&parser_context::parse_primitive_type));
+            l.explicit_type = maybe(&parser_context::parse_primitive_type);
             break;
         case token_type::LITERAL_FLOAT:
             l.literal = std::get<double>(expectp(current_token));
-            l.explicit_type = std::move(maybe(&parser_context::parse_primitive_type));
+            l.explicit_type = maybe(&parser_context::parse_primitive_type);
             break;
         default:
             error(drv.location, "parser expected literal. got", current_token);
@@ -250,15 +244,15 @@ ast::literal parser_context::parse_literal() {
     return l;
 }
 ast::literal_integer parser_context::parse_literal_integer() {
-    return {std::get<uint64_t>(expectp(token_type::LITERAL_INTEGER))};
+    return std::get<uint64_t>(expectp(token_type::LITERAL_INTEGER));
 }
 ast::statement parser_context::parse_top_level_statement() {
     ast::statement s;
     switch (current_token) {
         case token_type::EXPORT:
-        case token_type::FUNCTION:  s.statement = std::move(parse_function_def()); break;
-        case token_type::TYPE:      s.statement = std::move(parse_type_def()); break;
-        case token_type::VAR:       s.statement = std::move(parse_variable_def()); break;
+        case token_type::FUNCTION:  s.statement = parse_function_def(); break;
+        case token_type::TYPE:      s.statement = parse_type_def(); break;
+        case token_type::VAR:       s.statement = parse_variable_def(); break;
         default: error(drv.location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
     return s;
@@ -267,18 +261,18 @@ ast::statement parser_context::parse_statement() {
     ast::statement s;
     switch (current_token) {
         case token_type::EXPORT:
-        case token_type::FUNCTION:  s.statement = std::move(parse_function_def()); break;
-        case token_type::TYPE:      s.statement = std::move(parse_type_def()); break;
-        case token_type::VAR:       s.statement = std::move(parse_variable_def()); break;
-        case token_type::RETURN:    s.statement = std::move(parse_return()); break;
-        case token_type::BREAK:     s.statement = std::move(parse_break()); break;
-        case token_type::CONTINUE:  s.statement = std::move(parse_continue()); break;
+        case token_type::FUNCTION:  s.statement = parse_function_def(); break;
+        case token_type::TYPE:      s.statement = parse_type_def(); break;
+        case token_type::VAR:       s.statement = parse_variable_def(); break;
+        case token_type::RETURN:    s.statement = parse_return(); break;
+        case token_type::BREAK:     s.statement = parse_break(); break;
+        case token_type::CONTINUE:  s.statement = parse_continue(); break;
         case token_type::IDENTIFIER: {
-            auto a = std::move(maybe(&parser_context::parse_assignment));
+            auto a = maybe(&parser_context::parse_assignment);
             if (a) {
                 s.statement = std::move(a.value());
             } else {
-                auto e = std::move(maybe(&parser_context::parse_exp));
+                auto e = maybe(&parser_context::parse_exp);
                 if (e) {
                     s.statement = std::move(e.value());
                 } else {
@@ -288,7 +282,7 @@ ast::statement parser_context::parse_statement() {
             break;
             }
         default:
-            auto e = std::move(maybe(&parser_context::parse_exp));
+            auto e = maybe(&parser_context::parse_exp);
             if (e) {
                 s.statement = std::move(e.value());
             } else {
@@ -298,7 +292,7 @@ ast::statement parser_context::parse_statement() {
     return s;
 }
 ast::expression parser_context::parse_exp() {
-    return std::move(parse_exp_at_precedence(0));
+    return parse_exp_at_precedence(0);
 }
 
 ast::expression parser_context::parse_exp_atom() {
@@ -306,19 +300,25 @@ ast::expression parser_context::parse_exp_atom() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
-        case token_type::LITERAL_FLOAT: e.expression = std::move(parse_literal()); break;
-        case token_type::IF:        e.expression = std::make_unique<ast::if_statement>(std::move(parse_if_statement())); break;
-        case token_type::SWITCH:    e.expression = std::make_unique<ast::switch_statement>(std::move(parse_switch_statement())); break;
-        case token_type::FOR:       e.expression = std::make_unique<ast::for_loop>(std::move(parse_for_loop())); break;
-        case token_type::WHILE:     e.expression = std::make_unique<ast::while_loop>(std::move(parse_while_loop())); break;
-        case token_type::OPEN_C_BRACKET: e.expression = std::make_unique<ast::block>(std::move(parse_block())); break;
+        case token_type::LITERAL_FLOAT: e.expression = parse_literal(); break;
+        case token_type::IF:        e.expression = std::make_unique<ast::if_statement>(parse_if_statement()); break;
+        case token_type::SWITCH:    e.expression = std::make_unique<ast::switch_statement>(parse_switch_statement()); break;
+        case token_type::FOR:       e.expression = std::make_unique<ast::for_loop>(parse_for_loop()); break;
+        case token_type::WHILE:     e.expression = std::make_unique<ast::while_loop>(parse_while_loop()); break;
+        case token_type::OPEN_C_BRACKET: {
+            auto b = parse_block();
+            auto p = std::make_unique<ast::block>(std::move(b));
+            assert(p);
+            e.expression = std::move(p);
+            break;
+            }
         case token_type::IDENTIFIER:
             {
-            auto f = std::move(maybe(&parser_context::parse_function_call));
+            auto f = maybe(&parser_context::parse_function_call);
             if (f) {
                 e.expression = std::make_unique<ast::function_call>(std::move(f.value()));
             } else {
-                auto a = std::move(maybe(&parser_context::parse_accessor));
+                auto a = maybe(&parser_context::parse_accessor);
                 if (a) {
                     e.expression = std::make_unique<ast::accessor>(std::move(a.value()));
                 } else {

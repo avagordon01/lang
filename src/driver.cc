@@ -8,7 +8,7 @@ void driver::parse() {
     location.initialize(&filename);
     scan_begin();
     parser_context parser(*this);
-    program_ast = std::move(parser.parse_program());
+    program_ast = parser.parse_program();
     scan_end();
 }
 
