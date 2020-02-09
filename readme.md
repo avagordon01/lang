@@ -4,7 +4,7 @@ kl is a language for easy and high performance compute kernel and graphics shade
 ## depends
 Meson and Ninja are used as the build system. Flex and Bison are used for tokenising and parsing the language. LLVM and glslang are required for the LLVM-IR and SPIR-V backend/codegen.
 
-```# pacman -S meson ninja flex bison llvm-libs glslang```
+```# pacman -S meson ninja flex bison llvm llvm-libs glslang```
 
 Alternatively, a [nix](https://nixos.org/nix/) derivation is provided. This can be used either by doing `nix-build`, or entering a `nix-shell` and entering the following commands.
 
