@@ -8,8 +8,8 @@ input_raw="$2"
 input="${input_raw%.*}"
 output_raw="$(basename ${input}).ir"
 output="${output_raw%.*}"
-print_ast=true
-print_ir=true
+print_ast=false
+print_ir=false
 
 if [ "$print_ast" = true ]; then
     gdb -ex "break main.cc:15" \

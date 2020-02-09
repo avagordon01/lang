@@ -1,4 +1,5 @@
 #pragma once
+#include "ast.hh"
 
 #include <ostream>
 
@@ -28,6 +29,8 @@ enum class token_type : int {
 };
 std::ostream& operator<<(std::ostream& os, token_type& t);
 bool is_operator(token_type t);
+ast::binary_operator::op get_binary_operator(token_type t);
+ast::unary_operator::op get_unary_operator(token_type t);
 int get_precedence(token_type t);
 enum class associativity {
     left, right,

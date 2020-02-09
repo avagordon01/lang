@@ -296,7 +296,7 @@ ast::expression parser_context::parse_exp() {
 }
 
 ast::expression parser_context::parse_exp_atom() {
-    ast::expression e;
+    ast::expression e {};
     switch (current_token) {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
@@ -341,20 +341,34 @@ ast::expression parser_context::parse_exp_atom() {
 }
 
 ast::expression parser_context::parse_exp_at_precedence(int current_precedence) {
-    parse_exp_atom();
+    //FIXME parsing unary operators
+    ast::expression el = parse_exp_atom();
+    std::optional<ast::expression> er {};
+    token_type op {};
     while (true) {
         if (!is_operator(current_token)) {
             break;
         }
+        op = current_token;
         auto p = get_precedence(current_token);
         if (p < current_precedence) {
             break;
         }
         auto a = get_associativity(current_token);
         accept(current_token);
-        parse_exp_at_precedence(
+        er = {parse_exp_at_precedence(
             a == associativity::left ? p + 1 : p
-        );
+        )};
     }
-    return {};
+    if (er) {
+        ast::binary_operator b {};
+        b.l = std::move(el);
+        b.r = std::move(er.value());
+        b.binary_operator = get_binary_operator(op);
+        ast::expression e {};
+        e.expression = std::make_unique<ast::binary_operator>(std::move(b));
+        return e;
+    } else {
+        return el;
+    }
 }
