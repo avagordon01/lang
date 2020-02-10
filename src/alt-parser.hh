@@ -29,7 +29,9 @@ struct parser_context {
     param_type expectp(token_type t);
 
     template<typename T>
-    std::optional<T> maybe(T (parser_context::*parse)());
+    auto maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))>;
+    template<typename T>
+    auto maybe_void(T parse);
     template<typename T>
     std::vector<T> parse_list(T (parser_context::*parse)());
     template<typename T>

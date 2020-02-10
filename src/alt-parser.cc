@@ -117,8 +117,15 @@ ast::assignment parser_context::parse_assignment() {
 ast::variable_def parser_context::parse_variable_def() {
     ast::variable_def v {};
     expect(token_type::VAR);
-    accept(token_type::PRIMITIVE_TYPE);
-    expect(token_type::IDENTIFIER);
+    maybe_void([&v, this]() {
+        auto t = parse_named_type();
+        auto i = parse_identifier();
+        v.explicit_type = t;
+        v.identifier = i;
+    });
+    maybe_void([&v, this]() {
+        v.identifier = parse_identifier();
+    });
     expect(token_type::OP_ASSIGN);
     v.expression = parse_exp();
     return v;

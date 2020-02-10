@@ -41,15 +41,26 @@ param_type parser_context::expectp(token_type t) {
 }
 
 template<typename T>
-std::optional<T> parser_context::maybe(T (parser_context::*parse)()) {
+auto parser_context::maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))> {
     size_t buffer_stop = buffer_loc;
     try {
-        return std::move(std::optional<T>{std::move(std::invoke(parse, this))});
+        return std::optional<decltype(std::invoke(parse, this))>{std::move(std::invoke(parse, this))};
     } catch (parse_error& e) {
         buffer_loc = buffer_stop;
         current_token = buffer[buffer_loc].first;
         current_param = buffer[buffer_loc].second;
         return std::nullopt;
+    }
+}
+template<typename T>
+auto parser_context::maybe_void(T parse) {
+    size_t buffer_stop = buffer_loc;
+    try {
+        std::invoke(parse);
+    } catch (parse_error& e) {
+        buffer_loc = buffer_stop;
+        current_token = buffer[buffer_loc].first;
+        current_param = buffer[buffer_loc].second;
     }
 }
 
