@@ -47,10 +47,10 @@ ast::for_loop parser_context::parse_for_loop() {
 }
 ast::while_loop parser_context::parse_while_loop() {
     expect(token_type::WHILE);
-    ast::while_loop s {};
-    s.condition = parse_exp();
-    s.block = parse_block();
-    return s;
+    return sequence<ast::while_loop>(
+        &parser_context::parse_exp,
+        &parser_context::parse_block
+    );
 }
 ast::case_statement parser_context::parse_case() {
     expect(token_type::CASE);
@@ -126,6 +126,7 @@ ast::variable_def parser_context::parse_variable_def() {
     maybe_void([&v, this]() {
         v.identifier = parse_identifier();
     });
+    //FIXME
     expect(token_type::OP_ASSIGN);
     v.expression = parse_exp();
     return v;
@@ -266,36 +267,20 @@ ast::statement parser_context::parse_top_level_statement() {
 }
 ast::statement parser_context::parse_statement() {
     ast::statement s;
-    switch (current_token) {
-        case token_type::EXPORT:
-        case token_type::FUNCTION:  s.statement = parse_function_def(); break;
-        case token_type::TYPE:      s.statement = parse_type_def(); break;
-        case token_type::VAR:       s.statement = parse_variable_def(); break;
-        case token_type::RETURN:    s.statement = parse_return(); break;
-        case token_type::BREAK:     s.statement = parse_break(); break;
-        case token_type::CONTINUE:  s.statement = parse_continue(); break;
-        case token_type::IDENTIFIER: {
-            auto a = maybe(&parser_context::parse_assignment);
-            if (a) {
-                s.statement = std::move(a.value());
-            } else {
-                auto e = maybe(&parser_context::parse_exp);
-                if (e) {
-                    s.statement = std::move(e.value());
-                } else {
-                    error(drv.location, "parser expected assignment or expression after token", current_token);
-                }
-            }
-            break;
-            }
-        default:
-            auto e = maybe(&parser_context::parse_exp);
-            if (e) {
-                s.statement = std::move(e.value());
-            } else {
-                error(drv.location, "parser expected statement. got", current_token);
-            }
+    auto v = choose(
+        &parser_context::parse_exp,
+        &parser_context::parse_function_def,
+        &parser_context::parse_variable_def,
+        &parser_context::parse_type_def,
+        &parser_context::parse_assignment,
+        &parser_context::parse_return,
+        &parser_context::parse_break,
+        &parser_context::parse_continue
+    );
+    if (!v) {
+        error(drv.location, "parser expected statement. got", current_token);
     }
+    s.statement = std::move(v.value());
     return s;
 }
 ast::expression parser_context::parse_exp() {
