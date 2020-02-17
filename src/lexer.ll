@@ -53,19 +53,6 @@ uint64_t parse_integer(char *s, yy::location& loc) {
     }
     return positive ? value : -value;
 }
-
-ast::identifier lookup_or_insert(char* c, driver& drv) {
-    auto str = std::string(c);
-    auto s = drv.symbols_map.find(str);
-    if (s != drv.symbols_map.end()) {
-        return s->second;
-    } else {
-        ast::identifier id = {drv.symbols_map.size()};
-        drv.symbols_map.insert({str, id});
-        drv.symbols_list.push_back(str);
-        return id;
-    }
-}
 %}
 
 %x COMMENT
@@ -162,7 +149,7 @@ false       drv.current_param = false; return token_type::LITERAL_BOOL;
 {integer}   drv.current_param = ast::literal_integer{parse_integer(yytext, loc)}; return token_type::LITERAL_INTEGER;
 {float}     drv.current_param = static_cast<double>(strtod(yytext, nullptr)); return token_type::LITERAL_FLOAT;
 
-{identifier} drv.current_param = lookup_or_insert(yytext, drv); return token_type::IDENTIFIER;
+{identifier} drv.current_param = drv.symbols_registry.insert(std::string(yytext)); return token_type::IDENTIFIER;
 
 "//".*
 

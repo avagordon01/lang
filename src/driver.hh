@@ -10,8 +10,7 @@ struct driver {
     ast::program program_ast;
     yy::location location;
     param_type current_param;
-    std::unordered_map<std::string, ast::identifier> symbols_map;
-    std::vector<std::string> symbols_list;
+    bi_registry<ast::identifier, std::string> symbols_registry;
     std::string filename;
 
     void parse();

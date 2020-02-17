@@ -4,6 +4,9 @@
 #include <llvm/IR/DerivedTypes.h>
 
 #include <sstream>
+#include <string>
+
+#include "registry.hh"
 
 namespace ast {
     struct primitive_type {
@@ -77,12 +80,20 @@ namespace ast {
             return value >= u8 && value <= f64;
         }
     };
+    struct identifier {
+        size_t value;
+        constexpr bool operator==(const identifier a) const { return value == a.value; }
+        constexpr bool operator!=(const identifier a) const { return value != a.value; }
+        std::string& to_string(bi_registry<ast::identifier, std::string>& symbols_registry) {
+            return symbols_registry.get(*this);
+        }
+    };
     struct user_type {
         size_t value;
         constexpr bool operator==(const user_type& a) const { return value == a.value; }
         constexpr bool operator!=(const user_type& a) const { return value != a.value; }
-        std::string& to_string(std::vector<std::string>& symbols_list) {
-            return symbols_list[value];
+        std::string& to_string(bi_registry<ast::identifier, std::string>& symbols_registry) {
+            return symbols_registry.get(ast::identifier{value});
         }
         llvm::Type* to_llvm_type(llvm::LLVMContext &context) {
             return nullptr;
@@ -95,14 +106,6 @@ namespace ast {
         bool is_float() { return false; }
         bool is_number() { return false; }
         bool is_primitive() { return false; }
-    };
-    struct identifier {
-        size_t value;
-        constexpr bool operator==(const identifier a) const { return value == a.value; }
-        constexpr bool operator!=(const identifier a) const { return value != a.value; }
-        std::string& to_string(std::vector<std::string>& symbols_list) {
-            return symbols_list[value];
-        }
     };
     struct named_type {
         std::variant<primitive_type, user_type> type;
@@ -169,23 +172,22 @@ namespace ast {
         bool is_float() { return is_primitive() && std::get<primitive_type>(type_).is_float(); }
         bool is_number() { return is_primitive() && std::get<primitive_type>(type_).is_number(); }
         bool is_primitive() { return std::holds_alternative<primitive_type>(type_); }
-        std::string to_string(std::vector<std::string>& symbols_list) {
+        std::string to_string(bi_registry<ast::identifier, std::string>& symbols_registry) {
             struct type_printer_fn {
-                type_printer_fn(std::vector<std::string>& sl) : symbols_list(sl) {};
+                bi_registry<ast::identifier, std::string>& symbols_registry;
                 std::ostringstream s;
-                std::vector<std::string>& symbols_list;
                 void operator()(ast::primitive_type primitive_type) {
                     s << primitive_type.to_string();
                 }
                 void operator()(ast::user_type user_type) {
-                    s << user_type.to_string(symbols_list);
+                    s << user_type.to_string(symbols_registry);
                 }
                 void operator()(const std::unique_ptr<ast::struct_type>& struct_type) {
                     s << "struct { ";
                     for (auto field: struct_type->fields) {
                         std::visit(*this, field.type.type);
                         s << " ";
-                        s << field.identifier.to_string(symbols_list);
+                        s << field.identifier.to_string(symbols_registry);
                         s << "; ";
                     }
                     s << "}";
@@ -198,7 +200,7 @@ namespace ast {
                     s << "]";
                 }
             };
-            type_printer_fn type_printer_fn{symbols_list};
+            type_printer_fn type_printer_fn{symbols_registry};
             std::visit(type_printer_fn, type_);
             return type_printer_fn.s.str();
         }
