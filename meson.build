@@ -34,7 +34,7 @@ compiler = executable(
     'src/main.cc',
     'src/codegen_llvm.cc',
     'src/typecheck.cc',
-    'src/alt-parser.cc',
+    'src/parser.cc',
     'src/tokens.cc',
     'src/driver.cc',
     lexer,

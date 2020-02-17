@@ -1,8 +1,8 @@
 #include <iostream>
 
 #include "driver.hh"
-#include "alt-parser.hh"
-#include "alt-parser-utils.hh"
+#include "parser.hh"
+#include "parser-utils.hh"
 
 ast::program parser_context::parse_program() {
     ast::program p {};

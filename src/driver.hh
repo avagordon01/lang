@@ -1,7 +1,7 @@
 #include <string>
 
 #include "ast.hh"
-#include "alt-parser.hh"
+#include "parser.hh"
 #define YY_DECL token_type yylex(driver& drv)
 YY_DECL;
 extern FILE *yyin;
