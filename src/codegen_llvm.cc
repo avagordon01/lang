@@ -266,11 +266,10 @@ struct llvm_codegen_fn {
         //prototype
         std::vector<llvm::Type*> parameter_types;
         for (auto& param: function_def.parameter_list) {
-            ast::named_type type = param.type;
-            parameter_types.push_back(type.to_llvm_type(context.context));
+            parameter_types.push_back(param.type.to_llvm_type(context.context));
         }
         llvm::FunctionType* ft = llvm::FunctionType::get(
-            ast::type{function_def.returntype}.to_llvm_type(context.context),
+            function_def.returntype.to_llvm_type(context.context),
             parameter_types,
             false);
         llvm::Function* f = llvm::Function::Create(
