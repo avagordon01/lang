@@ -8,7 +8,7 @@
 #include "ast.hh"
 #include "tokens.hh"
 
-using param_type = std::variant<ast::type_id, bool, uint64_t, double>;
+using param_type = std::variant<ast::primitive_type, ast::identifier, bool, ast::literal_integer, double>;
 
 struct driver;
 
@@ -56,7 +56,6 @@ struct parser_context {
     ast::case_statement parse_case();
     ast::switch_statement parse_switch_statement();
     ast::identifier parse_identifier();
-    ast::type_id parse_type_id();
     ast::function_def parse_function_def();
     ast::function_call parse_function_call();
     ast::type_def parse_type_def();
@@ -71,8 +70,9 @@ struct parser_context {
     ast::access parse_access();
     ast::accessor parse_accessor();
     ast::type parse_type();
-    ast::type_id parse_named_type();
-    ast::type_id parse_primitive_type();
+    ast::named_type parse_named_type();
+    ast::primitive_type parse_primitive_type();
+    ast::named_type parse_primitive_type_as_named_type();
     ast::field parse_field();
     ast::struct_type parse_struct_type();
     ast::array_type parse_array_type();

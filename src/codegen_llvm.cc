@@ -25,13 +25,13 @@
 
 static llvm::AllocaInst *
 CreateEntryBlockAlloca(
-codegen_context_llvm& context, const ast::identifier identifier, ast::type_id type
+codegen_context_llvm& context, const ast::identifier identifier, ast::type type
 ) {
     llvm::BasicBlock* saved_bb = context.builder.GetInsertBlock();
     llvm::BasicBlock* entry_bb = context.current_function_entry;
     context.builder.SetInsertPoint(entry_bb, entry_bb->begin());
     //TODO create allocas for aggregate types (structs, arrays)
-    llvm::AllocaInst* a = context.builder.CreateAlloca(ast::type_to_llvm_type(context.context, type), 0, context.symbols_list[identifier].c_str());
+    llvm::AllocaInst* a = context.builder.CreateAlloca(type.to_llvm_type(context.context), 0, context.symbols_list[identifier.value].c_str());
     context.builder.SetInsertPoint(saved_bb);
     return a;
 }
@@ -90,11 +90,11 @@ struct llvm_codegen_fn {
         context.builder.CreateBr(condition_blocks[0]);
 
         context.builder.SetInsertPoint(merge_block);
-        ast::type_id type = if_statement.blocks.front().type;
+        ast::named_type type = if_statement.blocks.front().type;
         llvm::PHINode* phi = nullptr;
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             phi = context.builder.CreatePHI(
-                ast::type_to_llvm_type(context.context, type),
+                type.to_llvm_type(context.context),
                 if_statement.blocks.size(), "phi");
         }
 
@@ -110,7 +110,7 @@ struct llvm_codegen_fn {
                 context.builder.CreateCondBr(conditions[i], basic_blocks[i], condition_blocks[i + 1]);
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != ast::type_id::t_void) {
+                if (!type.is_void()) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -124,7 +124,7 @@ struct llvm_codegen_fn {
                 }
                 context.builder.SetInsertPoint(basic_blocks[i]);
                 llvm::Value* v = std::invoke(*this, if_statement.blocks[i]);
-                if (type != ast::type_id::t_void) {
+                if (!type.is_void()) {
                     phi->addIncoming(v, basic_blocks[i]);
                 }
                 context.builder.CreateBr(merge_block);
@@ -134,7 +134,7 @@ struct llvm_codegen_fn {
             //else
             context.builder.SetInsertPoint(basic_blocks.back());
             llvm::Value* v = std::invoke(*this, if_statement.blocks.back());
-            if (type != ast::type_id::t_void) {
+            if (!type.is_void()) {
                 phi->addIncoming(v, basic_blocks.back());
             }
             context.builder.CreateBr(merge_block);
@@ -157,19 +157,19 @@ struct llvm_codegen_fn {
         context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
 
-        ast::type_id type = for_loop.block.type;
+        ast::named_type type = for_loop.block.type;
         llvm::PHINode* phi = nullptr;
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
-                ast::type_to_llvm_type(context.context, type),
+                type.to_llvm_type(context.context),
                 0, "forphi");
             context.current_loop_phi = phi;
         }
 
         context.builder.SetInsertPoint(loop_bb);
         llvm::Value* v = std::invoke(*this, for_loop.block);
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             phi->addIncoming(v, context.builder.GetInsertBlock());
         }
         std::invoke(*this, for_loop.step);
@@ -191,12 +191,12 @@ struct llvm_codegen_fn {
         context.current_loop_exit = merge_bb;
         context.builder.CreateBr(loop_bb);
 
-        ast::type_id type = while_loop.block.type;
+        ast::named_type type = while_loop.block.type;
         llvm::PHINode* phi = nullptr;
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             context.builder.SetInsertPoint(merge_bb);
             phi = context.builder.CreatePHI(
-                ast::type_to_llvm_type(context.context, type),
+                type.to_llvm_type(context.context),
                 0, "whilephi");
             context.current_loop_phi = phi;
         }
@@ -207,7 +207,7 @@ struct llvm_codegen_fn {
         context.builder.CreateCondBr(cond, loop_bb, merge_bb);
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             phi->addIncoming(block_value, loop_bb);
         }
         return phi;
@@ -230,19 +230,20 @@ struct llvm_codegen_fn {
             num_basic_cases);
 
         context.builder.SetInsertPoint(merge_bb);
-        ast::type_id type = switch_statement.cases.front().block.type;
+        ast::named_type type = switch_statement.cases.front().block.type;
         llvm::PHINode* phi {};
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             phi = context.builder.CreatePHI(
-                ast::type_to_llvm_type(context.context, type),
+                type.to_llvm_type(context.context),
                 num_basic_cases, "phi");
         }
 
         size_t i = 0;
         for (auto& case_statement: switch_statement.cases) {
             for (auto& basic_case: case_statement.cases) {
-                llvm::Value* v = std::invoke(*this, basic_case);
-                if (type != ast::type_id::t_void) {
+                ast::literal l{basic_case};
+                llvm::Value* v = std::invoke(*this, l);
+                if (!type.is_void()) {
                     phi->addIncoming(v, blocks[i]);
                 }
                 switch_inst->addCase(static_cast<llvm::ConstantInt*>(v), blocks[i]);
@@ -255,7 +256,7 @@ struct llvm_codegen_fn {
 
         context.builder.SetInsertPoint(merge_bb);
 
-        if (type != ast::type_id::t_void) {
+        if (!type.is_void()) {
             return phi;
         } else {
             return NULL;
@@ -265,20 +266,20 @@ struct llvm_codegen_fn {
         //prototype
         std::vector<llvm::Type*> parameter_types;
         for (auto& param: function_def.parameter_list) {
-            ast::type_id type = param.type;
-            parameter_types.push_back(ast::type_to_llvm_type(context.context, type));
+            ast::named_type type = param.type;
+            parameter_types.push_back(type.to_llvm_type(context.context));
         }
         llvm::FunctionType* ft = llvm::FunctionType::get(
-            ast::type_to_llvm_type(context.context, function_def.returntype),
+            ast::type{function_def.returntype}.to_llvm_type(context.context),
             parameter_types,
             false);
         llvm::Function* f = llvm::Function::Create(
             ft,
             function_def.to_export ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage,
-            context.symbols_list[function_def.identifier], context.module.get());
+            context.symbols_list[function_def.identifier.value], context.module.get());
         size_t i = 0;
         for (auto& arg: f->args()) {
-            arg.setName(context.symbols_list[function_def.parameter_list[i++].identifier]);
+            arg.setName(context.symbols_list[function_def.parameter_list[i++].identifier.value]);
         }
 
         //body
@@ -351,72 +352,24 @@ struct llvm_codegen_fn {
     }
     llvm::Value* operator()(ast::identifier& identifier) {
         llvm::Value* variable = *context.variable_scopes.find_item(identifier);
-        return context.builder.CreateLoad(variable, context.symbols_list[identifier].c_str());
+        return context.builder.CreateLoad(variable, context.symbols_list[identifier.value].c_str());
     }
     llvm::Value* operator()(ast::literal& literal) {
         struct literal_visitor {
             codegen_context_llvm& context;
-            ast::type_id type;
+            ast::named_type type;
             llvm::Value* operator()(double& x) {
-                llvm::Type* llvm_type;
-                switch (type) {
-                    case ast::type_id::f16:
-                        llvm_type = llvm::Type::getHalfTy(context.context);
-                        break;
-                    case ast::type_id::f32:
-                        llvm_type = llvm::Type::getFloatTy(context.context);
-                        break;
-                    case ast::type_id::f64:
-                        llvm_type = llvm::Type::getDoubleTy(context.context);
-                        break;
-                    default:
-                        assert(false);
-                }
+                assert(type.is_float());
+                llvm::Type* llvm_type = type.to_llvm_type(context.context);
                 return llvm::ConstantFP::get(llvm_type, x);
             }
-            llvm::Value* operator()(uint64_t& x) {
-                llvm::Type* llvm_type;
-                switch (type) {
-                    case ast::type_id::u8:
-                        llvm_type = llvm::Type::getInt8Ty(context.context);
-                        break;
-                    case ast::type_id::u16:
-                        llvm_type = llvm::Type::getInt16Ty(context.context);
-                        break;
-                    case ast::type_id::u32:
-                        llvm_type = llvm::Type::getInt32Ty(context.context);
-                        break;
-                    case ast::type_id::u64:
-                        llvm_type = llvm::Type::getInt64Ty(context.context);
-                        break;
-                    case ast::type_id::i8:
-                        llvm_type = llvm::Type::getInt8Ty(context.context);
-                        break;
-                    case ast::type_id::i16:
-                        llvm_type = llvm::Type::getInt16Ty(context.context);
-                        break;
-                    case ast::type_id::i32:
-                        llvm_type = llvm::Type::getInt32Ty(context.context);
-                        break;
-                    case ast::type_id::i64:
-                        llvm_type = llvm::Type::getInt64Ty(context.context);
-                        break;
-                    case ast::type_id::f16:
-                        llvm_type = llvm::Type::getHalfTy(context.context);
-                        break;
-                    case ast::type_id::f32:
-                        llvm_type = llvm::Type::getFloatTy(context.context);
-                        break;
-                    case ast::type_id::f64:
-                        llvm_type = llvm::Type::getDoubleTy(context.context);
-                        break;
-                    default:
-                        assert(false);
-                }
-                if (ast::type_is_integer(type)) {
-                    return llvm::ConstantInt::get(llvm_type, x);
+            llvm::Value* operator()(ast::literal_integer& x) {
+                assert(type.is_number());
+                llvm::Type* llvm_type = type.to_llvm_type(context.context);
+                if (type.is_integer()) {
+                    return llvm::ConstantInt::get(llvm_type, x.data);
                 } else {
-                    return llvm::ConstantFP::get(llvm_type, static_cast<double>(x));
+                    return llvm::ConstantFP::get(llvm_type, static_cast<double>(x.data));
                 }
             }
             llvm::Value* operator()(bool& x) {
@@ -434,7 +387,7 @@ struct llvm_codegen_fn {
         return std::invoke(*this, *accessor);
     }
     llvm::Value* operator()(std::unique_ptr<ast::function_call>& function_call) {
-        llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier]);
+        llvm::Function* function = context.module->getFunction(context.symbols_list[function_call->identifier.value]);
         assert(function);
         std::vector<llvm::Value*> arguments;
         for (auto& arg: function_call->arguments) {
@@ -469,7 +422,7 @@ struct llvm_codegen_fn {
                 break;
             case ast::binary_operator::A_DIV:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateUDiv(l, r, "divtmp");
                     } else {
                         return context.builder.CreateSDiv(l, r, "divtmp");
@@ -480,7 +433,7 @@ struct llvm_codegen_fn {
                 break;
             case ast::binary_operator::A_MOD:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateURem(l, r, "modtmp");
                     } else {
                         return context.builder.CreateSRem(l, r, "modtmp");
@@ -517,7 +470,7 @@ struct llvm_codegen_fn {
                 }
             case ast::binary_operator::C_GT:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateICmpUGT(l, r, "getmp");
                     } else {
                         return context.builder.CreateICmpSGT(l, r, "getmp");
@@ -527,7 +480,7 @@ struct llvm_codegen_fn {
                 }
             case ast::binary_operator::C_GE:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateICmpUGE(l, r, "getmp");
                     } else {
                         return context.builder.CreateICmpSGE(l, r, "getmp");
@@ -537,7 +490,7 @@ struct llvm_codegen_fn {
                 }
             case ast::binary_operator::C_LT:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateICmpULT(l, r, "getmp");
                     } else {
                         return context.builder.CreateICmpSLT(l, r, "getmp");
@@ -547,7 +500,7 @@ struct llvm_codegen_fn {
                 }
             case ast::binary_operator::C_LE:
                 if (l->getType()->isIntegerTy()) {
-                    if (ast::type_is_unsigned_integer(binary_operator->type)) {
+                    if (binary_operator->type.is_unsigned_integer()) {
                         return context.builder.CreateICmpULE(l, r, "getmp");
                     } else {
                         return context.builder.CreateICmpSLE(l, r, "getmp");

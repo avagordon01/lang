@@ -68,23 +68,15 @@ ast::switch_statement parser_context::parse_switch_statement() {
     return s;
 }
 ast::identifier parser_context::parse_identifier() {
-    return static_cast<ast::identifier>(std::get<uint64_t>(expectp(token_type::IDENTIFIER)));
-}
-//FIXME
-//make ast::identifier and ast::type_id different types
-//sort out the type, type_id, identifier namespacing mess
-ast::type_id parser_context::parse_type_id() {
-    param_type p = expectp(token_type::IDENTIFIER);
-    ast::type_id t = ast::type_id{ast::num_primitive_types + std::get<ast::identifier>(p)};
-    return t;
+    return std::get<ast::identifier>(expectp(token_type::IDENTIFIER));
 }
 ast::function_def parser_context::parse_function_def() {
     ast::function_def f {};
     f.to_export = accept(token_type::EXPORT);
     expect(token_type::FUNCTION);
-    auto t = maybe(&parser_context::parse_named_type);
+    auto t = maybe(&parser_context::parse_primitive_type);
     if (t) {
-        f.returntype = std::move(t.value());
+        f.returntype = {std::move(t.value())};
     }
     f.identifier = parse_identifier();
     expect(token_type::OPEN_R_BRACKET);
@@ -177,12 +169,15 @@ ast::accessor parser_context::parse_accessor() {
     a.fields = parse_list(&parser_context::parse_access);
     return a;
 }
-ast::type_id parser_context::parse_named_type() {
+ast::named_type parser_context::parse_named_type() {
     switch (current_token) {
         case token_type::PRIMITIVE_TYPE:
-            return parse_primitive_type();
+            return {parse_primitive_type()};
         case token_type::IDENTIFIER:
-            return static_cast<ast::type_id>(std::get<uint64_t>(expectp(token_type::IDENTIFIER)));
+            //TODO
+            return {ast::user_type {
+                std::get<ast::identifier>(expectp(token_type::IDENTIFIER)).value
+            }};
         default:
             error(drv.location, "parser expected named type. got", current_token);
     }
@@ -191,24 +186,23 @@ ast::type parser_context::parse_type() {
     ast::type t {};
     auto n = maybe(&parser_context::parse_named_type);
     if (n) {
-        t = n.value();
-        return t;
+        return ast::type{n.value()};
     }
     auto s = maybe(&parser_context::parse_struct_type);
     if (s) {
-        t = std::make_unique<ast::struct_type>(std::move(s.value()));
-        return t;
+        return ast::type{s.value()};
     }
     auto a = maybe(&parser_context::parse_array_type);
     if (a) {
-        t = std::make_unique<ast::array_type>(std::move(a.value()));
-        return t;
+        return ast::type{a.value()};
     }
     error(drv.location, "parser expected type. got", current_token);
 }
-ast::type_id parser_context::parse_primitive_type() {
-    ast::type_id t = std::get<ast::type_id>(expectp(token_type::PRIMITIVE_TYPE));
-    return t;
+ast::primitive_type parser_context::parse_primitive_type() {
+    return std::get<ast::primitive_type>(expectp(token_type::PRIMITIVE_TYPE));
+}
+ast::named_type parser_context::parse_primitive_type_as_named_type() {
+    return ast::named_type{parse_primitive_type()};
 }
 ast::field parser_context::parse_field() {
     ast::field f;
@@ -226,8 +220,8 @@ ast::struct_type parser_context::parse_struct_type() {
 ast::array_type parser_context::parse_array_type() {
     expect(token_type::OPEN_S_BRACKET);
     ast::array_type a;
-    a.element_type = parse_type_id();
-    a.length = parse_literal_integer();
+    a.element_type = parse_named_type();
+    a.length = parse_literal_integer().data;
     expect(token_type::CLOSE_S_BRACKET);
     return a;
 }
@@ -236,15 +230,15 @@ ast::literal parser_context::parse_literal() {
     switch (current_token) {
         case token_type::LITERAL_BOOL:
             l.literal = std::get<bool>(expectp(current_token));
-            l.explicit_type = maybe(&parser_context::parse_primitive_type);
+            l.explicit_type = maybe(&parser_context::parse_primitive_type_as_named_type);
             break;
         case token_type::LITERAL_INTEGER:
-            l.literal = std::get<uint64_t>(expectp(current_token));
-            l.explicit_type = maybe(&parser_context::parse_primitive_type);
+            l.literal = std::get<ast::literal_integer>(expectp(current_token));
+            l.explicit_type = maybe(&parser_context::parse_primitive_type_as_named_type);
             break;
         case token_type::LITERAL_FLOAT:
             l.literal = std::get<double>(expectp(current_token));
-            l.explicit_type = maybe(&parser_context::parse_primitive_type);
+            l.explicit_type = maybe(&parser_context::parse_primitive_type_as_named_type);
             break;
         default:
             error(drv.location, "parser expected literal. got", current_token);
@@ -252,7 +246,7 @@ ast::literal parser_context::parse_literal() {
     return l;
 }
 ast::literal_integer parser_context::parse_literal_integer() {
-    return std::get<uint64_t>(expectp(token_type::LITERAL_INTEGER));
+    return std::get<ast::literal_integer>(expectp(token_type::LITERAL_INTEGER));
 }
 ast::statement parser_context::parse_top_level_statement() {
     ast::statement s;

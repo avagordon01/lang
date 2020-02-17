@@ -54,15 +54,15 @@ uint64_t parse_integer(char *s, yy::location& loc) {
     return positive ? value : -value;
 }
 
-ast::identifier lookup_or_insert(char* c, driver& driver) {
+ast::identifier lookup_or_insert(char* c, driver& drv) {
     auto str = std::string(c);
-    auto s = driver.symbols_map.find(str);
-    if (s != driver.symbols_map.end()) {
+    auto s = drv.symbols_map.find(str);
+    if (s != drv.symbols_map.end()) {
         return s->second;
     } else {
-        ast::identifier id = driver.symbols_map.size();
-        driver.symbols_map.insert({str, id});
-        driver.symbols_list.push_back(str);
+        ast::identifier id = {drv.symbols_map.size()};
+        drv.symbols_map.insert({str, id});
+        drv.symbols_list.push_back(str);
         return id;
     }
 }
@@ -142,23 +142,24 @@ struct   return token_type::STRUCT;
 type     return token_type::TYPE;
 (const|auto|sizeof|offsetof|static|repl|cpu|simd|gpu|fpga) reserved_token(loc, yytext);
 
-bool drv.current_param = ast::type_id::t_bool; return token_type::PRIMITIVE_TYPE;
-u8   drv.current_param = ast::type_id::u8; return token_type::PRIMITIVE_TYPE;
-u16  drv.current_param = ast::type_id::u16; return token_type::PRIMITIVE_TYPE;
-u32  drv.current_param = ast::type_id::u32; return token_type::PRIMITIVE_TYPE;
-u64  drv.current_param = ast::type_id::u64; return token_type::PRIMITIVE_TYPE;
-i8   drv.current_param = ast::type_id::i8; return token_type::PRIMITIVE_TYPE;
-i16  drv.current_param = ast::type_id::i16; return token_type::PRIMITIVE_TYPE;
-i32  drv.current_param = ast::type_id::i32; return token_type::PRIMITIVE_TYPE;
-i64  drv.current_param = ast::type_id::i64; return token_type::PRIMITIVE_TYPE;
+bool drv.current_param = ast::primitive_type{ast::primitive_type::t_bool}; return token_type::PRIMITIVE_TYPE;
+void drv.current_param = ast::primitive_type{ast::primitive_type::t_void}; return token_type::PRIMITIVE_TYPE;
+u8   drv.current_param = ast::primitive_type{ast::primitive_type::u8}; return token_type::PRIMITIVE_TYPE;
+u16  drv.current_param = ast::primitive_type{ast::primitive_type::u16}; return token_type::PRIMITIVE_TYPE;
+u32  drv.current_param = ast::primitive_type{ast::primitive_type::u32}; return token_type::PRIMITIVE_TYPE;
+u64  drv.current_param = ast::primitive_type{ast::primitive_type::u64}; return token_type::PRIMITIVE_TYPE;
+i8   drv.current_param = ast::primitive_type{ast::primitive_type::i8}; return token_type::PRIMITIVE_TYPE;
+i16  drv.current_param = ast::primitive_type{ast::primitive_type::i16}; return token_type::PRIMITIVE_TYPE;
+i32  drv.current_param = ast::primitive_type{ast::primitive_type::i32}; return token_type::PRIMITIVE_TYPE;
+i64  drv.current_param = ast::primitive_type{ast::primitive_type::i64}; return token_type::PRIMITIVE_TYPE;
 f8   reserved_token(loc, yytext);
-f16  drv.current_param = ast::type_id::f16; return token_type::PRIMITIVE_TYPE;
-f32  drv.current_param = ast::type_id::f32; return token_type::PRIMITIVE_TYPE;
-f64  drv.current_param = ast::type_id::f64; return token_type::PRIMITIVE_TYPE;
+f16  drv.current_param = ast::primitive_type{ast::primitive_type::f16}; return token_type::PRIMITIVE_TYPE;
+f32  drv.current_param = ast::primitive_type{ast::primitive_type::f32}; return token_type::PRIMITIVE_TYPE;
+f64  drv.current_param = ast::primitive_type{ast::primitive_type::f64}; return token_type::PRIMITIVE_TYPE;
 
 true        drv.current_param = true; return token_type::LITERAL_BOOL;
 false       drv.current_param = false; return token_type::LITERAL_BOOL;
-{integer}   drv.current_param = parse_integer(yytext, loc); return token_type::LITERAL_INTEGER;
+{integer}   drv.current_param = ast::literal_integer{parse_integer(yytext, loc)}; return token_type::LITERAL_INTEGER;
 {float}     drv.current_param = static_cast<double>(strtod(yytext, nullptr)); return token_type::LITERAL_FLOAT;
 
 {identifier} drv.current_param = lookup_or_insert(yytext, drv); return token_type::IDENTIFIER;

@@ -16,13 +16,14 @@ namespace ast {
     struct unary_operator;
     struct statement;
 
-    using identifier = size_t;
+    struct literal_integer {
+        uint64_t data;
+    };
 
-    using literal_integer = uint64_t;
     struct literal {
         std::variant<double, literal_integer, bool> literal;
-        std::optional<ast::type_id> explicit_type;
-        ast::type_id type;
+        std::optional<ast::named_type> explicit_type;
+        ast::named_type type;
         yy::location loc;
     };
     struct block;
@@ -45,7 +46,7 @@ namespace ast {
             std::unique_ptr<ast::binary_operator>,
             std::unique_ptr<ast::unary_operator>
         > expression;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct binary_operator {
@@ -56,7 +57,7 @@ namespace ast {
             L_AND, L_OR,
             C_EQ, C_NE, C_GT, C_GE, C_LT, C_LE,
         } binary_operator;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct unary_operator {
@@ -64,19 +65,19 @@ namespace ast {
         enum op {
             B_NOT, L_NOT,
         } unary_operator;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
 
     using statement_list = std::vector<ast::statement>;
     struct block {
         statement_list statements;
-        ast::type_id type;
+        ast::named_type type;
     };
     struct if_statement {
         std::vector<ast::expression> conditions;
         std::vector<ast::block> blocks;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     using optional_else = std::optional<ast::block>;
@@ -87,17 +88,17 @@ namespace ast {
     struct case_statement {
         std::vector<literal_integer> cases;
         ast::block block;
-        ast::type_id type;
+        ast::named_type type;
     };
     using cases_list = std::vector<ast::case_statement>;
     struct switch_statement {
         ast::expression expression;
         cases_list cases;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct variable_def {
-        std::optional<ast::type_id> explicit_type;
+        std::optional<ast::named_type> explicit_type;
         ast::identifier identifier;
         ast::expression expression;
         yy::location loc;
@@ -105,7 +106,7 @@ namespace ast {
     struct while_loop {
         ast::expression condition;
         ast::block block;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     using parameter = field;
@@ -114,19 +115,19 @@ namespace ast {
     struct function_call {
         ast::identifier identifier;
         ast::expression_list arguments;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct function_def {
         bool to_export;
         ast::identifier identifier;
-        ast::type_id returntype;
+        ast::named_type returntype;
         ast::parameter_list parameter_list;
         ast::block block;
         yy::location loc;
     };
     struct type_def {
-        ast::type_id type_id;
+        ast::user_type user_type;
         ast::type type;
         yy::location loc;
     };
@@ -136,7 +137,7 @@ namespace ast {
     struct accessor {
         ast::identifier identifier;
         std::vector<ast::access> fields;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct assignment {
@@ -149,7 +150,7 @@ namespace ast {
         ast::expression condition;
         ast::assignment step;
         ast::block block;
-        ast::type_id type;
+        ast::named_type type;
         yy::location loc;
     };
     struct s_return {

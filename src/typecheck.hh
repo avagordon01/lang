@@ -3,12 +3,13 @@
 
 #include "scopes.hh"
 #include "ast.hh"
+#include "registry.hh"
 
 struct typecheck_context {
-    ast::type_id current_function_returntype;
-    std::unordered_map<ast::identifier, std::vector<ast::type_id>> function_parameter_types;
-    ::scopes<ast::identifier, ast::type_id> variable_scopes;
-    ::scopes<ast::type_id, ast::type> type_scopes;
+    ast::named_type current_function_returntype;
+    ::registry<ast::identifier, std::vector<ast::named_type>> function_parameter_types;
+    ::scopes<ast::identifier, ast::named_type> variable_scopes;
+    ::scopes<ast::user_type, ast::type> type_scopes;
     std::vector<std::string> symbols_list;
 };
 
