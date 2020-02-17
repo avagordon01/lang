@@ -23,14 +23,6 @@ lexer = custom_target('lexer',
   command: [flex, '--outfile=@OUTPUT0@', '--header-file=@OUTPUT1@', '@INPUT@'],
 )
 
-bison = find_program('bison')
-yflags = ['-y', '-d', '-Werror=all', '-Wno-yacc']
-parser = custom_target('parser',
-  input: ['src/parser.yy'],
-  output: ['parser.cc', 'parser.hh', 'location.hh'],
-  command: [bison] + yflags + ['--output=@OUTPUT0@', '--defines=@OUTPUT1@', '@INPUT@'],
-)
-
 llvm_dep = dependency('llvm')
 spirv_dep = declare_dependency(
   link_args: '-lSPIRV',
