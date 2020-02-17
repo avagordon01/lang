@@ -221,7 +221,7 @@ ast::array_type parser_context::parse_array_type() {
     expect(token_type::OPEN_S_BRACKET);
     ast::array_type a;
     a.element_type = parse_named_type();
-    a.length = parse_literal_integer().data;
+    a.length = std::get<ast::literal_integer>(parse_literal_integer().literal).data;
     expect(token_type::CLOSE_S_BRACKET);
     return a;
 }
@@ -245,8 +245,8 @@ ast::literal parser_context::parse_literal() {
     }
     return l;
 }
-ast::literal_integer parser_context::parse_literal_integer() {
-    return std::get<ast::literal_integer>(expectp(token_type::LITERAL_INTEGER));
+ast::literal parser_context::parse_literal_integer() {
+    return ast::literal{std::get<ast::literal_integer>(expectp(token_type::LITERAL_INTEGER))};
 }
 ast::statement parser_context::parse_top_level_statement() {
     ast::statement s;

@@ -97,8 +97,7 @@ struct typecheck_fn {
         ast::named_type type = {ast::primitive_type{ast::primitive_type::t_void}};
         for (auto& case_statement: switch_statement.cases) {
             for (auto& case_exp: case_statement.cases) {
-                ast::literal l{case_exp};
-                ast::named_type case_type = std::invoke(*this, l);
+                ast::named_type case_type = std::invoke(*this, case_exp);
                 if (!case_type.is_integer()) {
                     error(switch_statement.loc, "switch statement switch expression is not an integer");
                 }

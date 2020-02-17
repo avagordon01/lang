@@ -77,7 +77,7 @@ struct parser_context {
     ast::struct_type parse_struct_type();
     ast::array_type parse_array_type();
     ast::literal parse_literal();
-    ast::literal_integer parse_literal_integer();
+    ast::literal parse_literal_integer();
     ast::statement parse_top_level_statement();
     ast::statement parse_statement();
     ast::expression parse_exp();

@@ -86,7 +86,7 @@ namespace ast {
         std::vector<ast::block> blocks;
     };
     struct case_statement {
-        std::vector<literal_integer> cases;
+        std::vector<literal> cases;
         ast::block block;
         ast::named_type type;
     };
