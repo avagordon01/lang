@@ -116,6 +116,13 @@ namespace ast {
                 return t.to_llvm_type(context);
             }, type);
         }
+        std::string to_string(bi_registry<ast::identifier, std::string>& symbols_registry) {
+            if (std::holds_alternative<ast::primitive_type>(type)) {
+                return std::get<primitive_type>(type).to_string();
+            } else {
+                return std::get<user_type>(type).to_string(symbols_registry);
+            }
+        }
         bool is_void() { return is_primitive() && std::get<primitive_type>(type).is_void(); }
         bool is_bool() { return is_primitive() && std::get<primitive_type>(type).is_bool(); }
         bool is_integer() { return is_primitive() && std::get<primitive_type>(type).is_integer(); }
