@@ -14,23 +14,6 @@ void lex_backtrack(std::ios::pos_type pos) {
         error("error: couldn't seek backwards in input stream");
     }
 }
-std::optional<std::string> lex_numeric() {
-    std::string s;
-    bool first = true;
-    while (!in.eof()) {
-        char c = in.peek();
-        if (std::isdigit(c)) {
-            first = false;
-            in >> c;
-            s += c;
-        } else if (first) {
-            return std::nullopt;
-        } else {
-            break;
-        }
-    }
-    return {s};
-}
 bool lex_string(std::string s) {
     auto pos = lex_backtrack();
     std::string test (s.length(), 0);
@@ -77,22 +60,22 @@ std::optional<std::string> lex_keyword(std::string keyword) {
 std::optional<std::string> lex_any_keyword() {
     std::optional<std::string> os;
     if (
-        (os = lex_keyword("var"), os) ||
-        (os = lex_keyword("if"), os) ||
-        (os = lex_keyword("elif"), os) ||
-        (os = lex_keyword("else"), os) ||
-        (os = lex_keyword("for"), os) ||
-        (os = lex_keyword("while"), os) ||
-        (os = lex_keyword("fn"), os) ||
-        (os = lex_keyword("return"), os) ||
-        (os = lex_keyword("break"), os) ||
-        (os = lex_keyword("continue"), os) ||
-        (os = lex_keyword("switch"), os) ||
-        (os = lex_keyword("case"), os) ||
-        (os = lex_keyword("import"), os) ||
-        (os = lex_keyword("export"), os) ||
-        (os = lex_keyword("struct"), os) ||
-        (os = lex_keyword("type"), os)
+        (os = lex_keyword("var")) ||
+        (os = lex_keyword("if")) ||
+        (os = lex_keyword("elif")) ||
+        (os = lex_keyword("else")) ||
+        (os = lex_keyword("for")) ||
+        (os = lex_keyword("while")) ||
+        (os = lex_keyword("fn")) ||
+        (os = lex_keyword("return")) ||
+        (os = lex_keyword("break")) ||
+        (os = lex_keyword("continue")) ||
+        (os = lex_keyword("switch")) ||
+        (os = lex_keyword("case")) ||
+        (os = lex_keyword("import")) ||
+        (os = lex_keyword("export")) ||
+        (os = lex_keyword("struct")) ||
+        (os = lex_keyword("type"))
     ) {
         return os;
     } else {
@@ -102,17 +85,17 @@ std::optional<std::string> lex_any_keyword() {
 void lex_reserved_keyword() {
     std::optional<std::string> os;
     if (
-        (os = lex_keyword("const"), os) ||
-        (os = lex_keyword("auto"), os) ||
-        (os = lex_keyword("sizeof"), os) ||
-        (os = lex_keyword("offsetof"), os) ||
-        (os = lex_keyword("typeof"), os) ||
-        (os = lex_keyword("static"), os) ||
-        (os = lex_keyword("repl"), os) ||
-        (os = lex_keyword("cpu"), os) ||
-        (os = lex_keyword("simd"), os) ||
-        (os = lex_keyword("gpu"), os) ||
-        (os = lex_keyword("fpga"), os)
+        (os = lex_keyword("const")) ||
+        (os = lex_keyword("auto")) ||
+        (os = lex_keyword("sizeof")) ||
+        (os = lex_keyword("offsetof")) ||
+        (os = lex_keyword("typeof")) ||
+        (os = lex_keyword("static")) ||
+        (os = lex_keyword("repl")) ||
+        (os = lex_keyword("cpu")) ||
+        (os = lex_keyword("simd")) ||
+        (os = lex_keyword("gpu")) ||
+        (os = lex_keyword("fpga"))
     ) {
         error("error, use of reserved keyword", os.value());
     }
@@ -303,16 +286,16 @@ int main() {
     in >> std::noskipws;
     while (!in.eof()) {
         std::optional<std::string> s;
-        if (s = lex_primitive_type(), s) {
+        if (s = lex_primitive_type()) {
             std::cout << "type: " << s.value();
         } else if (lex_comment()) {
             std::cout << "COMMENT";
-        } else if (s = lex_any_keyword(), s) {
+        } else if (s = lex_any_keyword()) {
             std::cout << "keyword: " << s.value();
         } else if (lex_reserved_keyword(), false) {
-        } else if (s = lex_literal(), s) {
+        } else if (s = lex_literal()) {
             std::cout << "literal: " << s.value();
-        } else if (s = lex_identifier(), s) {
+        } else if (s = lex_identifier()) {
             std::cout << "identifier: " << s.value();
         } else if (lex_any_char()) {
             std::cout << "ANY CHAR";
