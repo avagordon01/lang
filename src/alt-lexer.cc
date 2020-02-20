@@ -1,18 +1,18 @@
 #include <iostream>
 #include <optional>
-#include <cassert>
+
+#include "error.hh"
 
 std::istream& in = std::cin;
 
 std::ios::pos_type lex_backtrack() {
-    assert(in.good());
     return in.tellg();
-    assert(in.good());
 }
 void lex_backtrack(std::ios::pos_type pos) {
-    assert(in.good());
     in.seekg(pos);
-    assert(in.good());
+    if (!in.good()) {
+        error("error: couldn't seek backwards in input stream");
+    }
 }
 std::optional<std::string> lex_numeric() {
     std::string s;
@@ -35,7 +35,6 @@ bool lex_string(std::string s) {
     auto pos = lex_backtrack();
     std::string test (s.length(), 0);
     in.read(test.data(), s.length());
-    assert(in.good());
     if (test == s) {
         return true;
     } else {
@@ -100,7 +99,7 @@ std::optional<std::string> lex_any_keyword() {
         return std::nullopt;
     }
 }
-std::optional<std::string> lex_reserved_keyword() {
+void lex_reserved_keyword() {
     std::optional<std::string> os;
     if (
         (os = lex_keyword("const"), os) ||
@@ -115,9 +114,7 @@ std::optional<std::string> lex_reserved_keyword() {
         (os = lex_keyword("gpu"), os) ||
         (os = lex_keyword("fpga"), os)
     ) {
-        return os;
-    } else {
-        return std::nullopt;
+        error("error, use of reserved keyword", os.value());
     }
 }
 std::optional<std::string> lex_identifier() {
@@ -142,7 +139,7 @@ std::optional<std::string> lex_primitive_type() {
     } else if (s == "i32") {
     } else if (s == "i64") {
     } else if (s == "f8") {
-        assert(false);
+        error("error, use of reserved keyword", s);
     } else if (s == "f16") {
     } else if (s == "f32") {
     } else if (s == "f64") {
@@ -295,10 +292,9 @@ bool lex_comment() {
         while (true) {
             in.ignore(1000, '*');
             if (lex_char('/')) {
-                break;
+                return true;
             }
         }
-        return true;
     }
     return false;
 }
@@ -313,8 +309,7 @@ int main() {
             std::cout << "COMMENT";
         } else if (s = lex_any_keyword(), s) {
             std::cout << "keyword: " << s.value();
-        } else if (s = lex_reserved_keyword(), s) {
-            std::cout << "reserved: " << s.value();
+        } else if (lex_reserved_keyword(), false) {
         } else if (s = lex_literal(), s) {
             std::cout << "literal: " << s.value();
         } else if (s = lex_identifier(), s) {
@@ -324,7 +319,9 @@ int main() {
         } else if (lex_operator()) {
             std::cout << "OPERATOR";
         } else {
-            assert(false);
+            std::string s;
+            in >> s;
+            error("error: unknown input", s);
         }
         std::cout << std::endl;
         lex_whitespace();
