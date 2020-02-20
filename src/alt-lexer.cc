@@ -284,13 +284,8 @@ bool lex_operator() {
     }
 }
 bool lex_whitespace() {
-    char c;
-    bool space = false;
-    while (c = in.peek(), std::isspace(c)) {
-        in >> c;
-        space = true;
-    }
-    return space;
+    in >> std::ws;
+    return in.fail();
 }
 bool lex_comment() {
     if (lex_string("//")) {
@@ -309,6 +304,7 @@ bool lex_comment() {
 }
 
 int main() {
+    in >> std::noskipws;
     while (!in.eof()) {
         std::optional<std::string> s;
         if (s = lex_primitive_type(), s) {
