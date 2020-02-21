@@ -44,19 +44,11 @@ std::optional<std::string> lex_word() {
     return {s};
 }
 std::optional<std::string> lex_keyword(std::string keyword) {
-    auto pos = lex_backtrack();
-    //TODO use lex_string
-    std::optional<std::string> os = lex_word();
-    if (!os) {
-        lex_backtrack(pos);
+    if (lex_string(keyword)) {
+        return {keyword};
+    } else {
         return std::nullopt;
     }
-    std::string s = os.value();
-    if (s != keyword) {
-        lex_backtrack(pos);
-        return std::nullopt;
-    }
-    return {s};
 }
 std::optional<std::string> lex_any_keyword() {
     std::optional<std::string> os;
