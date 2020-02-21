@@ -31,6 +31,10 @@ spirv_dep = declare_dependency(
 alt_lexer_test = executable(
   'alt-lexer',
   'src/alt-lexer.cc',
+  dependencies: [
+    llvm_dep,
+    spirv_dep,
+  ],
 )
 compiler = executable(
   'compiler',

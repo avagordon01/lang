@@ -2,6 +2,7 @@
 #include <optional>
 
 #include "error.hh"
+#include "ast.hh"
 
 std::istream& in = std::cin;
 
@@ -224,33 +225,56 @@ bool lex_any_char() {
         lex_char('.') ||
         lex_char('=');
 }
-bool lex_operator() {
-    return
-        lex_char('+') ||
-        lex_char('-') ||
-        lex_char('*') ||
-        lex_char('/') ||
-        lex_char('%') ||
+std::optional<ast::binary_operator::op> lex_operator() {
+    if (false) {
+    } else if (lex_char('+')) {
+        return {ast::binary_operator::A_ADD};
+    } else if (lex_char('-')) {
+        return {ast::binary_operator::A_SUB};
+    } else if (lex_char('*')) {
+        return {ast::binary_operator::A_MUL};
+    } else if (lex_char('/')) {
+        return {ast::binary_operator::A_DIV};
+    } else if (lex_char('%')) {
+        return {ast::binary_operator::A_MOD};
 
-        lex_char('|') ||
-        lex_char('^') ||
-        lex_char('~') ||
-        lex_string("<<") ||
-        lex_string(">>") ||
+    } else if (lex_char('|')) {
+        return {ast::binary_operator::B_OR};
+    } else if (lex_char('^')) {
+        return {ast::binary_operator::B_XOR};
+    } else if (lex_char('~')) {
+        //return {ast::unary_operator::B_NOT};
+        return {ast::binary_operator::A_ADD};
+    } else if (lex_string("<<")) {
+        return {ast::binary_operator::B_SHL};
+    } else if (lex_string(">>")) {
+        return {ast::binary_operator::B_SHR};
 
-        lex_string("&&") ||
-        lex_string("||") ||
+    } else if (lex_string("&&")) {
+        return {ast::binary_operator::L_AND};
+    } else if (lex_string("||")) {
+        return {ast::binary_operator::L_OR};
 
-        lex_string("==") ||
-        lex_string("!=") ||
-        lex_string(">=") ||
-        lex_char('>') ||
-        lex_string("<=") ||
-        lex_char('<') ||
+    } else if (lex_string("==")) {
+        return {ast::binary_operator::C_EQ};
+    } else if (lex_string("!=")) {
+        return {ast::binary_operator::C_NE};
+    } else if (lex_string(">=")) {
+        return {ast::binary_operator::C_GE};
+    } else if (lex_char('>')) {
+        return {ast::binary_operator::C_GT};
+    } else if (lex_string("<=")) {
+        return {ast::binary_operator::C_LE};
+    } else if (lex_char('<')) {
+        return {ast::binary_operator::C_LT};
 
-        lex_char('&') ||
-        lex_char('!') ||
-    false;
+    } else if (lex_char('&')) {
+        return {ast::binary_operator::B_AND};
+    } else if (lex_char('!')) {
+        return {ast::binary_operator::A_ADD};
+        //return {ast::unary_operator::L_NOT};
+    }
+    return std::nullopt;
 }
 bool lex_whitespace() {
     in >> std::ws;
@@ -288,26 +312,28 @@ int main() {
     lex_space();
     while (!in.eof()) {
         std::optional<std::string> s;
-        if (s = lex_primitive_type()) {
-            std::cout << "type: " << s.value();
-        } else if (s = lex_any_keyword()) {
-            std::cout << "keyword: " << s.value();
+        std::optional<ast::binary_operator::op> op;
+        if (false) {
         } else if (lex_reserved_keyword(), false) {
+        } else if (s = lex_any_keyword()) {
+            std::cout << "keyword(" << s.value() << ")";
+        } else if (s = lex_primitive_type()) {
+            std::cout << "type(" << s.value() << ")";
         } else if (s = lex_literal()) {
-            std::cout << "literal: " << s.value();
+            std::cout << "literal(" << s.value() << ")";
         } else if (s = lex_identifier()) {
-            std::cout << "identifier: " << s.value();
+            std::cout << "identifier(" << s.value() << ")";
         } else if (lex_any_char()) {
-            std::cout << "ANY CHAR";
-        } else if (lex_operator()) {
-            std::cout << "OPERATOR";
+            std::cout << "any_char";
+        } else if ((op = lex_operator())) {
+            std::cout << "operator(" << op.value() << ")";
         } else {
             std::string s;
             in >> s;
             error("error: unknown input", s);
         }
         lex_space();
-        std::cout << std::endl;
+        std::cout << ", ";
     }
     std::cout << std::endl;
 }
