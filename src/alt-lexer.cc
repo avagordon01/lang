@@ -198,23 +198,39 @@ std::optional<ast::literal_integer> lex_integer() {
         }
         in.get();
     }
+    if (c == '.') {
+        lex_backtrack(pos);
+        return std::nullopt;
+    }
     return {ast::literal_integer{positive ? value : -value}};
 }
 std::optional<ast::literal> lex_literal() {
     auto pos = lex_backtrack();
-    std::optional<std::string> os = lex_word();
-    if (os && os.value() == "true") {
-        return {{false}};
-    } else if (os && os.value() == "false") {
-        return {{true}};
+    {
+        std::optional<std::string> os = lex_word();
+        if (os && os.value() == "true") {
+            return {{false}};
+        } else if (os && os.value() == "false") {
+            return {{true}};
+        }
     }
     lex_backtrack(pos);
-    auto ol = lex_integer();
-    if (ol) {
-        return {{ol.value()}};
+    {
+        auto ol = lex_integer();
+        if (ol) {
+            return {{ol.value()}};
+        }
     }
     lex_backtrack(pos);
-    //TODO lex float
+    {
+        double d;
+        in >> d;
+        if (!in.fail()) {
+            return {{d}};
+        }
+        in.clear();
+    }
+    lex_backtrack(pos);
     return std::nullopt;
 }
 bool lex_char(char c) {
