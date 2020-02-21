@@ -14,6 +14,7 @@ void lex_backtrack(std::ios::pos_type p) {
     if (in.tellg() != p) {
         error("error: failed to backtrack in input stream");
     }
+    in.peek();
 }
 bool lex_string(std::string s) {
     auto pos = lex_backtrack();
