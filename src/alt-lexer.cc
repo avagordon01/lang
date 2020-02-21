@@ -252,11 +252,11 @@ bool lex_whitespace() {
 }
 bool lex_comment() {
     if (lex_string("//")) {
-        in.ignore(1000, '\n');
+        in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return true;
     } else if (lex_string("/*")) {
         while (true) {
-            in.ignore(1000, '*');
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '*');
             if (lex_char('/')) {
                 return true;
             }
