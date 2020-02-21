@@ -29,19 +29,24 @@ bool lex_string(std::string s) {
 std::optional<std::string> lex_word() {
     std::string s;
     bool first = true;
-    while (!in.eof()) {
-        char c = in.peek();
+    char c;
+    while (in >> c) {
         if (std::isalpha(c) || (!first && std::isdigit(c))) {
             first = false;
-            in >> c;
             s += c;
-        } else if (first) {
-            return std::nullopt;
         } else {
+            in.unget();
+            if (in.fail()) {
+                error("error: failed to unget on input stream");
+            }
             break;
         }
     }
-    return {s};
+    if (s.empty()) {
+        return std::nullopt;
+    } else {
+        return {s};
+    }
 }
 std::optional<std::string> lex_keyword(std::string keyword) {
     if (lex_string(keyword)) {
