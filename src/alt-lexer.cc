@@ -95,7 +95,8 @@ void lex_reserved_keyword() {
         (os = lex_keyword("cpu")) ||
         (os = lex_keyword("simd")) ||
         (os = lex_keyword("gpu")) ||
-        (os = lex_keyword("fpga"))
+        (os = lex_keyword("fpga")) ||
+        (os = lex_keyword("f8"))
     ) {
         error("error, use of reserved keyword", os.value());
     }
@@ -121,8 +122,6 @@ std::optional<std::string> lex_primitive_type() {
     } else if (s == "i16") {
     } else if (s == "i32") {
     } else if (s == "i64") {
-    } else if (s == "f8") {
-        error("error, use of reserved keyword", s);
     } else if (s == "f16") {
     } else if (s == "f32") {
     } else if (s == "f64") {
