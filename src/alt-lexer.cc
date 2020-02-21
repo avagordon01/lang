@@ -8,10 +8,11 @@ std::istream& in = std::cin;
 std::ios::pos_type lex_backtrack() {
     return in.tellg();
 }
-void lex_backtrack(std::ios::pos_type pos) {
-    in.seekg(pos);
-    if (!in.good()) {
-        error("error: couldn't seek backwards in input stream");
+void lex_backtrack(std::ios::pos_type p) {
+    in.clear();
+    in.seekg(p);
+    if (in.tellg() != p) {
+        error("error: failed to backtrack in input stream");
     }
 }
 bool lex_string(std::string s) {
