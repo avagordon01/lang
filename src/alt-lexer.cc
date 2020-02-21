@@ -136,10 +136,10 @@ std::optional<std::string> lex_integer() {
     bool positive = true;
     char c = in.peek();
     if (c == '+') {
-        in >> c;
+        in.get();
     } else if (c == '-') {
         positive = false;
-        in >> c;
+        in.get();
     }
     if (!std::isdigit(in.peek())) {
         lex_backtrack(pos);
@@ -149,17 +149,17 @@ std::optional<std::string> lex_integer() {
     uint8_t base = 10;
     c = in.peek();
     if (c == '0') {
-        in >> c;
+        in.get();
         c = in.peek();
         if (c == 'b' || c == 'B') {
             base =  2;
-            in >> c;
+            in.get();
         } else if (c == 'o' || c == 'O') {
             base =  8;
-            in >> c;
+            in.get();
         } else if (c == 'x' || c == 'X') {
             base = 16;
-            in >> c;
+            in.get();
         }
     }
     //parse digits
@@ -182,7 +182,7 @@ std::optional<std::string> lex_integer() {
         } else {
             break;
         }
-        in >> c;
+        in.get();
     }
     return {std::to_string(positive ? value : -value)};
 }
@@ -204,7 +204,7 @@ std::optional<std::string> lex_literal() {
 }
 bool lex_char(char c) {
     if (in.peek() == c) {
-        in >> c;
+        in.get();
         return true;
     } else {
         return false;
