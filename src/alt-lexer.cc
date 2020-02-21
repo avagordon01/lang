@@ -104,7 +104,7 @@ void lex_reserved_keyword() {
 std::optional<std::string> lex_identifier() {
     return lex_word();
 }
-std::optional<std::string> lex_primitive_type() {
+std::optional<ast::primitive_type> lex_primitive_type() {
     auto pos = lex_backtrack();
     std::optional<std::string> os = lex_word();
     if (!os) {
@@ -112,24 +112,37 @@ std::optional<std::string> lex_primitive_type() {
         return std::nullopt;
     }
     std::string s = os.value();
-    if (s == "void") {
+    if (false) {
+    } else if (s == "void") {
+        return ast::primitive_type{ast::primitive_type::t_void};
     } else if (s == "bool") {
+        return ast::primitive_type{ast::primitive_type::t_bool};
     } else if (s == "u8") {
+        return ast::primitive_type{ast::primitive_type::u8};
     } else if (s == "u16") {
+        return ast::primitive_type{ast::primitive_type::u16};
     } else if (s == "u32") {
+        return ast::primitive_type{ast::primitive_type::u32};
     } else if (s == "u64") {
+        return ast::primitive_type{ast::primitive_type::u64};
     } else if (s == "i8") {
+        return ast::primitive_type{ast::primitive_type::i8};
     } else if (s == "i16") {
+        return ast::primitive_type{ast::primitive_type::i16};
     } else if (s == "i32") {
+        return ast::primitive_type{ast::primitive_type::i32};
     } else if (s == "i64") {
+        return ast::primitive_type{ast::primitive_type::i64};
     } else if (s == "f16") {
+        return ast::primitive_type{ast::primitive_type::f16};
     } else if (s == "f32") {
+        return ast::primitive_type{ast::primitive_type::f32};
     } else if (s == "f64") {
+        return ast::primitive_type{ast::primitive_type::f64};
     } else {
         lex_backtrack(pos);
         return std::nullopt;
     }
-    return {s};
 }
 std::optional<std::string> lex_integer() {
     auto pos = lex_backtrack();
@@ -312,12 +325,13 @@ int main() {
     while (!in.eof()) {
         std::optional<std::string> s;
         std::optional<ast::binary_operator::op> op;
+        std::optional<ast::primitive_type> type;
         if (false) {
         } else if (lex_reserved_keyword(), false) {
         } else if (s = lex_any_keyword()) {
             std::cout << "keyword(" << s.value() << ")";
-        } else if (s = lex_primitive_type()) {
-            std::cout << "type(" << s.value() << ")";
+        } else if ((type = lex_primitive_type())) {
+            std::cout << "type(" << type.value() << ")";
         } else if (s = lex_literal()) {
             std::cout << "literal(" << s.value() << ")";
         } else if (s = lex_identifier()) {
