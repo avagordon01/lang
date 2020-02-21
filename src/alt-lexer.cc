@@ -253,7 +253,7 @@ bool lex_operator() {
 }
 bool lex_whitespace() {
     in >> std::ws;
-    return in.fail();
+    return !in.fail();
 }
 bool lex_comment() {
     if (lex_string("//")) {
@@ -272,6 +272,7 @@ bool lex_comment() {
 
 int main() {
     in >> std::noskipws;
+    in.exceptions(std::istream::badbit);
     while (!in.eof()) {
         std::optional<std::string> s;
         if (s = lex_primitive_type()) {
