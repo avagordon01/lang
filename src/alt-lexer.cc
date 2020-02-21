@@ -144,7 +144,7 @@ std::optional<ast::primitive_type> lex_primitive_type() {
         return std::nullopt;
     }
 }
-std::optional<std::string> lex_integer() {
+std::optional<ast::literal_integer> lex_integer() {
     auto pos = lex_backtrack();
     //parse sign
     bool positive = true;
@@ -198,23 +198,24 @@ std::optional<std::string> lex_integer() {
         }
         in.get();
     }
-    return {std::to_string(positive ? value : -value)};
+    return {ast::literal_integer{positive ? value : -value}};
 }
-std::optional<std::string> lex_literal() {
+std::optional<ast::literal> lex_literal() {
     auto pos = lex_backtrack();
     std::optional<std::string> os = lex_word();
-    if (!os) {
-        lex_backtrack(pos);
-        return lex_integer();
+    if (os && os.value() == "true") {
+        return {{false}};
+    } else if (os && os.value() == "false") {
+        return {{true}};
     }
-    std::string s = os.value();
-    if (s == "true") {
-    } else if (s == "false") {
-    } else {
-        lex_backtrack(pos);
-        return lex_integer();
+    lex_backtrack(pos);
+    auto ol = lex_integer();
+    if (ol) {
+        return {{ol.value()}};
     }
-    return {s};
+    lex_backtrack(pos);
+    //TODO lex float
+    return std::nullopt;
 }
 bool lex_char(char c) {
     if (in.peek() == c) {
@@ -326,14 +327,15 @@ int main() {
         std::optional<std::string> s;
         std::optional<ast::binary_operator::op> op;
         std::optional<ast::primitive_type> type;
+        std::optional<ast::literal> literal;
         if (false) {
         } else if (lex_reserved_keyword(), false) {
         } else if (s = lex_any_keyword()) {
             std::cout << "keyword(" << s.value() << ")";
         } else if ((type = lex_primitive_type())) {
             std::cout << "type(" << type.value() << ")";
-        } else if (s = lex_literal()) {
-            std::cout << "literal(" << s.value() << ")";
+        } else if ((literal = lex_literal())) {
+            std::cout << "literal()";
         } else if (s = lex_identifier()) {
             std::cout << "identifier(" << s.value() << ")";
         } else if (lex_any_char()) {
