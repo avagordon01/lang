@@ -206,7 +206,7 @@ bool lex_char(char c) {
     }
 }
 bool lex_any_char() {
-    if (
+    return
         lex_char(';') ||
         lex_char(',') ||
         lex_char('(') ||
@@ -216,16 +216,10 @@ bool lex_any_char() {
         lex_char('{') ||
         lex_char('}') ||
         lex_char('.') ||
-        lex_char('=')
-    ) {
-        return true;
-    } else {
-        return false;
-    }
+        lex_char('=');
 }
 bool lex_operator() {
-    if (
-        //FIXME && is broken
+    return
         lex_char('+') ||
         lex_char('-') ||
         lex_char('*') ||
@@ -235,26 +229,22 @@ bool lex_operator() {
         lex_char('|') ||
         lex_char('^') ||
         lex_char('~') ||
-        (lex_char('<') && lex_char('<')) ||
-        (lex_char('>') && lex_char('>')) ||
+        lex_string("<<") ||
+        lex_string(">>") ||
 
-        (lex_char('&') && lex_char('&')) ||
-        (lex_char('|') && lex_char('|')) ||
+        lex_string("&&") ||
+        lex_string("||") ||
 
-        (lex_char('=') && lex_char('=')) ||
-        (lex_char('!') && lex_char('=')) ||
-        (lex_char('>') && lex_char('=')) ||
+        lex_string("==") ||
+        lex_string("!=") ||
+        lex_string(">=") ||
         lex_char('>') ||
-        (lex_char('<') && lex_char('=')) ||
+        lex_string("<=") ||
         lex_char('<') ||
 
         lex_char('&') ||
         lex_char('!') ||
-    true) {
-        return true;
-    } else {
-        return false;
-    }
+    false;
 }
 bool lex_whitespace() {
     in >> std::ws;
