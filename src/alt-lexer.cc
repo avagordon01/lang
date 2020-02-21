@@ -267,18 +267,28 @@ bool lex_comment() {
             }
         }
     }
+    if (in.fail()) {
+        in.clear();
+        in.peek();
+    }
     return false;
+}
+bool lex_space() {
+    bool any_space = false;
+    do {
+        any_space = any_space || lex_whitespace();
+    } while (lex_comment());
+    return any_space;
 }
 
 int main() {
     in >> std::noskipws;
     in.exceptions(std::istream::badbit);
+    lex_space();
     while (!in.eof()) {
         std::optional<std::string> s;
         if (s = lex_primitive_type()) {
             std::cout << "type: " << s.value();
-        } else if (lex_comment()) {
-            std::cout << "COMMENT";
         } else if (s = lex_any_keyword()) {
             std::cout << "keyword: " << s.value();
         } else if (lex_reserved_keyword(), false) {
@@ -295,8 +305,8 @@ int main() {
             in >> s;
             error("error: unknown input", s);
         }
+        lex_space();
         std::cout << std::endl;
-        lex_whitespace();
     }
     std::cout << std::endl;
 }
