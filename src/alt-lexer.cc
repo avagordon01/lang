@@ -28,6 +28,27 @@ bool lex_string(std::string s) {
         return false;
     }
 }
+enum char_type {
+    operator,
+    other,
+}
+bool lex_string(char_type t, size_t min = 0, size_t max = 0) {
+    auto pos = lex_backtrack();
+    std::string s;
+    char c;
+    while (in >> c) {
+        if (classify(c) == t) {
+        } else {
+            in.unget();
+            if (in.fail()) {
+                error("error: failed to unget on input stream");
+            }
+            break;
+        }
+    }
+    if (s.length() < min || s.length() > max) {
+    }
+}
 std::optional<std::string> lex_word() {
     std::string s;
     bool first = true;
