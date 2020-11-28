@@ -1,0 +1,3 @@
+[submodule "vendor/PEGTL"]
+	path = vendor/PEGTL
+	url = git@github.com:taocpp/PEGTL

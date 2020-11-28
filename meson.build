@@ -28,6 +28,10 @@ spirv_dep = declare_dependency(
   link_args: '-lSPIRV',
 )
 
+pegtl_dep = declare_dependency(
+  include_directories: 'vendor/PEGTL/include',
+)
+
 compiler = executable(
   'compiler',
   [
@@ -37,12 +41,14 @@ compiler = executable(
     'src/parser.cc',
     'src/tokens.cc',
     'src/driver.cc',
+    'src/alt-parser.cc',
     lexer,
   ],
   include_directories: 'src',
   dependencies: [
     llvm_dep,
     spirv_dep,
+    pegtl_dep,
   ],
   install: true,
 )
