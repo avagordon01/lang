@@ -13,6 +13,7 @@ void driver::parse(std::string _filename) {
         error("cannot open", filename, ":", std::strerror(errno));
     }
     alt_parser_context parser(*this);
+    parser.test_grammar();
     program_ast = parser.parse_program();
     fclose(yyin);
 }

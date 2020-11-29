@@ -9,4 +9,5 @@ struct alt_parser_context {
     alt_parser_context(driver& drv_) : drv(drv_) {
     };
     ast::program parse_program();
+    void test_grammar();
 };

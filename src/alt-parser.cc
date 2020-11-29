@@ -2,30 +2,18 @@
 #include "alt-parser.hh"
 
 #include <tao/pegtl.hpp>
+#include <tao/pegtl/contrib/analyze.hpp>
 #include <map>
 
 using namespace tao::pegtl;
 
-struct program;
-ast::program alt_parser_context::parse_program() {
-    ast::program p {};
-    file_input in(drv.filename);
-    try {
-        parse<program>(in);
-    } catch (tao::pegtl::parse_error& e) {
-        const auto p = e.positions().front();
-        std::cerr << e.what() << std::endl
-            << in.line_at(p) << '\n'
-            << std::setw(p.column) << '^' << std::endl;
-        exit(1);
-    }
-    return p;
-}
-struct ignore: sor<
-    plus<space>,
+
+struct comment: sor<
     if_must<string<'/', '/'>, until<eolf>>,
     if_must<string<'/', '*'>, until<string<'*', '/'>>>
 > {};
+struct whitespace: plus<space> {};
+struct ignore: star<space> {};
 struct block;
 struct expr;
 struct literal_integer: seq<
@@ -40,36 +28,36 @@ struct literal_float: seq<
 > {};
 struct literal: sor<
     sor<
-        keyword<'t', 'r', 'u', 'e'>,
-        keyword<'f', 'a', 'l', 's', 'e'>
+        TAO_PEGTL_KEYWORD("true"),
+        TAO_PEGTL_KEYWORD("false")
     >,
     literal_integer,
     literal_float
 > {};
 struct primitive_type: sor<
-    keyword<'b', 'o', 'o', 'l'>,
-    keyword<'v', 'o', 'i', 'd'>,
-    keyword<'u', '8'>,
-    keyword<'u', '1', '6'>,
-    keyword<'u', '3', '2'>,
-    keyword<'u', '6', '4'>,
-    keyword<'i', '8'>,
-    keyword<'i', '1', '6'>,
-    keyword<'i', '3', '2'>,
-    keyword<'i', '6', '4'>,
-    keyword<'f', '8'>,
-    keyword<'f', '1', '6'>,
-    keyword<'f', '3', '2'>,
-    keyword<'f', '6', '4'>
+    TAO_PEGTL_KEYWORD("bool"),
+    TAO_PEGTL_KEYWORD("void"),
+    TAO_PEGTL_KEYWORD("u8"),
+    TAO_PEGTL_KEYWORD("u16"),
+    TAO_PEGTL_KEYWORD("u32"),
+    TAO_PEGTL_KEYWORD("u64"),
+    TAO_PEGTL_KEYWORD("i8"),
+    TAO_PEGTL_KEYWORD("i16"),
+    TAO_PEGTL_KEYWORD("i32"),
+    TAO_PEGTL_KEYWORD("i64"),
+    TAO_PEGTL_KEYWORD("f8"),
+    TAO_PEGTL_KEYWORD("f16"),
+    TAO_PEGTL_KEYWORD("f32"),
+    TAO_PEGTL_KEYWORD("f64")
 > {};
 struct named_type: sor<
     primitive_type,
     identifier
 > {};
 struct struct_type: if_must<
-    keyword<'s', 't', 'r', 'u', 'c', 't'>,
-    one<'{'>,
-    list<seq<named_type, identifier>, one<','>>,
+    TAO_PEGTL_KEYWORD("struct"), ignore,
+    one<'{'>, ignore,
+    list<must<named_type, whitespace, identifier>, one<','>, whitespace /*FIXME this should be ignore*/>, ignore,
     one<'}'>
 > {};
 struct array_type: seq<
@@ -79,27 +67,29 @@ struct array_type: seq<
     one<']'>
 > {};
 struct type: sor<
-    named_type,
     struct_type,
-    array_type
+    array_type,
+    named_type
 > {};
 struct function_call: seq<
     identifier,
     one<'('>,
-    list_must<expr, one<','>>,
+    list_must<expr, one<','>, whitespace>,
     one<')'>
 > {};
 struct type_def: if_must<
-    keyword<'t', 'y', 'p', 'e'>,
-    identifier,
-    one<'='>,
+    TAO_PEGTL_KEYWORD("type"), whitespace,
+    identifier, ignore,
+    one<'='>, ignore,
     type
 > {};
 struct variable_def: if_must<
-    keyword<'v', 'a', 'r'>,
-    opt<named_type>,
-    identifier,
-    one<'='>,
+    TAO_PEGTL_KEYWORD("var"), ignore,
+    sor<
+        seq<named_type, whitespace, identifier>,
+        identifier
+    >, ignore,
+    one<'='>, ignore,
     expr
 > {};
 struct field_access: seq<
@@ -118,65 +108,75 @@ struct assignment: seq<
     expr
 > {};
 struct if_statement: if_must<
-    keyword<'i', 'f'>, expr, block,
-    star<seq<keyword<'e', 'l', 'i', 'f'>, expr, block>>,
-    opt<seq<keyword<'e', 'l', 's', 'e'>, block>>
+    TAO_PEGTL_KEYWORD("if"), ignore, expr, ignore, block,
+    star<seq<TAO_PEGTL_KEYWORD("elif"), ignore, expr, ignore, block>>,
+    opt<seq<TAO_PEGTL_KEYWORD("else"), ignore, block>>
 > {};
 struct for_loop: if_must<
-    keyword<'f', 'o', 'r'>,
+    TAO_PEGTL_KEYWORD("for"),
     variable_def, one<';'>, 
     expr, one<';'>,
     assignment,
     block
 > {};
 struct while_loop: if_must<
-    keyword<'w', 'h', 'i', 'l', 'e'>,
-    expr, block
-> {};
-struct switch_statement: if_must<
-    keyword<'s', 'w', 'i', 't', 'c', 'h'>,
-    expr,
-    one<'{'>, star<seq<
-        keyword<'c', 'a', 's', 'e'>,
-        list<literal_integer, one<','>>,
-        block
-    >>, one<'}'>
-> {};
-struct function_def: seq<
-    opt<keyword<'e', 'x', 'p', 'o', 'r', 't'>>,
-    keyword<'f', 'n'>,
-    opt<primitive_type>,
-    identifier,
-    one<'('>,
-    list_must<seq<named_type, identifier>, one<','>>,
-    one<')'>,
+    TAO_PEGTL_KEYWORD("while"), ignore,
+    expr, ignore,
     block
 > {};
-struct s_return: seq<
-    keyword<'r', 'e', 't', 'u', 'r', 'n'>,
-    opt<expr>
+struct switch_statement: if_must<
+    TAO_PEGTL_KEYWORD("switch"), ignore,
+    expr, ignore,
+    one<'{'>, ignore,
+    star<if_must<
+        TAO_PEGTL_KEYWORD("case"), whitespace,
+        list<literal_integer, one<','>, whitespace>, ignore,
+        block
+    >>,
+    one<'}'>
 > {};
-struct s_break: keyword<'b', 'r', 'e', 'a', 'k'> {};
-struct s_continue: keyword<'c', 'o', 'n', 't', 'i', 'n', 'u', 'e'> {};
+struct function_def: if_must<
+    seq<
+    opt<TAO_PEGTL_KEYWORD("export")>, ignore,
+    TAO_PEGTL_KEYWORD("fn"), whitespace
+    >,
+    opt<primitive_type>, whitespace,
+    identifier, ignore,
+    one<'('>,
+    star<if_must<named_type, whitespace, identifier>, one<','>, ignore>,
+    opt<if_must<named_type, whitespace, identifier>>, ignore,
+    one<')'>, ignore,
+    block
+> {};
 struct top_level_statement: sor<
     function_def,
     type_def,
     variable_def
 > {};
+struct program: must<
+    star<top_level_statement, one<';'>>,
+    eof
+> {};
+struct s_return: seq<
+    TAO_PEGTL_KEYWORD("return"),
+    opt<expr>
+> {};
+struct s_break: TAO_PEGTL_KEYWORD("break") {};
+struct s_continue: TAO_PEGTL_KEYWORD("continue") {};
 struct statement: sor<
-    expr,
-    function_def,
     variable_def,
+    function_def,
     type_def,
     assignment,
     s_return,
     s_break,
-    s_continue
+    s_continue,
+    expr
 > {};
 struct block: seq<
-    one<'{'>,
-    list_must<statement, one<';'>>,
-    one<'}'>
+    one<'{'>, ignore,
+    star<statement, ignore, one<';'>, ignore>,
+    one<'}'>, ignore
 > {};
 struct operators {
     enum class order: int {
@@ -222,7 +222,24 @@ struct exp_atom: sor<
     seq<one<'('>, expr, one<')'>>
 > {};
 struct expr: exp_atom {};
-struct program: must<
-    list_must<top_level_statement, one<';'>>,
-    eof
-> {};
+
+ast::program alt_parser_context::parse_program() {
+    ast::program p {};
+    file_input in(drv.filename);
+    try {
+        parse<program>(in);
+    } catch (tao::pegtl::parse_error& e) {
+        const auto p = e.positions().front();
+        std::cerr << e.what() << std::endl
+            << in.line_at(p) << '\n'
+            << std::setw(p.column) << '^' << std::endl;
+        exit(1);
+    }
+    return p;
+}
+void alt_parser_context::test_grammar() {
+    if (analyze<program>() != 0) {
+        std::cerr << "cycles without progress detected!\n";
+        exit(1);
+    }
+}
