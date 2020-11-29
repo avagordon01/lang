@@ -6,11 +6,17 @@
 
 using namespace tao::pegtl;
 
+struct program;
 ast::program alt_parser_context::parse_program() {
     ast::program p {};
+    file_input in(drv.filename);
     try {
-    } catch (parse_error& e) {
-        std::cerr << e.what() << std::endl;
+        parse<program>(in);
+    } catch (tao::pegtl::parse_error& e) {
+        const auto p = e.positions().front();
+        std::cerr << e.what() << std::endl
+            << in.line_at(p) << '\n'
+            << std::setw(p.column) << '^' << std::endl;
         exit(1);
     }
     return p;
@@ -25,6 +31,20 @@ struct expr;
 struct literal_integer: seq<
     opt<one<'+', '-'>>,
     plus<digit>
+> {};
+struct literal_float: seq<
+    literal_integer,
+    one<'.'>,
+    literal_integer,
+    one<'f', 'd'>
+> {};
+struct literal: sor<
+    sor<
+        keyword<'t', 'r', 'u', 'e'>,
+        keyword<'f', 'a', 'l', 's', 'e'>
+    >,
+    literal_integer,
+    literal_float
 > {};
 struct primitive_type: sor<
     keyword<'b', 'o', 'o', 'l'>,
@@ -138,15 +158,6 @@ struct s_return: seq<
 > {};
 struct s_break: keyword<'b', 'r', 'e', 'a', 'k'> {};
 struct s_continue: keyword<'c', 'o', 'n', 't', 'i', 'n', 'u', 'e'> {};
-struct literal: sor<
-    sor<
-        keyword<'t', 'r', 'u', 'e'>,
-        keyword<'f', 'a', 'l', 's', 'e'>
-    >,
-    //TODO pegtl must provide primitives for parsing floats/ints
-    literal_integer,
-    float
-> {};
 struct top_level_statement: sor<
     function_def,
     type_def,
