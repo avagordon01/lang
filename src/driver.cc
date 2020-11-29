@@ -3,22 +3,16 @@
 #include <cstdio>
 
 #include "error.hh"
+#include "alt-parser.hh"
 
-void driver::parse() {
+void driver::parse(std::string _filename) {
+    filename = _filename;
     location.initialize(&filename);
-    scan_begin();
-    parser_context parser(*this);
-    program_ast = parser.parse_program();
-    scan_end();
-}
-
-void driver::scan_begin() {
     yyin = fopen(filename.c_str(), "r");
     if (!yyin) {
         error("cannot open", filename, ":", std::strerror(errno));
     }
-}
-
-void driver::scan_end() {
+    alt_parser_context parser(*this);
+    program_ast = parser.parse_program();
     fclose(yyin);
 }

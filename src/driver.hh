@@ -13,7 +13,5 @@ struct driver {
     bi_registry<ast::identifier, std::string> symbols_registry;
     std::string filename;
 
-    void parse();
-    void scan_begin();
-    void scan_end();
+    void parse(std::string filename);
 };

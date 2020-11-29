@@ -10,8 +10,7 @@ int main(int argc, char *argv[]) {
     }
 
     driver driver;
-    driver.filename = std::string(argv[1]);
-    driver.parse();
+    driver.parse(std::string(argv[1]));
 
     typecheck_context typecheck_context{driver.symbols_registry};
     typecheck(typecheck_context, driver.program_ast);
