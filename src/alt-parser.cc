@@ -26,13 +26,17 @@ struct literal_float: seq<
     literal_integer,
     one<'f', 'd'>
 > {};
-struct literal: sor<
+struct primitive_type;
+struct literal: seq<
     sor<
-        TAO_PEGTL_KEYWORD("true"),
-        TAO_PEGTL_KEYWORD("false")
+        sor<
+            TAO_PEGTL_KEYWORD("true"),
+            TAO_PEGTL_KEYWORD("false")
+        >,
+        literal_integer,
+        literal_float
     >,
-    literal_integer,
-    literal_float
+    opt<primitive_type>
 > {};
 struct primitive_type: sor<
     TAO_PEGTL_KEYWORD("bool"),
