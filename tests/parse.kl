@@ -1,7 +1,7 @@
 type test = struct {
     u64 a,
     u64 b,
-    u64 c
+    u64 c,
 };
 fn void other() {
     if true {

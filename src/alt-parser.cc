@@ -23,8 +23,7 @@ struct literal_integer: seq<
 struct literal_float: seq<
     literal_integer,
     one<'.'>,
-    literal_integer,
-    one<'f', 'd'>
+    literal_integer
 > {};
 struct primitive_type;
 struct literal: seq<
@@ -33,14 +32,14 @@ struct literal: seq<
             TAO_PEGTL_KEYWORD("true"),
             TAO_PEGTL_KEYWORD("false")
         >,
-        literal_integer,
-        literal_float
-    >,
+        literal_float,
+        literal_integer
+    >, ignore,
     opt<primitive_type>
 > {};
 struct primitive_type: sor<
-    TAO_PEGTL_KEYWORD("bool"),
     TAO_PEGTL_KEYWORD("void"),
+    TAO_PEGTL_KEYWORD("bool"),
     TAO_PEGTL_KEYWORD("u8"),
     TAO_PEGTL_KEYWORD("u16"),
     TAO_PEGTL_KEYWORD("u32"),
@@ -61,7 +60,7 @@ struct named_type: sor<
 struct struct_type: if_must<
     TAO_PEGTL_KEYWORD("struct"), ignore,
     one<'{'>, ignore,
-    list<must<named_type, whitespace, identifier>, one<','>, whitespace /*FIXME this should be ignore*/>, ignore,
+    star<seq<named_type, ignore, identifier, ignore, one<','>, ignore>>,
     one<'}'>
 > {};
 struct array_type: seq<
@@ -107,8 +106,8 @@ struct accessor: seq<
     star<sor<field_access, array_access>>
 > {};
 struct assignment: seq<
-    accessor,
-    one<'='>,
+    accessor, ignore,
+    one<'='>, ignore,
     expr
 > {};
 struct if_statement: if_must<
@@ -117,10 +116,10 @@ struct if_statement: if_must<
     opt<seq<TAO_PEGTL_KEYWORD("else"), ignore, block>>
 > {};
 struct for_loop: if_must<
-    TAO_PEGTL_KEYWORD("for"),
-    variable_def, one<';'>, 
-    expr, one<';'>,
-    assignment,
+    TAO_PEGTL_KEYWORD("for"), ignore,
+    variable_def, ignore, one<';'>, ignore,
+    expr, ignore, one<';'>, ignore,
+    assignment, ignore,
     block
 > {};
 struct while_loop: if_must<
@@ -162,7 +161,7 @@ struct program: must<
     eof
 > {};
 struct s_return: seq<
-    TAO_PEGTL_KEYWORD("return"),
+    TAO_PEGTL_KEYWORD("return"), ignore,
     opt<expr>
 > {};
 struct s_break: TAO_PEGTL_KEYWORD("break") {};
