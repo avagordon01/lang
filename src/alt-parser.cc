@@ -192,31 +192,31 @@ namespace {
         associativity assoc;
     };
     const static std::map<std::string, op> ops = {
-        {"||", {precedence{0}, {associativity::left}}},
-        {"&&", {precedence{1}, {associativity::left}}},
+        {"||", {precedence{0}, associativity::left}},
+        {"&&", {precedence{1}, associativity::left}},
 
-        {"==", {precedence{2}, {associativity::left}}},
-        {"!=", {precedence{2}, {associativity::left}}},
-        {">",  {precedence{2}, {associativity::left}}},
-        {">=", {precedence{2}, {associativity::left}}},
-        {"<",  {precedence{2}, {associativity::left}}},
-        {"<=", {precedence{2}, {associativity::left}}},
+        {"==", {precedence{2}, associativity::left}},
+        {"!=", {precedence{2}, associativity::left}},
+        {">",  {precedence{2}, associativity::left}},
+        {">=", {precedence{2}, associativity::left}},
+        {"<",  {precedence{2}, associativity::left}},
+        {"<=", {precedence{2}, associativity::left}},
 
-        {"|",  {precedence{3}, {associativity::left}}},
-        {"^",  {precedence{4}, {associativity::left}}},
-        {"&",  {precedence{5}, {associativity::left}}},
-        {">>", {precedence{6}, {associativity::left}}},
-        {"<<", {precedence{6}, {associativity::left}}},
+        {"|",  {precedence{3}, associativity::left}},
+        {"^",  {precedence{4}, associativity::left}},
+        {"&",  {precedence{5}, associativity::left}},
+        {">>", {precedence{6}, associativity::left}},
+        {"<<", {precedence{6}, associativity::left}},
 
-        {"+", {precedence{7}, {associativity::left}}},
-        {"-", {precedence{7}, {associativity::left}}},
+        {"+", {precedence{7}, associativity::left}},
+        {"-", {precedence{7}, associativity::left}},
 
-        {"*", {precedence{8}, {associativity::left}}},
-        {"/", {precedence{8}, {associativity::left}}},
-        {"%", {precedence{8}, {associativity::left}}},
+        {"*", {precedence{8}, associativity::left}},
+        {"/", {precedence{8}, associativity::left}},
+        {"%", {precedence{8}, associativity::left}},
 
-        {"~", {precedence{9}, {associativity::right}}},
-        {"!", {precedence{9}, {associativity::right}}},
+        {"~", {precedence{9}, associativity::right}},
+        {"!", {precedence{9}, associativity::right}},
     };
     constexpr size_t max_operator_length = 2;
 }
@@ -260,10 +260,8 @@ struct operators {
     */
 };
 namespace TAO_PEGTL_NAMESPACE {
-template< typename Name >
-struct analyze_traits< Name, operators >
-   : analyze_any_traits<>
-{};
+template<typename Name>
+struct analyze_traits<Name, operators>: analyze_any_traits<> {};
 }
 struct exp_atom: sor<
     literal,
