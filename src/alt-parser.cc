@@ -3,6 +3,8 @@
 
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/analyze.hpp>
+#include <tao/pegtl/contrib/parse_tree.hpp>
+#include <tao/pegtl/contrib/parse_tree_to_dot.hpp>
 #include <map>
 
 using namespace tao::pegtl;
@@ -222,6 +224,7 @@ namespace {
 }
 struct operators {
     using rule_t = operators;
+    using subs_t = tao::pegtl::empty_list;
 
     template<typename ParseInput>
     static bool match(ParseInput& in) {
@@ -280,7 +283,11 @@ ast::program alt_parser_context::parse_program() {
     ast::program p {};
     file_input in(drv.filename);
     try {
-        parse<program>(in);
+        std::unique_ptr<parse_tree::node> root = parse_tree::parse<program>(in);
+        if(root) {
+            parse_tree::print_dot(std::cout, *root);
+        }
+        //parse<program>(in);
     } catch (tao::pegtl::parse_error& e) {
         const auto p = e.positions().front();
         std::cerr << e.what() << std::endl

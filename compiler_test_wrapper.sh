@@ -20,7 +20,7 @@ if [ "$print_ast" = true ]; then
         --args \
         ./compiler ${input_raw} ${output_raw}
 else
-    ./compiler ${input_raw} ${output_raw}
+    ./compiler ${input_raw} ${output_raw} | dot -Tsvg -o parse_tree.svg
 fi
 
 if [ "$print_ir" = true ]; then
