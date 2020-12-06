@@ -34,7 +34,7 @@ struct literal: seq<
         >,
         literal_float,
         literal_integer
-    >, ignore,
+    >,
     opt<primitive_type>
 > {};
 struct primitive_type: sor<
@@ -157,7 +157,7 @@ struct top_level_statement: sor<
     variable_def
 > {};
 struct program: must<
-    star<top_level_statement, one<';'>>,
+    star<top_level_statement, ignore, one<';'>, ignore>,
     eof
 > {};
 struct s_return: seq<
@@ -269,7 +269,6 @@ struct exp_atom: sor<
     switch_statement,
     for_loop,
     while_loop,
-    block,
     function_call,
     accessor,
     seq<one<'('>, expr, one<')'>>,
