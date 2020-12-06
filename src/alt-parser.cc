@@ -181,38 +181,90 @@ struct block: seq<
     star<statement, ignore, one<';'>, ignore>,
     one<'}'>, ignore
 > {};
-struct operators {
-    enum class order: int {
+namespace {
+    enum class precedence: int {
     };
-    operators();
-    [[nodiscard]] const std::map<std::string, order> ops() const noexcept {
-        return {
-            {"+", order(5)},
-            {"-", order(5)},
-            {"*", order(5)},
-            {"/", order(5)},
-            {"%", order(5)},
+    enum class associativity {
+        left, right,
+    };
+    struct op {
+        precedence prec;
+        associativity assoc;
+    };
+    const static std::map<std::string, op> ops = {
+        {"||", {precedence{0}, {associativity::left}}},
+        {"&&", {precedence{1}, {associativity::left}}},
 
-            {"&", order(5)},
-            {"|", order(5)},
-            {"^", order(5)},
-            {"~", order(5)},
-            {"<<", order(5)},
-            {">>", order(5)},
+        {"==", {precedence{2}, {associativity::left}}},
+        {"!=", {precedence{2}, {associativity::left}}},
+        {">",  {precedence{2}, {associativity::left}}},
+        {">=", {precedence{2}, {associativity::left}}},
+        {"<",  {precedence{2}, {associativity::left}}},
+        {"<=", {precedence{2}, {associativity::left}}},
 
-            {"&&", order(5)},
-            {"||", order(5)},
-            {"!",  order(5)},
+        {"|",  {precedence{3}, {associativity::left}}},
+        {"^",  {precedence{4}, {associativity::left}}},
+        {"&",  {precedence{5}, {associativity::left}}},
+        {">>", {precedence{6}, {associativity::left}}},
+        {"<<", {precedence{6}, {associativity::left}}},
 
-            {"==", order(5)},
-            {"!=", order(5)},
-            {">",  order(5)},
-            {">=", order(5)},
-            {"<",  order(5)},
-            {">=", order(5)},
-        };
+        {"+", {precedence{7}, {associativity::left}}},
+        {"-", {precedence{7}, {associativity::left}}},
+
+        {"*", {precedence{8}, {associativity::left}}},
+        {"/", {precedence{8}, {associativity::left}}},
+        {"%", {precedence{8}, {associativity::left}}},
+
+        {"~", {precedence{9}, {associativity::right}}},
+        {"!", {precedence{9}, {associativity::right}}},
+    };
+    constexpr size_t max_operator_length = 2;
+}
+struct operators {
+    using rule_t = operators;
+
+    template<typename ParseInput>
+    static bool match(ParseInput& in) {
+        if (!in.empty()) {
+            std::string buf {};
+            for (size_t i = 0; i < max_operator_length; i++) {
+                buf += in.peek_char(i);
+            }
+            while (!buf.empty()) {
+                if (ops.find(buf) != ops.end()) {
+                    in.bump(buf.size());
+                    return true;
+                }
+                buf.resize(buf.size() - 1);
+            }
+        }
+        return false;
     }
+
+    /*
+    template<typename ParseInput>
+    static bool _match(ParseInput& in, std::string buf) {
+        if (in.size(buf.size() + 1) > buf.size()) {
+            buf += in.peek_char(buf.size());
+            const auto i = std::find(std::begin(ops), std::end(ops), buf);
+            if (i != std::end(ops)) {
+                return true;
+            }
+            if (i->str == buf) {
+                in.bump(buf.size());
+                return true;
+            }
+        }
+        return false;
+    }
+    */
 };
+namespace TAO_PEGTL_NAMESPACE {
+template< typename Name >
+struct analyze_traits< Name, operators >
+   : analyze_any_traits<>
+{};
+}
 struct exp_atom: sor<
     literal,
     if_statement,
@@ -222,9 +274,10 @@ struct exp_atom: sor<
     block,
     function_call,
     accessor,
-    seq<one<'('>, expr, one<')'>>
+    seq<one<'('>, expr, one<')'>>,
+    operators
 > {};
-struct expr: exp_atom {};
+struct expr: plus<exp_atom, ignore> {};
 
 ast::program alt_parser_context::parse_program() {
     ast::program p {};
