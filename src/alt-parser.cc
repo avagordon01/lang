@@ -279,11 +279,39 @@ struct exp_atom: sor<
 > {};
 struct expr: plus<exp_atom, ignore> {};
 
+
+struct transformer: std::true_type {
+    static void transform(std::unique_ptr<parse_tree::node>& n) {
+        if (n->has_content()) {
+            std::cerr << n->string_view() << std::endl;
+        }
+    }
+};
+
+template<typename Rule>
+using selector = parse_tree::selector<
+    Rule,
+    parse_tree::apply<transformer>::on<
+        block
+    >,
+    parse_tree::remove_content::on<
+        program,
+        top_level_statement
+    >,
+    parse_tree::store_content::on<
+        function_def,
+        variable_def,
+        type_def,
+        statement,
+        expr
+    >
+>;
+
 ast::program alt_parser_context::parse_program() {
     ast::program p {};
     file_input in(drv.filename);
     try {
-        std::unique_ptr<parse_tree::node> root = parse_tree::parse<program>(in);
+        std::unique_ptr<parse_tree::node> root = parse_tree::parse<program, selector>(in);
         if(root) {
             parse_tree::print_dot(std::cout, *root);
         }
