@@ -224,7 +224,7 @@ namespace {
 }
 struct operators {
     using rule_t = operators;
-    using subs_t = tao::pegtl::empty_list;
+    using subs_t = empty_list;
 
     template<typename ParseInput>
     static bool match(ParseInput& in) {
@@ -312,14 +312,13 @@ ast::program alt_parser_context::parse_program() {
     file_input in(drv.filename);
     try {
         std::unique_ptr<parse_tree::node> root = parse_tree::parse<program, selector>(in);
-        if(root) {
+        if (root) {
             parse_tree::print_dot(std::cout, *root);
         }
-        //parse<program>(in);
-    } catch (tao::pegtl::parse_error& e) {
+    } catch (parse_error& e) {
         const auto p = e.positions().front();
         std::cerr << e.what() << std::endl
-            << in.line_at(p) << '\n'
+            << in.line_at(p) << std::endl
             << std::setw(p.column) << '^' << std::endl;
         exit(1);
     }
@@ -327,7 +326,7 @@ ast::program alt_parser_context::parse_program() {
 }
 void alt_parser_context::test_grammar() {
     if (analyze<program>() != 0) {
-        std::cerr << "cycles without progress detected!\n";
+        std::cerr << "cycles without progress detected!" << std::endl;
         exit(1);
     }
 }
