@@ -281,9 +281,14 @@ struct expr: plus<exp_atom, ignore> {};
 
 
 struct transformer: std::true_type {
-    static void transform(std::unique_ptr<parse_tree::node>& n) {
-        if (n->has_content()) {
-            std::cerr << n->string_view() << std::endl;
+    static void transform(std::unique_ptr<parse_tree::node>& node) {
+        if (!node) {
+            return;
+        }
+        if (node->type == "block") {
+            std::cerr << "visiting block node!" << std::endl;
+        } else {
+            std::cerr << "visiting other node!" << std::endl;
         }
     }
 };
@@ -307,6 +312,20 @@ using selector = parse_tree::selector<
     >
 >;
 
+void visitor(std::unique_ptr<parse_tree::node>& node) {
+    if (!node) {
+        return;
+    }
+    if (node->type == "block") {
+        std::cerr << "visiting block node!" << std::endl;
+    } else {
+        std::cerr << "visiting other node!" << std::endl;
+    }
+    for (std::unique_ptr<parse_tree::node>& child_node: node->children) {
+        visitor(child_node);
+    }
+}
+
 ast::program alt_parser_context::parse_program() {
     ast::program p {};
     file_input in(drv.filename);
@@ -315,6 +334,7 @@ ast::program alt_parser_context::parse_program() {
         if (root) {
             parse_tree::print_dot(std::cout, *root);
         }
+        visitor(root);
     } catch (parse_error& e) {
         const auto p = e.positions().front();
         std::cerr << e.what() << std::endl
