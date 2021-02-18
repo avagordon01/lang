@@ -177,6 +177,7 @@ namespace ast {
         > statement;
     };
     struct program {
+        bi_registry<ast::identifier, std::string> symbols_registry;
         statement_list statements;
     };
 }

@@ -1,4 +1,3 @@
-#include "driver.hh"
 #include "alt-parser.hh"
 
 #include <tao/pegtl.hpp>
@@ -326,9 +325,9 @@ void visitor(std::unique_ptr<parse_tree::node>& node) {
     }
 }
 
-ast::program alt_parser_context::parse_program() {
+ast::program parse(std::string filename) {
     ast::program p {};
-    file_input in(drv.filename);
+    file_input in(filename);
     try {
         std::unique_ptr<parse_tree::node> root = parse_tree::parse<program, selector>(in);
         if (root) {
@@ -344,7 +343,7 @@ ast::program alt_parser_context::parse_program() {
     }
     return p;
 }
-void alt_parser_context::test_grammar() {
+void test_grammar() {
     if (analyze<program>() != 0) {
         std::cerr << "cycles without progress detected!" << std::endl;
         exit(1);

@@ -32,7 +32,6 @@ compiler = executable(
     'src/codegen_llvm.cc',
     'src/typecheck.cc',
     'src/tokens.cc',
-    'src/driver.cc',
     'src/alt-parser.cc',
   ],
   include_directories: 'src',

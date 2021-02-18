@@ -14,7 +14,7 @@ print_ir=false
 if [ "$print_ast" = true ]; then
     gdb -ex "break main.cc:15" \
         -ex run \
-        -ex "print driver.program_ast" \
+        -ex "print program_ast" \
         -ex continue \
         -ex quit \
         --args \
