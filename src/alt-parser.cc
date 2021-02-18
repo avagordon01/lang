@@ -326,6 +326,11 @@ void visitor(std::unique_ptr<parse_tree::node>& node) {
 }
 
 ast::program parse(std::string filename) {
+    if (analyze<program>() != 0) {
+        std::cerr << "cycles without progress detected!" << std::endl;
+        exit(1);
+    }
+
     ast::program p {};
     file_input in(filename);
     try {
@@ -342,10 +347,4 @@ ast::program parse(std::string filename) {
         exit(1);
     }
     return p;
-}
-void test_grammar() {
-    if (analyze<program>() != 0) {
-        std::cerr << "cycles without progress detected!" << std::endl;
-        exit(1);
-    }
 }

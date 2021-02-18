@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
         error("usage:", argv[0], "input.kl output.ir");
     }
 
-    test_grammar();
     auto program_ast = parse(std::string(argv[1]));
 
     typecheck_context typecheck_context{};
