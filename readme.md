@@ -4,25 +4,23 @@ kl is a language for easy and high performance compute kernel and graphics shade
 ## depends
 Meson and Ninja are used as the build system. PEGTL is used for parsing. LLVM and glslang are required for the LLVM-IR and SPIR-V backend/codegen.
 
-```# pacman -S meson ninja llvm llvm-libs glslang```
+```pacman -S meson ninja llvm llvm-libs glslang```
 
 Alternatively, a [nix](https://nixos.org/nix/) derivation is provided. This can be used either by doing `nix-build`, or entering a `nix-shell` and entering the following commands.
 
 ## building
 ```
-$ meson setup build
-$ cd build
-$ ninja
+./build.sh
 ```
 
 ## usage
 ```
-$ build/compiler input.kl output.ir
+out/compiler input.kl output.ir
 ```
 
 ## testing
 ```
-$ ninja test
+./test.sh
 ```
 
 ## status

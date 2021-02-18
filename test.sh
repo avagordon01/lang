@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 set -euxo pipefail
-if [[ ! -d out ]]; then
-    meson setup out
-fi
+./build.sh
 meson test --print-errorlogs -C out
