@@ -5,6 +5,8 @@
 #include <tao/pegtl/contrib/parse_tree.hpp>
 #include <tao/pegtl/contrib/parse_tree_to_dot.hpp>
 #include <map>
+#include <optional>
+#include <typeinfo>
 
 using namespace tao::pegtl;
 
@@ -279,12 +281,30 @@ struct exp_atom: sor<
 struct expr: plus<exp_atom, ignore> {};
 
 
+template<typename T>
+struct my_basic_node: tao::pegtl::parse_tree::basic_node<T> {
+    std::unique_ptr<std::type_info> t_type;
+
+    [[nodiscard]] bool is_root() const noexcept {
+        return static_cast<bool>(t_type);
+    }
+    template<typename U>
+    [[nodiscard]] bool is_type() const noexcept {
+        return *t_type == typeid(U);
+    }
+    template<typename U>
+    void set_type() noexcept {
+        t_type = std::make_unique<std::type_info>(typeid(U));
+    }
+};
+struct my_node: my_basic_node<my_node>{};
+
 struct transformer: std::true_type {
-    static void transform(std::unique_ptr<parse_tree::node>& node) {
+    static void transform(std::unique_ptr<my_node>& node) {
         if (!node) {
             return;
         }
-        if (node->type == "block") {
+        if (*node->t_type == typeid(block)) {
             std::cerr << "visiting block node!" << std::endl;
         } else {
             std::cerr << "visiting other node!" << std::endl;
@@ -311,16 +331,16 @@ using selector = parse_tree::selector<
     >
 >;
 
-void visitor(std::unique_ptr<parse_tree::node>& node) {
+void visitor(std::unique_ptr<my_node>& node) {
     if (!node) {
         return;
     }
-    if (node->type == "block") {
+    if (*node->t_type == typeid(block)) {
         std::cerr << "visiting block node!" << std::endl;
     } else {
         std::cerr << "visiting other node!" << std::endl;
     }
-    for (std::unique_ptr<parse_tree::node>& child_node: node->children) {
+    for (std::unique_ptr<my_node>& child_node: node->children) {
         visitor(child_node);
     }
 }
@@ -334,7 +354,7 @@ ast::program parse(std::string filename) {
     ast::program p {};
     file_input in(filename);
     try {
-        std::unique_ptr<parse_tree::node> root = parse_tree::parse<program, selector>(in);
+        std::unique_ptr<my_node> root = parse_tree::parse<program, my_node, selector>(in);
         if (root) {
             parse_tree::print_dot(std::cout, *root);
         }
