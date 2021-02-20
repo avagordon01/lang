@@ -6,30 +6,37 @@
 
 std::istream& in = std::cin;
 
-std::ios::pos_type lex_backtrack() {
-    return in.tellg();
-}
-void lex_backtrack(std::ios::pos_type p) {
-    in.clear();
-    in.seekg(p);
-    if (in.tellg() != p) {
-        error("error: failed to backtrack in input stream");
+struct backtrack_point {
+    std::optional<std::ios::pos_type> p;
+    backtrack_point() {
+        p = {in.tellg()};
     }
-}
+    void disable() {
+        p = std::nullopt;
+    }
+    ~backtrack_point() {
+        if (p) {
+            in.clear();
+            in.seekg(*p);
+            if (in.tellg() != p) {
+                error("error: failed to backtrack in input stream");
+            }
+        }
+    }
+};
 bool lex_string(std::string s, bool word_boundary = false) {
-    auto pos = lex_backtrack();
+    backtrack_point bp;
     std::string test (s.length(), 0);
     in.read(test.data(), s.length());
     if (test == s) {
         char c;
         in >> c;
         if (word_boundary && (std::isalnum(c) || c == '_')) {
-            lex_backtrack(pos);
             return false;
         }
+        bp.disable();
         return true;
     } else {
-        lex_backtrack(pos);
         return false;
     }
 }
@@ -117,47 +124,58 @@ std::optional<std::string> lex_identifier() {
     return lex_word();
 }
 std::optional<ast::primitive_type> lex_primitive_type() {
-    auto pos = lex_backtrack();
+    backtrack_point bp;
     std::optional<std::string> os = lex_word();
     if (!os) {
-        lex_backtrack(pos);
         return std::nullopt;
     }
     std::string s = os.value();
     if (false) {
     } else if (s == "void") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::t_void};
     } else if (s == "bool") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::t_bool};
     } else if (s == "u8") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::u8};
     } else if (s == "u16") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::u16};
     } else if (s == "u32") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::u32};
     } else if (s == "u64") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::u64};
     } else if (s == "i8") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::i8};
     } else if (s == "i16") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::i16};
     } else if (s == "i32") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::i32};
     } else if (s == "i64") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::i64};
     } else if (s == "f16") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::f16};
     } else if (s == "f32") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::f32};
     } else if (s == "f64") {
+        bp.disable();
         return ast::primitive_type{ast::primitive_type::f64};
     } else {
-        lex_backtrack(pos);
         return std::nullopt;
     }
 }
 std::optional<ast::literal_integer> lex_integer() {
-    auto pos = lex_backtrack();
+    backtrack_point bp;
     //parse sign
     bool positive = true;
     char c = in.peek();
@@ -168,7 +186,6 @@ std::optional<ast::literal_integer> lex_integer() {
         in.get();
     }
     if (!std::isdigit(in.peek())) {
-        lex_backtrack(pos);
         return std::nullopt;
     }
     //parse base
@@ -211,38 +228,41 @@ std::optional<ast::literal_integer> lex_integer() {
         in.get();
     }
     if (c == '.') {
-        lex_backtrack(pos);
         return std::nullopt;
     }
+    bp.disable();
     return {ast::literal_integer{positive ? value : -value}};
 }
 std::optional<ast::literal> lex_literal() {
-    auto pos = lex_backtrack();
     {
+        backtrack_point bp;
         std::optional<std::string> os;
         if ((os = lex_keyword("true"))) {
+            bp.disable();
             return {{true}};
         } else if ((os = lex_keyword("false"))) {
+            bp.disable();
             return {{false}};
         }
     }
-    lex_backtrack(pos);
     {
+        backtrack_point bp;
         auto ol = lex_integer();
         if (ol) {
+            bp.disable();
             return {{ol.value()}};
         }
     }
-    lex_backtrack(pos);
     {
+        backtrack_point bp;
         double d;
         in >> d;
         if (!in.fail()) {
+            bp.disable();
             return {{d}};
         }
         in.clear();
     }
-    lex_backtrack(pos);
     return std::nullopt;
 }
 bool lex_any_char() {
