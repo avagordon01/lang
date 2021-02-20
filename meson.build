@@ -44,7 +44,6 @@ compiler = executable(
     'src/typecheck.cc',
     'src/parser.cc',
     'src/tokens.cc',
-    'src/driver.cc',
     lexer,
   ],
   include_directories: 'src',
