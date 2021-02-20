@@ -239,46 +239,38 @@ std::optional<ast::literal> lex_literal() {
     lex_backtrack(pos);
     return std::nullopt;
 }
-bool lex_char(char c) {
-    if (in.peek() == c) {
-        in.get();
-        return true;
-    } else {
-        return false;
-    }
-}
 bool lex_any_char() {
     return
-        lex_char(';') ||
-        lex_char(',') ||
-        lex_char('(') ||
-        lex_char(')') ||
-        lex_char('[') ||
-        lex_char(']') ||
-        lex_char('{') ||
-        lex_char('}') ||
-        lex_char('.') ||
-        lex_char('=');
+        lex_string(";") ||
+        lex_string(",") ||
+        lex_string("(") ||
+        lex_string(")") ||
+        lex_string("[") ||
+        lex_string("]") ||
+        lex_string("{") ||
+        lex_string("}") ||
+        lex_string(".") ||
+        lex_string("=");
 }
 std::optional<ast::binary_operator::op> lex_operator() {
     if (false) {
-    } else if (lex_char('+')) {
+    } else if (lex_string("+")) {
         return {ast::binary_operator::A_ADD};
-    } else if (lex_char('-')) {
+    } else if (lex_string("-")) {
         return {ast::binary_operator::A_SUB};
-    } else if (lex_char('*')) {
+    } else if (lex_string("*")) {
         return {ast::binary_operator::A_MUL};
-    } else if (lex_char('/')) {
+    } else if (lex_string("/")) {
         return {ast::binary_operator::A_DIV};
-    } else if (lex_char('%')) {
+    } else if (lex_string("%")) {
         return {ast::binary_operator::A_MOD};
 
-    } else if (lex_char('|')) {
+    } else if (lex_string("|")) {
         return {ast::binary_operator::B_OR};
-    } else if (lex_char('^')) {
+    } else if (lex_string("^")) {
         return {ast::binary_operator::B_XOR};
-    } else if (lex_char('~')) {
-        //return {ast::unary_operator::B_NOT};
+    } else if (lex_string("~")) {
+        //TODO return {ast::unary_operator::B_NOT};
         return {ast::binary_operator::A_ADD};
     } else if (lex_string("<<")) {
         return {ast::binary_operator::B_SHL};
@@ -296,18 +288,18 @@ std::optional<ast::binary_operator::op> lex_operator() {
         return {ast::binary_operator::C_NE};
     } else if (lex_string(">=")) {
         return {ast::binary_operator::C_GE};
-    } else if (lex_char('>')) {
+    } else if (lex_string(">")) {
         return {ast::binary_operator::C_GT};
     } else if (lex_string("<=")) {
         return {ast::binary_operator::C_LE};
-    } else if (lex_char('<')) {
+    } else if (lex_string("<")) {
         return {ast::binary_operator::C_LT};
 
-    } else if (lex_char('&')) {
+    } else if (lex_string("&")) {
         return {ast::binary_operator::B_AND};
-    } else if (lex_char('!')) {
+    } else if (lex_string("!")) {
         return {ast::binary_operator::A_ADD};
-        //return {ast::unary_operator::L_NOT};
+        //TODO return {ast::unary_operator::L_NOT};
     }
     return std::nullopt;
 }
@@ -322,7 +314,7 @@ bool lex_comment() {
     } else if (lex_string("/*")) {
         while (true) {
             in.ignore(std::numeric_limits<std::streamsize>::max(), '*');
-            if (lex_char('/')) {
+            if (lex_string("/")) {
                 return true;
             }
         }
