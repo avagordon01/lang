@@ -17,11 +17,17 @@ void lex_backtrack(std::ios::pos_type p) {
     }
     in.peek();
 }
-bool lex_string(std::string s) {
+bool lex_string(std::string s, bool word_boundary = false) {
     auto pos = lex_backtrack();
     std::string test (s.length(), 0);
     in.read(test.data(), s.length());
     if (test == s) {
+        char c;
+        in >> c;
+        if (word_boundary && (std::isalnum(c) || c == '_')) {
+            lex_backtrack(pos);
+            return false;
+        }
         return true;
     } else {
         lex_backtrack(pos);
@@ -51,7 +57,7 @@ std::optional<std::string> lex_word() {
     }
 }
 std::optional<std::string> lex_keyword(std::string keyword) {
-    if (lex_string(keyword)) {
+    if (lex_string(keyword, true)) {
         return {keyword};
     } else {
         return std::nullopt;
@@ -207,11 +213,11 @@ std::optional<ast::literal_integer> lex_integer() {
 std::optional<ast::literal> lex_literal() {
     auto pos = lex_backtrack();
     {
-        std::optional<std::string> os = lex_word();
-        if (os && os.value() == "true") {
-            return {{false}};
-        } else if (os && os.value() == "false") {
+        std::optional<std::string> os;
+        if ((os = lex_keyword("true"))) {
             return {{true}};
+        } else if ((os = lex_keyword("false"))) {
+            return {{false}};
         }
     }
     lex_backtrack(pos);
