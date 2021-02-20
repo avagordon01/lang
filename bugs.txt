@@ -11,3 +11,4 @@ bugfix break, continue instructions dont actually get compiled to assembly from 
     or just invoke their command line
         could get nice CLI for free, and possibly optimisation etc
     would it stop us from compiling fine-grained modules for different targets? CPU/GPU?
+switching from gcc to clang breaks the parsing
