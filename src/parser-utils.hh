@@ -16,7 +16,7 @@ template<typename... Ts>
 void parser_context::next_token() {
     buffer_loc++;
     if (buffer_loc >= buffer.size()) {
-        buffer.push_back({yylex(drv), drv.current_param});
+        buffer.push_back({yylex(*this), current_param});
     }
     current_token = buffer[buffer_loc].first;
     current_param = buffer[buffer_loc].second;
@@ -31,7 +31,7 @@ bool parser_context::accept(token_type t) {
 }
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
-        error(drv.location, "parser expected", t, "got", current_token);
+        error(location, "parser expected", t, "got", current_token);
     }
 }
 param_type parser_context::expectp(token_type t) {
@@ -146,7 +146,7 @@ std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_ty
         } else if (accept(delim)) {
             break;
         } else {
-            error(drv.location, "parser expected", sep, "or", delim, "got", current_token);
+            error(location, "parser expected", sep, "or", delim, "got", current_token);
         }
     }
     return list;

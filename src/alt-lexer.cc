@@ -15,6 +15,7 @@ void lex_backtrack(std::ios::pos_type p) {
     if (in.tellg() != p) {
         error("error: failed to backtrack in input stream");
     }
+    //TODO do we need this peek?
     in.peek();
 }
 bool lex_string(std::string s, bool word_boundary = false) {
@@ -38,6 +39,13 @@ std::optional<std::string> lex_word() {
     std::string s;
     bool first = true;
     char c;
+    /*TODO
+    std::find_if_not(
+        std::istreambuf_iterator<char>(in),
+        std::istreambuf_iterator<char>(),
+        [](char c){return std::isalnum
+    );
+    */
     while (in >> c) {
         if (std::isalpha(c) || (!first && std::isdigit(c))) {
             first = false;
@@ -344,13 +352,13 @@ int main() {
         std::optional<ast::literal> literal;
         if (false) {
         } else if (lex_reserved_keyword(), false) {
-        } else if (s = lex_any_keyword()) {
+        } else if ((s = lex_any_keyword())) {
             std::cout << "keyword(" << s.value() << ")";
         } else if ((type = lex_primitive_type())) {
             std::cout << "type(" << type.value() << ")";
         } else if ((literal = lex_literal())) {
             std::cout << "literal()";
-        } else if (s = lex_identifier()) {
+        } else if ((s = lex_identifier())) {
             std::cout << "identifier(" << s.value() << ")";
         } else if (lex_any_char()) {
             std::cout << "any_char";

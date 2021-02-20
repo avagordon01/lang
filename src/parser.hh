@@ -10,13 +10,9 @@
 
 using param_type = std::variant<ast::primitive_type, ast::identifier, bool, ast::literal_integer, double>;
 
-struct driver;
-
 struct parser_context {
-    driver& drv;
-    parser_context(driver& drv_) : drv(drv_) {
-        next_token();
-    };
+    yy::location location;
+    bi_registry<ast::identifier, std::string> symbols_registry;
 
     size_t buffer_loc = -1;
     std::deque<std::pair<token_type, param_type>> buffer {};
@@ -49,7 +45,7 @@ struct parser_context {
     template<typename T>
     std::vector<T> parse_list(T (parser_context::*parse)(), token_type sep, token_type delim);
 
-    ast::program parse_program();
+    ast::program parse_program(std::string filename);
     ast::if_statement parse_if_statement();
     ast::for_loop parse_for_loop();
     ast::while_loop parse_while_loop();

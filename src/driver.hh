@@ -1,19 +1,7 @@
-#include <string>
+#pragma once
 
-#include "ast.hh"
+#include "tokens.hh"
 #include "parser.hh"
-#define YY_DECL token_type yylex(driver& drv)
+#define YY_DECL token_type yylex(parser_context& pc)
 YY_DECL;
 extern FILE *yyin;
-
-struct driver {
-    ast::program program_ast;
-    yy::location location;
-    param_type current_param;
-    bi_registry<ast::identifier, std::string> symbols_registry;
-    std::string filename;
-
-    void parse();
-    void scan_begin();
-    void scan_end();
-};

@@ -9,6 +9,7 @@
 
 #include "types.hh"
 #include "location.hh"
+#include "registry.hh"
 
 namespace ast {
     struct function_call;
@@ -177,6 +178,7 @@ namespace ast {
         > statement;
     };
     struct program {
+        bi_registry<ast::identifier, std::string> symbols_registry;
         statement_list statements;
     };
 }

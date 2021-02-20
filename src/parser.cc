@@ -1,18 +1,27 @@
 #include <iostream>
 
+#include "ast.hh"
 #include "driver.hh"
 #include "parser.hh"
 #include "parser-utils.hh"
 
-ast::program parser_context::parse_program() {
-    ast::program p {};
+ast::program parser_context::parse_program(std::string filename) {
+    yyin = fopen(filename.c_str(), "r");
+    if (!yyin) {
+        error("cannot open", filename, ":", std::strerror(errno));
+    }
+    location.initialize(&filename);
+    ast::program program_ast {};
+    next_token();
     try {
-        p.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
+        program_ast.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
     } catch (parse_error& e) {
         std::cerr << e.what() << std::endl;
         exit(1);
     }
-    return p;
+    program_ast.symbols_registry = symbols_registry;
+    fclose(yyin);
+    return program_ast;
 }
 ast::block parser_context::parse_block() {
     expect(token_type::OPEN_C_BRACKET);
@@ -161,7 +170,7 @@ ast::access parser_context::parse_access() {
     if (a) {
         return std::move(a.value());
     }
-    error(drv.location, "parser expected accessor. got");
+    error(location, "parser expected accessor. got");
 }
 ast::accessor parser_context::parse_accessor() {
     ast::accessor a {};
@@ -179,7 +188,7 @@ ast::named_type parser_context::parse_named_type() {
                 std::get<ast::identifier>(expectp(token_type::IDENTIFIER)).value
             }};
         default:
-            error(drv.location, "parser expected named type. got", current_token);
+            error(location, "parser expected named type. got", current_token);
     }
 }
 ast::type parser_context::parse_type() {
@@ -196,7 +205,7 @@ ast::type parser_context::parse_type() {
     if (a) {
         return ast::type{a.value()};
     }
-    error(drv.location, "parser expected type. got", current_token);
+    error(location, "parser expected type. got", current_token);
 }
 ast::primitive_type parser_context::parse_primitive_type() {
     return std::get<ast::primitive_type>(expectp(token_type::PRIMITIVE_TYPE));
@@ -241,7 +250,7 @@ ast::literal parser_context::parse_literal() {
             l.explicit_type = maybe(&parser_context::parse_primitive_type_as_named_type);
             break;
         default:
-            error(drv.location, "parser expected literal. got", current_token);
+            error(location, "parser expected literal. got", current_token);
     }
     return l;
 }
@@ -255,7 +264,7 @@ ast::statement parser_context::parse_top_level_statement() {
         case token_type::FUNCTION:  s.statement = parse_function_def(); break;
         case token_type::TYPE:      s.statement = parse_type_def(); break;
         case token_type::VAR:       s.statement = parse_variable_def(); break;
-        default: error(drv.location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token);
+        default: error(location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token);
     }
     return s;
 }
@@ -272,7 +281,7 @@ ast::statement parser_context::parse_statement() {
         &parser_context::parse_continue
     );
     if (!v) {
-        error(drv.location, "parser expected statement. got", current_token);
+        error(location, "parser expected statement. got", current_token);
     }
     s.statement = std::move(v.value());
     return s;
@@ -308,7 +317,7 @@ ast::expression parser_context::parse_exp_atom() {
                 if (a) {
                     e.expression = std::make_unique<ast::accessor>(std::move(a.value()));
                 } else {
-                    error(drv.location, "parser expected function call or accessor after token", current_token);
+                    error(location, "parser expected function call or accessor after token", current_token);
                 }
             }
             break;
@@ -321,7 +330,7 @@ ast::expression parser_context::parse_exp_atom() {
             break;
             }
         default:
-            error(drv.location, "parser expected expression atom. got", current_token);
+            error(location, "parser expected expression atom. got", current_token);
     }
     return e;
 }

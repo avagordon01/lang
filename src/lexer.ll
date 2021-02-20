@@ -68,7 +68,7 @@ identifier  [a-zA-Z_][a-zA-Z0-9_]*
 %%
 
 %{
-yy::location& loc = drv.location;
+yy::location& loc = pc.location;
 loc.step();
 %}
 
@@ -129,27 +129,27 @@ struct   return token_type::STRUCT;
 type     return token_type::TYPE;
 (const|auto|sizeof|offsetof|static|repl|cpu|simd|gpu|fpga) reserved_token(loc, yytext);
 
-bool drv.current_param = ast::primitive_type{ast::primitive_type::t_bool}; return token_type::PRIMITIVE_TYPE;
-void drv.current_param = ast::primitive_type{ast::primitive_type::t_void}; return token_type::PRIMITIVE_TYPE;
-u8   drv.current_param = ast::primitive_type{ast::primitive_type::u8}; return token_type::PRIMITIVE_TYPE;
-u16  drv.current_param = ast::primitive_type{ast::primitive_type::u16}; return token_type::PRIMITIVE_TYPE;
-u32  drv.current_param = ast::primitive_type{ast::primitive_type::u32}; return token_type::PRIMITIVE_TYPE;
-u64  drv.current_param = ast::primitive_type{ast::primitive_type::u64}; return token_type::PRIMITIVE_TYPE;
-i8   drv.current_param = ast::primitive_type{ast::primitive_type::i8}; return token_type::PRIMITIVE_TYPE;
-i16  drv.current_param = ast::primitive_type{ast::primitive_type::i16}; return token_type::PRIMITIVE_TYPE;
-i32  drv.current_param = ast::primitive_type{ast::primitive_type::i32}; return token_type::PRIMITIVE_TYPE;
-i64  drv.current_param = ast::primitive_type{ast::primitive_type::i64}; return token_type::PRIMITIVE_TYPE;
+bool pc.current_param = ast::primitive_type{ast::primitive_type::t_bool}; return token_type::PRIMITIVE_TYPE;
+void pc.current_param = ast::primitive_type{ast::primitive_type::t_void}; return token_type::PRIMITIVE_TYPE;
+u8   pc.current_param = ast::primitive_type{ast::primitive_type::u8}; return token_type::PRIMITIVE_TYPE;
+u16  pc.current_param = ast::primitive_type{ast::primitive_type::u16}; return token_type::PRIMITIVE_TYPE;
+u32  pc.current_param = ast::primitive_type{ast::primitive_type::u32}; return token_type::PRIMITIVE_TYPE;
+u64  pc.current_param = ast::primitive_type{ast::primitive_type::u64}; return token_type::PRIMITIVE_TYPE;
+i8   pc.current_param = ast::primitive_type{ast::primitive_type::i8}; return token_type::PRIMITIVE_TYPE;
+i16  pc.current_param = ast::primitive_type{ast::primitive_type::i16}; return token_type::PRIMITIVE_TYPE;
+i32  pc.current_param = ast::primitive_type{ast::primitive_type::i32}; return token_type::PRIMITIVE_TYPE;
+i64  pc.current_param = ast::primitive_type{ast::primitive_type::i64}; return token_type::PRIMITIVE_TYPE;
 f8   reserved_token(loc, yytext);
-f16  drv.current_param = ast::primitive_type{ast::primitive_type::f16}; return token_type::PRIMITIVE_TYPE;
-f32  drv.current_param = ast::primitive_type{ast::primitive_type::f32}; return token_type::PRIMITIVE_TYPE;
-f64  drv.current_param = ast::primitive_type{ast::primitive_type::f64}; return token_type::PRIMITIVE_TYPE;
+f16  pc.current_param = ast::primitive_type{ast::primitive_type::f16}; return token_type::PRIMITIVE_TYPE;
+f32  pc.current_param = ast::primitive_type{ast::primitive_type::f32}; return token_type::PRIMITIVE_TYPE;
+f64  pc.current_param = ast::primitive_type{ast::primitive_type::f64}; return token_type::PRIMITIVE_TYPE;
 
-true        drv.current_param = true; return token_type::LITERAL_BOOL;
-false       drv.current_param = false; return token_type::LITERAL_BOOL;
-{integer}   drv.current_param = ast::literal_integer{parse_integer(yytext, loc)}; return token_type::LITERAL_INTEGER;
-{float}     drv.current_param = static_cast<double>(strtod(yytext, nullptr)); return token_type::LITERAL_FLOAT;
+true        pc.current_param = true; return token_type::LITERAL_BOOL;
+false       pc.current_param = false; return token_type::LITERAL_BOOL;
+{integer}   pc.current_param = ast::literal_integer{parse_integer(yytext, loc)}; return token_type::LITERAL_INTEGER;
+{float}     pc.current_param = static_cast<double>(strtod(yytext, nullptr)); return token_type::LITERAL_FLOAT;
 
-{identifier} drv.current_param = drv.symbols_registry.insert(std::string(yytext)); return token_type::IDENTIFIER;
+{identifier} pc.current_param = pc.symbols_registry.insert(std::string(yytext)); return token_type::IDENTIFIER;
 
 "//".*
 
