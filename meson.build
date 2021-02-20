@@ -31,6 +31,9 @@ spirv_dep = declare_dependency(
 alt_lexer_test = executable(
   'alt-lexer',
   'src/alt-lexer.cc',
+  cpp_args: [
+    '-DLEXER_TEST',
+  ],
   dependencies: [
     llvm_dep,
     spirv_dep,
@@ -44,6 +47,7 @@ compiler = executable(
     'src/typecheck.cc',
     'src/parser.cc',
     'src/tokens.cc',
+    'src/alt-lexer.cc',
     lexer,
   ],
   include_directories: 'src',
