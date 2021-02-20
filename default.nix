@@ -4,5 +4,5 @@ stdenv.mkDerivation {
   name = "lang";
   src = ./.;
 
-  buildInputs = [ meson ninja flex llvm_8 glslang ];
+  buildInputs = [ meson ninja flex llvm_10 glslang ];
 }

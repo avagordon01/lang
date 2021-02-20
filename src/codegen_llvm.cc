@@ -528,7 +528,7 @@ struct llvm_codegen_fn {
 };
 
 void codegen_llvm(codegen_context_llvm &context, ast::program &program, const std::string& src_filename, const std::string& ir_filename) {
-    context.module = llvm::make_unique<llvm::Module>(src_filename, context.context);
+    context.module = std::make_unique<llvm::Module>(src_filename, context.context);
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -554,7 +554,7 @@ void codegen_llvm(codegen_context_llvm &context, ast::program &program, const st
     context.module->setDataLayout(TheTargetMachine->createDataLayout());
 
     context.module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
-    std::unique_ptr<llvm::DIBuilder> DBuilder = llvm::make_unique<llvm::DIBuilder>(*context.module);
+    std::unique_ptr<llvm::DIBuilder> DBuilder = std::make_unique<llvm::DIBuilder>(*context.module);
     std::invoke(llvm_codegen_fn{context}, program);
     DBuilder->finalize();
 
