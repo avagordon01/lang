@@ -8,40 +8,29 @@
 
 bool lexer_context::lex_string(std::string s, bool word_boundary) {
     backtrack_point bp(in);
-    std::string test (s.length(), 0);
-    in.read(test.data(), s.length());
-    if (test == s) {
-        char c = in.peek();
-        if (word_boundary && (std::isalnum(c) || c == '_')) {
-            return false;
-        }
-        bp.disable();
-        return true;
-    } else {
+    if (!std::equal(
+        s.begin(), s.end(),
+        std::istreambuf_iterator<char>(in)
+    )) {
         return false;
     }
+    char c = in.peek();
+    if (word_boundary && (std::isalnum(c) || c == '_')) {
+        return false;
+    }
+    bp.disable();
+    return true;
 }
 std::optional<std::string> lexer_context::lex_word() {
-    std::string s;
-    bool first = true;
-    char c;
-    while (in >> c) {
-        if (std::isalpha(c) || (!first && std::isdigit(c))) {
-            first = false;
-            s += c;
-        } else {
-            in.unget();
-            if (in.fail()) {
-                error("error: failed to unget on input stream");
-            }
-            break;
-        }
-    }
-    if (s.empty()) {
+    if (!std::isalpha(in.peek())) {
         return std::nullopt;
-    } else {
-        return {s};
     }
+    std::string s;
+    for (char c = in.peek(); std::isalnum(c) || c == '_'; c = in.peek()) {
+        in >> c;
+        s += c;
+    }
+    return {s};
 }
 std::optional<std::string> lexer_context::lex_keyword(std::string keyword) {
     if (lex_string(keyword, true)) {
