@@ -27,7 +27,7 @@ std::optional<std::string> lexer_context::lex_word() {
     }
     std::string s;
     for (char c = in.peek(); std::isalnum(c) || c == '_'; c = in.peek()) {
-        in >> c;
+        in.get();
         s += c;
     }
     return {s};
@@ -105,42 +105,38 @@ std::optional<std::string> lexer_context::lex_identifier() {
     return lex_word();
 }
 std::optional<ast::primitive_type> lexer_context::lex_primitive_type() {
-    backtrack_point bp(in);
-    ast::primitive_type t;
     if (false) {
     } else if (lex_keyword("void")) {
-        t = ast::primitive_type{ast::primitive_type::t_void};
+        return ast::primitive_type{ast::primitive_type::t_void};
     } else if (lex_keyword("bool")) {
-        t = ast::primitive_type{ast::primitive_type::t_bool};
+        return ast::primitive_type{ast::primitive_type::t_bool};
     } else if (lex_keyword("u8")) {
-        t = ast::primitive_type{ast::primitive_type::u8};
+        return ast::primitive_type{ast::primitive_type::u8};
     } else if (lex_keyword("u16")) {
-        t = ast::primitive_type{ast::primitive_type::u16};
+        return ast::primitive_type{ast::primitive_type::u16};
     } else if (lex_keyword("u32")) {
-        t = ast::primitive_type{ast::primitive_type::u32};
+        return ast::primitive_type{ast::primitive_type::u32};
     } else if (lex_keyword("u64")) {
-        t = ast::primitive_type{ast::primitive_type::u64};
+        return ast::primitive_type{ast::primitive_type::u64};
     } else if (lex_keyword("i8")) {
-        t = ast::primitive_type{ast::primitive_type::i8};
+        return ast::primitive_type{ast::primitive_type::i8};
     } else if (lex_keyword("i16")) {
-        t = ast::primitive_type{ast::primitive_type::i16};
+        return ast::primitive_type{ast::primitive_type::i16};
     } else if (lex_keyword("i32")) {
-        t = ast::primitive_type{ast::primitive_type::i32};
+        return ast::primitive_type{ast::primitive_type::i32};
     } else if (lex_keyword("i64")) {
-        t = ast::primitive_type{ast::primitive_type::i64};
+        return ast::primitive_type{ast::primitive_type::i64};
     } else if (lex_keyword("f16")) {
-        t = ast::primitive_type{ast::primitive_type::f16};
+        return ast::primitive_type{ast::primitive_type::f16};
     } else if (lex_keyword("f32")) {
-        t = ast::primitive_type{ast::primitive_type::f32};
+        return ast::primitive_type{ast::primitive_type::f32};
     } else if (lex_keyword("f64")) {
-        t = ast::primitive_type{ast::primitive_type::f64};
+        return ast::primitive_type{ast::primitive_type::f64};
     } else {
         return std::nullopt;
     }
-    bp.disable();
-    return {t};
 }
-std::optional<ast::literal_integer> lexer_context::lex_integer() {
+std::optional<ast::literal_integer> lexer_context::lex_literal_integer() {
     backtrack_point bp(in);
     //parse sign
     bool positive = true;
@@ -200,22 +196,10 @@ std::optional<ast::literal_integer> lexer_context::lex_integer() {
     return {ast::literal_integer{positive ? value : -value}};
 }
 std::optional<bool> lexer_context::lex_literal_bool() {
-    backtrack_point bp(in);
     if (lex_keyword("true")) {
-        bp.disable();
         return {true};
     } else if (lex_keyword("false")) {
-        bp.disable();
         return {false};
-    }
-    return std::nullopt;
-}
-std::optional<ast::literal_integer> lexer_context::lex_literal_integer() {
-    backtrack_point bp(in);
-    auto ol = lex_integer();
-    if (ol) {
-        bp.disable();
-        return {ol.value()};
     }
     return std::nullopt;
 }
@@ -274,8 +258,7 @@ std::optional<token_type> lexer_context::lex_operator() {
     } else if (lex_string("^")) {
         return {token_type::OP_B_XOR};
     } else if (lex_string("~")) {
-        //TODO return {token_type::OP_B_NOT};
-        return {token_type::OP_A_ADD};
+        return {token_type::OP_B_NOT};
     } else if (lex_string("<<")) {
         return {token_type::OP_B_SHL};
     } else if (lex_string(">>")) {
@@ -302,8 +285,7 @@ std::optional<token_type> lexer_context::lex_operator() {
     } else if (lex_string("&")) {
         return {token_type::OP_B_AND};
     } else if (lex_string("!")) {
-        return {token_type::OP_A_ADD};
-        //TODO return {token_type::OP_L_NOT};
+        return {token_type::OP_L_NOT};
     } else {
         return std::nullopt;
     }
@@ -319,11 +301,17 @@ bool lexer_context::lex_comment() {
         in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return true;
     } else if (lex_string("/*")) {
-        while (true) {
-            in.ignore(std::numeric_limits<std::streamsize>::max(), '*');
-            if (lex_string("/")) {
-                return true;
-            }
+        std::string end = "*/";
+        auto end_it = std::istreambuf_iterator<char>();
+        auto it = std::search(
+            std::istreambuf_iterator<char>(in), end_it,
+            end.begin(), end.end()
+        );
+        if (it == end_it) {
+            error("didn't get a matching close comment */");
+        } else {
+            it++;
+            return true;
         }
     }
     if (in.fail()) {

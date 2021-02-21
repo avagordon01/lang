@@ -46,7 +46,6 @@ struct lexer_context {
     void lex_reserved_keyword();
     std::optional<std::string> lex_identifier();
     std::optional<ast::primitive_type> lex_primitive_type();
-    std::optional<ast::literal_integer> lex_integer();
     std::optional<bool> lex_literal_bool();
     std::optional<ast::literal_integer> lex_literal_integer();
     std::optional<double> lex_literal_float();
