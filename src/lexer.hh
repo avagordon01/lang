@@ -41,7 +41,7 @@ struct lexer_context {
 
     bool lex_string(std::string s, bool word_boundary = false);
     std::optional<std::string> lex_word();
-    std::optional<std::string> lex_keyword(std::string keyword);
+    bool lex_keyword(std::string keyword);
     std::optional<token_type> lex_any_keyword();
     void lex_reserved_keyword();
     std::optional<std::string> lex_identifier();

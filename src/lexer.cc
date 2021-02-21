@@ -32,12 +32,8 @@ std::optional<std::string> lexer_context::lex_word() {
     }
     return {s};
 }
-std::optional<std::string> lexer_context::lex_keyword(std::string keyword) {
-    if (lex_string(keyword, true)) {
-        return {keyword};
-    } else {
-        return std::nullopt;
-    }
+bool lexer_context::lex_keyword(std::string keyword) {
+    return lex_string(keyword, true);
 }
 std::optional<token_type> lexer_context::lex_any_keyword() {
     if (false) {
@@ -78,22 +74,31 @@ std::optional<token_type> lexer_context::lex_any_keyword() {
     }
 }
 void lexer_context::lex_reserved_keyword() {
-    std::optional<std::string> os;
-    if (
-        (os = lex_keyword("const")) ||
-        (os = lex_keyword("auto")) ||
-        (os = lex_keyword("sizeof")) ||
-        (os = lex_keyword("offsetof")) ||
-        (os = lex_keyword("typeof")) ||
-        (os = lex_keyword("static")) ||
-        (os = lex_keyword("repl")) ||
-        (os = lex_keyword("cpu")) ||
-        (os = lex_keyword("simd")) ||
-        (os = lex_keyword("gpu")) ||
-        (os = lex_keyword("fpga")) ||
-        (os = lex_keyword("f8"))
-    ) {
-        error("error, use of reserved keyword", os.value());
+    if (false) {
+    } else if (lex_keyword("const")) {
+        error("error, use of reserved keyword const");
+    } else if (lex_keyword("auto")) {
+        error("error, use of reserved keyword auto");
+    } else if (lex_keyword("sizeof")) {
+        error("error, use of reserved keyword sizeof");
+    } else if (lex_keyword("offsetof")) {
+        error("error, use of reserved keyword offsetof");
+    } else if (lex_keyword("typeof")) {
+        error("error, use of reserved keyword typeof");
+    } else if (lex_keyword("static")) {
+        error("error, use of reserved keyword static");
+    } else if (lex_keyword("repl")) {
+        error("error, use of reserved keyword repl");
+    } else if (lex_keyword("cpu")) {
+        error("error, use of reserved keyword cpu");
+    } else if (lex_keyword("simd")) {
+        error("error, use of reserved keyword simd");
+    } else if (lex_keyword("gpu")) {
+        error("error, use of reserved keyword gpu");
+    } else if (lex_keyword("fpga")) {
+        error("error, use of reserved keyword fpga");
+    } else if (lex_keyword("f8")) {
+        error("error, use of reserved keyword f8");
     }
 }
 std::optional<std::string> lexer_context::lex_identifier() {
@@ -101,54 +106,39 @@ std::optional<std::string> lexer_context::lex_identifier() {
 }
 std::optional<ast::primitive_type> lexer_context::lex_primitive_type() {
     backtrack_point bp(in);
-    std::optional<std::string> os = lex_word();
-    if (!os) {
-        return std::nullopt;
-    }
-    std::string s = os.value();
+    ast::primitive_type t;
     if (false) {
-    } else if (s == "void") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::t_void};
-    } else if (s == "bool") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::t_bool};
-    } else if (s == "u8") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::u8};
-    } else if (s == "u16") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::u16};
-    } else if (s == "u32") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::u32};
-    } else if (s == "u64") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::u64};
-    } else if (s == "i8") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::i8};
-    } else if (s == "i16") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::i16};
-    } else if (s == "i32") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::i32};
-    } else if (s == "i64") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::i64};
-    } else if (s == "f16") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::f16};
-    } else if (s == "f32") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::f32};
-    } else if (s == "f64") {
-        bp.disable();
-        return ast::primitive_type{ast::primitive_type::f64};
+    } else if (lex_keyword("void")) {
+        t = ast::primitive_type{ast::primitive_type::t_void};
+    } else if (lex_keyword("bool")) {
+        t = ast::primitive_type{ast::primitive_type::t_bool};
+    } else if (lex_keyword("u8")) {
+        t = ast::primitive_type{ast::primitive_type::u8};
+    } else if (lex_keyword("u16")) {
+        t = ast::primitive_type{ast::primitive_type::u16};
+    } else if (lex_keyword("u32")) {
+        t = ast::primitive_type{ast::primitive_type::u32};
+    } else if (lex_keyword("u64")) {
+        t = ast::primitive_type{ast::primitive_type::u64};
+    } else if (lex_keyword("i8")) {
+        t = ast::primitive_type{ast::primitive_type::i8};
+    } else if (lex_keyword("i16")) {
+        t = ast::primitive_type{ast::primitive_type::i16};
+    } else if (lex_keyword("i32")) {
+        t = ast::primitive_type{ast::primitive_type::i32};
+    } else if (lex_keyword("i64")) {
+        t = ast::primitive_type{ast::primitive_type::i64};
+    } else if (lex_keyword("f16")) {
+        t = ast::primitive_type{ast::primitive_type::f16};
+    } else if (lex_keyword("f32")) {
+        t = ast::primitive_type{ast::primitive_type::f32};
+    } else if (lex_keyword("f64")) {
+        t = ast::primitive_type{ast::primitive_type::f64};
     } else {
         return std::nullopt;
     }
+    bp.disable();
+    return {t};
 }
 std::optional<ast::literal_integer> lexer_context::lex_integer() {
     backtrack_point bp(in);
@@ -211,11 +201,10 @@ std::optional<ast::literal_integer> lexer_context::lex_integer() {
 }
 std::optional<bool> lexer_context::lex_literal_bool() {
     backtrack_point bp(in);
-    std::optional<std::string> os;
-    if ((os = lex_keyword("true"))) {
+    if (lex_keyword("true")) {
         bp.disable();
         return {true};
-    } else if ((os = lex_keyword("false"))) {
+    } else if (lex_keyword("false")) {
         bp.disable();
         return {false};
     }
