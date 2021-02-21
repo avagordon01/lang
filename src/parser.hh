@@ -7,7 +7,7 @@
 
 #include "ast.hh"
 #include "tokens.hh"
-#include "alt-lexer.hh"
+#include "lexer.hh"
 
 using param_type = std::variant<ast::primitive_type, ast::identifier, bool, ast::literal_integer, double>;
 

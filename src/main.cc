@@ -3,7 +3,7 @@
 #include "codegen_llvm.hh"
 #include "codegen_spirv.hh"
 #include "error.hh"
-#include "alt-lexer.hh"
+#include "lexer.hh"
 
 int main(int argc, char *argv[]) {
     std::vector<std::string> args;

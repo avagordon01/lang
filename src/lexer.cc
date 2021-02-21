@@ -1,7 +1,7 @@
 #include <iostream>
 #include <optional>
 
-#include "alt-lexer.hh"
+#include "lexer.hh"
 #include "error.hh"
 #include "ast.hh"
 #include "tokens.hh"

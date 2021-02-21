@@ -29,7 +29,7 @@ compiler = executable(
     'src/typecheck.cc',
     'src/parser.cc',
     'src/tokens.cc',
-    'src/alt-lexer.cc',
+    'src/lexer.cc',
   ],
   include_directories: 'src',
   dependencies: [
