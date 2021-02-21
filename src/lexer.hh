@@ -14,7 +14,7 @@ struct lexer_context {
     bi_registry<ast::identifier, std::string> symbols_registry;
     param_type current_param {};
 
-    lexer_context(std::string filename): in(std::move(std::ifstream(filename, std::ios::binary))) {
+    lexer_context(std::string filename): in(std::ifstream(filename, std::ios::binary)) {
         in >> std::noskipws;
         in.exceptions(std::istream::badbit);
     }
