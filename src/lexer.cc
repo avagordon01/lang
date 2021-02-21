@@ -296,10 +296,10 @@ bool lexer_context::lex_whitespace() {
     std::ios::pos_type p1 = in.tellg();
     return p1 > p0;
 }
-bool lexer_context::lex_comment() {
+tl::expected<void, std::string> lexer_context::lex_comment() {
     if (lex_string("//")) {
         in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return true;
+        return {};
     } else if (lex_string("/*")) {
         std::string end = "*/";
         auto end_it = std::istreambuf_iterator<char>();
@@ -308,17 +308,17 @@ bool lexer_context::lex_comment() {
             end.begin(), end.end()
         );
         if (it == end_it) {
-            error("didn't get a matching close comment */");
+            return {tl::unexpected(std::string("didn't get a matching close comment */"))};
         } else {
             it++;
-            return true;
+            return {};
         }
     }
     if (in.fail()) {
         in.clear();
         in.peek();
     }
-    return false;
+    return {tl::unexpected(std::string("didn't parse comment"))};
 }
 void lexer_context::lex_space() {
     while (lex_whitespace() || lex_comment()) {}

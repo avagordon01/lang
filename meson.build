@@ -21,6 +21,12 @@ spirv_dep = declare_dependency(
   link_args: '-lSPIRV',
 )
 
+expected_dep = declare_dependency(
+  include_directories: [
+    'vendor/expected/include',
+  ]
+)
+
 compiler = executable(
   'compiler',
   [
@@ -34,6 +40,7 @@ compiler = executable(
   dependencies: [
     llvm_dep,
     spirv_dep,
+    expected_dep,
   ],
   install: true,
 )

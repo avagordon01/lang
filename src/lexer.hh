@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <optional>
+#include <tl/expected.hpp>
 
 #include "error.hh"
 #include "ast.hh"
@@ -52,7 +53,7 @@ struct lexer_context {
     std::optional<token_type> lex_any_char();
     std::optional<token_type> lex_operator();
     bool lex_whitespace();
-    bool lex_comment();
+    tl::expected<void, std::string> lex_comment();
     void lex_space();
     token_type yylex();
 };
