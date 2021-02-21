@@ -2,9 +2,9 @@
 kl is a language for easy and high performance compute kernel and graphics shader programming. It targets CPUs and GPUs with both an LLVM-IR backend and a SPIR-V backend. The key idea is (taken from Halide) to separate the algorithm from the execution location/schedule/pattern. It does this by letting the programmer write the algorithm and then independently specify when and where bits of code are executed in a fine-grained way.
 
 ## depends
-Meson and Ninja are used as the build system. Flex is used for tokenising. LLVM and glslang are required for the LLVM-IR and SPIR-V backend/codegen.
+Meson and Ninja are used as the build system. LLVM and glslang are required for the LLVM-IR and SPIR-V backend/codegen.
 
-```# pacman -S meson ninja flex llvm llvm-libs glslang```
+```# pacman -S meson ninja llvm llvm-libs glslang```
 
 Alternatively, a [nix](https://nixos.org/nix/) derivation is provided. This can be used either by doing `nix-build`, or entering a `nix-shell` and entering the following commands.
 

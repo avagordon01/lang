@@ -16,29 +16,11 @@ add_global_arguments(
   language: 'cpp'
 )
 
-flex = find_program('flex')
-lexer = custom_target('lexer',
-  input: ['src/lexer.ll'],
-  output: ['lexer.cc', 'lexer.hh'],
-  command: [flex, '--outfile=@OUTPUT0@', '--header-file=@OUTPUT1@', '@INPUT@'],
-)
-
 llvm_dep = dependency('llvm')
 spirv_dep = declare_dependency(
   link_args: '-lSPIRV',
 )
 
-alt_lexer_test = executable(
-  'alt-lexer',
-  'src/alt-lexer.cc',
-  cpp_args: [
-    '-DLEXER_TEST',
-  ],
-  dependencies: [
-    llvm_dep,
-    spirv_dep,
-  ],
-)
 compiler = executable(
   'compiler',
   [
@@ -48,7 +30,6 @@ compiler = executable(
     'src/parser.cc',
     'src/tokens.cc',
     'src/alt-lexer.cc',
-    lexer,
   ],
   include_directories: 'src',
   dependencies: [
@@ -67,7 +48,6 @@ foreach test_name: type_0_tests
     test_name,
     [
       'src' / test_name + '.cc',
-      lexer,
     ],
     include_directories: 'src',
     dependencies: [

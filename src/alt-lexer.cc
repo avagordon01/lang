@@ -5,15 +5,13 @@
 #include "error.hh"
 #include "ast.hh"
 #include "tokens.hh"
-#include "parser.hh"
 
 bool lexer_context::lex_string(std::string s, bool word_boundary) {
-    backtrack_point bp;
+    backtrack_point bp(in);
     std::string test (s.length(), 0);
     in.read(test.data(), s.length());
     if (test == s) {
-        char c;
-        in >> c;
+        char c = in.peek();
         if (word_boundary && (std::isalnum(c) || c == '_')) {
             return false;
         }
@@ -27,13 +25,6 @@ std::optional<std::string> lexer_context::lex_word() {
     std::string s;
     bool first = true;
     char c;
-    /*TODO
-    std::find_if_not(
-        std::istreambuf_iterator<char>(in),
-        std::istreambuf_iterator<char>(),
-        [](char c){return std::isalnum
-    );
-    */
     while (in >> c) {
         if (std::isalpha(c) || (!first && std::isdigit(c))) {
             first = false;
@@ -120,7 +111,7 @@ std::optional<std::string> lexer_context::lex_identifier() {
     return lex_word();
 }
 std::optional<ast::primitive_type> lexer_context::lex_primitive_type() {
-    backtrack_point bp;
+    backtrack_point bp(in);
     std::optional<std::string> os = lex_word();
     if (!os) {
         return std::nullopt;
@@ -171,7 +162,7 @@ std::optional<ast::primitive_type> lexer_context::lex_primitive_type() {
     }
 }
 std::optional<ast::literal_integer> lexer_context::lex_integer() {
-    backtrack_point bp;
+    backtrack_point bp(in);
     //parse sign
     bool positive = true;
     char c = in.peek();
@@ -230,7 +221,7 @@ std::optional<ast::literal_integer> lexer_context::lex_integer() {
     return {ast::literal_integer{positive ? value : -value}};
 }
 std::optional<bool> lexer_context::lex_literal_bool() {
-    backtrack_point bp;
+    backtrack_point bp(in);
     std::optional<std::string> os;
     if ((os = lex_keyword("true"))) {
         bp.disable();
@@ -242,7 +233,7 @@ std::optional<bool> lexer_context::lex_literal_bool() {
     return std::nullopt;
 }
 std::optional<ast::literal_integer> lexer_context::lex_literal_integer() {
-    backtrack_point bp;
+    backtrack_point bp(in);
     auto ol = lex_integer();
     if (ol) {
         bp.disable();
@@ -251,7 +242,7 @@ std::optional<ast::literal_integer> lexer_context::lex_literal_integer() {
     return std::nullopt;
 }
 std::optional<double> lexer_context::lex_literal_float() {
-    backtrack_point bp;
+    backtrack_point bp(in);
     double d;
     in >> d;
     if (!in.fail()) {
@@ -340,8 +331,10 @@ std::optional<token_type> lexer_context::lex_operator() {
     }
 }
 bool lexer_context::lex_whitespace() {
+    std::ios::pos_type p0 = in.tellg();
     in >> std::ws;
-    return !in.fail();
+    std::ios::pos_type p1 = in.tellg();
+    return p1 > p0;
 }
 bool lexer_context::lex_comment() {
     if (lex_string("//")) {
@@ -361,12 +354,8 @@ bool lexer_context::lex_comment() {
     }
     return false;
 }
-bool lexer_context::lex_space() {
-    bool any_space = false;
-    do {
-        any_space = any_space || lex_whitespace();
-    } while (lex_comment());
-    return any_space;
+void lexer_context::lex_space() {
+    while (lex_whitespace() || lex_comment()) {}
 }
 token_type lexer_context::yylex() {
     std::optional<std::string> s;
@@ -385,19 +374,19 @@ token_type lexer_context::yylex() {
     } else if ((tok = lex_any_keyword())) {
         return tok.value();
     } else if ((type = lex_primitive_type())) {
-        pc.current_param = type.value();
+        current_param = type.value();
         return token_type::PRIMITIVE_TYPE;
     } else if ((literal_bool = lex_literal_bool())) {
-        pc.current_param = literal_bool.value();
+        current_param = literal_bool.value();
         return token_type::LITERAL_BOOL;
     } else if ((literal_integer = lex_literal_integer())) {
-        pc.current_param = literal_integer.value();
+        current_param = literal_integer.value();
         return token_type::LITERAL_INTEGER;
     } else if ((literal_float = lex_literal_float())) {
-        pc.current_param = literal_float.value();
+        current_param = literal_float.value();
         return token_type::LITERAL_FLOAT;
     } else if ((s = lex_identifier())) {
-        pc.current_param = pc.symbols_registry.insert(s.value());
+        current_param = symbols_registry.insert(s.value());
         return token_type::IDENTIFIER;
     } else if ((tok = lex_operator())) {
         return tok.value();
@@ -409,13 +398,3 @@ token_type lexer_context::yylex() {
         error("error: unknown input", s);
     }
 }
-
-#ifdef LEXER_TEST
-int main() {
-    parser_context pc;
-    lexer_context lexer(pc);
-    while (lexer.yylex() != token_type::T_EOF) {
-    }
-    return 0;
-}
-#endif

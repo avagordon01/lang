@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sstream>
 
 #include "parser.hh"
@@ -7,7 +9,7 @@ struct parse_error : std::runtime_error {
 };
 
 template<typename... Ts>
-[[noreturn]] void error(Ts... args) {
+[[noreturn]] void p_error(Ts... args) {
     std::stringstream ss{};
     ((ss << args << " "), ...);
     throw parse_error(ss.str());
@@ -16,10 +18,11 @@ template<typename... Ts>
 void parser_context::next_token() {
     buffer_loc++;
     if (buffer_loc >= buffer.size()) {
-        buffer.push_back({yylex(*this), current_param});
+        buffer.push_back({lexer.yylex(), lexer.current_param});
+        std::cerr << buffer[buffer_loc].first << std::endl;
     }
     current_token = buffer[buffer_loc].first;
-    current_param = buffer[buffer_loc].second;
+    lexer.current_param = buffer[buffer_loc].second;
 }
 bool parser_context::accept(token_type t) {
     if (current_token == t) {
@@ -31,11 +34,11 @@ bool parser_context::accept(token_type t) {
 }
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
-        error(location, "parser expected", t, "got", current_token);
+        p_error(location, "parser expected", t, "got", current_token);
     }
 }
 param_type parser_context::expectp(token_type t) {
-    auto p = current_param;
+    auto p = lexer.current_param;
     expect(t);
     return p;
 }
@@ -48,7 +51,7 @@ auto parser_context::maybe(T parse) -> std::optional<decltype(std::invoke(parse,
     } catch (parse_error& e) {
         buffer_loc = buffer_stop;
         current_token = buffer[buffer_loc].first;
-        current_param = buffer[buffer_loc].second;
+        lexer.current_param = buffer[buffer_loc].second;
         return std::nullopt;
     }
 }
@@ -60,7 +63,7 @@ auto parser_context::maybe_void(T parse) {
     } catch (parse_error& e) {
         buffer_loc = buffer_stop;
         current_token = buffer[buffer_loc].first;
-        current_param = buffer[buffer_loc].second;
+        lexer.current_param = buffer[buffer_loc].second;
     }
 }
 
@@ -146,7 +149,7 @@ std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_ty
         } else if (accept(delim)) {
             break;
         } else {
-            error(location, "parser expected", sep, "or", delim, "got", current_token);
+            p_error(location, "parser expected", sep, "or", delim, "got", current_token);
         }
     }
     return list;

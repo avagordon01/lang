@@ -3,6 +3,7 @@
 #include "codegen_llvm.hh"
 #include "codegen_spirv.hh"
 #include "error.hh"
+#include "alt-lexer.hh"
 
 int main(int argc, char *argv[]) {
     std::vector<std::string> args;
@@ -11,7 +12,9 @@ int main(int argc, char *argv[]) {
         error("usage:", args[0], "input.kl output.ir");
     }
 
-    parser_context parser;
+    lexer_context lexer(args[1]);
+
+    parser_context parser(lexer);
     auto program_ast = parser.parse_program(args[1]);
 
     typecheck_context typecheck_context{program_ast.symbols_registry};

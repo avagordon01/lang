@@ -7,17 +7,19 @@
 
 #include "ast.hh"
 #include "tokens.hh"
+#include "alt-lexer.hh"
 
 using param_type = std::variant<ast::primitive_type, ast::identifier, bool, ast::literal_integer, double>;
 
 struct parser_context {
     yy::location location;
-    bi_registry<ast::identifier, std::string> symbols_registry;
+    lexer_context& lexer;
 
     size_t buffer_loc = -1;
     std::deque<std::pair<token_type, param_type>> buffer {};
     token_type current_token {};
-    param_type current_param {};
+
+    parser_context(lexer_context& lexer_): lexer(lexer_) {}
 
     void next_token();
     bool accept(token_type t);

@@ -1,33 +1,38 @@
+#pragma once
+
 #include <iostream>
+#include <fstream>
 #include <optional>
 
 #include "error.hh"
 #include "ast.hh"
 #include "tokens.hh"
-#include "parser.hh"
 
 struct lexer_context {
-    parser_context& pc;
-    constexpr static std::istream& in = std::cin;
+    using param_type = std::variant<ast::primitive_type, ast::identifier, bool, ast::literal_integer, double>;
+    std::ifstream in;
+    bi_registry<ast::identifier, std::string> symbols_registry;
+    param_type current_param {};
 
-    lexer_context(parser_context& pc_): pc(pc_) {
+    lexer_context(std::string filename): in(std::move(std::ifstream(filename, std::ios::binary))) {
         in >> std::noskipws;
         in.exceptions(std::istream::badbit);
     }
 
     struct backtrack_point {
         std::optional<std::ios::pos_type> p;
-        backtrack_point() {
-            p = {in.tellg()};
+        std::ifstream& in_;
+        backtrack_point(std::ifstream& in): in_(in) {
+            p = {in_.tellg()};
         }
         void disable() {
             p = std::nullopt;
         }
         ~backtrack_point() {
             if (p) {
-                in.clear();
-                in.seekg(*p);
-                if (in.tellg() != p) {
+                in_.clear();
+                in_.seekg(*p);
+                if (in_.tellg() != p) {
                     error("error: failed to backtrack in input stream");
                 }
             }
@@ -49,6 +54,6 @@ struct lexer_context {
     std::optional<token_type> lex_operator();
     bool lex_whitespace();
     bool lex_comment();
-    bool lex_space();
+    void lex_space();
     token_type yylex();
 };
