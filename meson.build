@@ -13,6 +13,7 @@ add_global_arguments(
   '-Wno-unused-parameter',
   '-Wno-unused-function',
   '-Wno-missing-field-initializers',
+  '-Wno-pedantic',
   language: 'cpp'
 )
 
