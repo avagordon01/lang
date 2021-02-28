@@ -59,13 +59,15 @@ endforeach
 
 compiler_test_wrapper = find_program('compiler_test_wrapper.sh')
 
+tests_dir = meson.source_root() / 'tests'
+
 foreach test_name: type_1_tests
   test(test_name,
     compiler_test_wrapper,
     depends: compiler,
     args: [
       'link',
-      meson.current_build_dir() / '..' / 'tests' / test_name + '.kl',
+      tests_dir / test_name + '.kl',
     ],
   )
 endforeach
@@ -76,7 +78,7 @@ foreach test_name: type_2_tests
     depends: compiler,
     args: [
       'exe',
-      meson.current_build_dir() / '..' / 'tests' / test_name + '.kl',
+      tests_dir / test_name + '.kl',
     ],
   )
 endforeach
