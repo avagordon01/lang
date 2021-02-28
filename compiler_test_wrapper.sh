@@ -2,19 +2,12 @@
 
 set -euo pipefail
 
-type="$1"
+input="$1"
+output="$(basename $1)"
 
-input_raw="$2"
-input="${input_raw%.*}"
-output_raw="$(basename ${input}).ir"
-output="${output_raw%.*}"
-
-./compiler ${input_raw} ${output_raw}
-
-if [ $type != "parse" ]; then
-    llc -filetype=obj ${output_raw} -o ${output}.o
-    if [ $type == "exe" ]; then
-        c++ ${input}.cc ${output}.o -o ${output}
-        ./${output}
-    fi
+./compiler ${input}.kl ${output}.ir
+llc -filetype=obj ${output}.ir -o ${output}.o
+if test -f ${input}.cc; then
+    c++ ${input}.cc ${output}.o -o ${output}
+    ./${output}
 fi

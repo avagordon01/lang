@@ -31,7 +31,6 @@ compiler = executable(
     'src/tokens.cc',
     'src/lexer.cc',
   ],
-  include_directories: 'src',
   dependencies: [
     llvm_dep,
     spirv_dep,
@@ -39,11 +38,7 @@ compiler = executable(
   install: true,
 )
 
-type_0_tests = ['scopes']
-type_1_tests = ['parse', 'codegen']
-type_2_tests = ['link', 'fib', 'gcd']
-
-foreach test_name: type_0_tests
+foreach test_name: ['scopes']
   test(test_name, executable(
     test_name,
     [
@@ -58,27 +53,13 @@ foreach test_name: type_0_tests
 endforeach
 
 compiler_test_wrapper = find_program('compiler_test_wrapper.sh')
-
 tests_dir = meson.source_root() / 'tests'
-
-foreach test_name: type_1_tests
+foreach test_name: ['parse', 'codegen', 'link', 'fib', 'gcd']
   test(test_name,
     compiler_test_wrapper,
     depends: compiler,
     args: [
-      'link',
-      tests_dir / test_name + '.kl',
-    ],
-  )
-endforeach
-
-foreach test_name: type_2_tests
-  test(test_name,
-    compiler_test_wrapper,
-    depends: compiler,
-    args: [
-      'exe',
-      tests_dir / test_name + '.kl',
+      tests_dir / test_name,
     ],
   )
 endforeach
