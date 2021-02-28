@@ -4,6 +4,7 @@
 #include <functional>
 #include <deque>
 #include <exception>
+#include <tl/expected.hpp>
 
 #include "ast.hh"
 #include "tokens.hh"
@@ -24,7 +25,11 @@ struct parser_context {
     void next_token();
     bool accept(token_type t);
     void expect(token_type t);
+    tl::expected<std::monostate, std::string> new_expect(token_type t);
     param_type expectp(token_type t);
+
+    template<typename T, typename E>
+    T must(tl::expected<T, E> ex);
 
     template<typename T>
     auto maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))>;
@@ -48,7 +53,7 @@ struct parser_context {
     std::vector<T> parse_list(T (parser_context::*parse)(), token_type sep, token_type delim);
 
     ast::program parse_program(std::string filename);
-    ast::if_statement parse_if_statement();
+    tl::expected<ast::if_statement, std::string> parse_if_statement();
     ast::for_loop parse_for_loop();
     ast::while_loop parse_while_loop();
     ast::case_statement parse_case();

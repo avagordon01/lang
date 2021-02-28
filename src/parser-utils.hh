@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sstream>
+#include <tl/expected.hpp>
 
 #include "parser.hh"
 
@@ -13,6 +14,12 @@ template<typename... Ts>
     std::stringstream ss{};
     ((ss << args << " "), ...);
     throw parse_error(ss.str());
+}
+template<typename... Ts>
+std::string string_error(Ts... args) {
+    std::stringstream ss{};
+    ((ss << args << " "), ...);
+    return ss.str();
 }
 
 void parser_context::next_token() {
@@ -32,6 +39,12 @@ bool parser_context::accept(token_type t) {
         return false;
     }
 }
+tl::expected<std::monostate, std::string> parser_context::new_expect(token_type t) {
+    if (!accept(t)) {
+        return tl::unexpected(string_error(location, "parser expected", t, "got", current_token));
+    }
+    return {};
+}
 void parser_context::expect(token_type t) {
     if (!accept(t)) {
         p_error(location, "parser expected", t, "got", current_token);
@@ -42,6 +55,17 @@ param_type parser_context::expectp(token_type t) {
     expect(t);
     return p;
 }
+
+template<typename T, typename E>
+T parser_context::must(tl::expected<T, E> ex) {
+    if (ex) {
+        return std::move(ex.value());
+    } else {
+        error(ex.error());
+    }
+}
+
+#define TRY(X) ({ auto&& e = (X); if (!e) return tl::unexpected(e.error()); std::move(*e); })
 
 template<typename T>
 auto parser_context::maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))> {

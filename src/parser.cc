@@ -24,8 +24,8 @@ ast::block parser_context::parse_block() {
     b.statements = parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
     return b;
 }
-ast::if_statement parser_context::parse_if_statement() {
-    expect(token_type::IF);
+tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement() {
+    TRY(new_expect(token_type::IF));
     ast::if_statement s {};
     s.conditions.emplace_back(parse_exp());
     s.blocks.emplace_back(parse_block());
@@ -291,7 +291,7 @@ ast::expression parser_context::parse_exp_atom() {
         case token_type::LITERAL_BOOL:
         case token_type::LITERAL_INTEGER:
         case token_type::LITERAL_FLOAT: e.expression = parse_literal(); break;
-        case token_type::IF:        e.expression = std::make_unique<ast::if_statement>(parse_if_statement()); break;
+        case token_type::IF:        e.expression = std::make_unique<ast::if_statement>(must(parse_if_statement())); break;
         case token_type::SWITCH:    e.expression = std::make_unique<ast::switch_statement>(parse_switch_statement()); break;
         case token_type::FOR:       e.expression = std::make_unique<ast::for_loop>(parse_for_loop()); break;
         case token_type::WHILE:     e.expression = std::make_unique<ast::while_loop>(parse_while_loop()); break;
