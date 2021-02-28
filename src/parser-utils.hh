@@ -106,18 +106,6 @@ auto parser_context::choose(T... parse) -> std::optional<std::variant<decltype(s
     return choose(maybe(parse)...);
 }
 
-template<typename ...T>
-auto parser_context::sequence(T... ps) -> std::tuple<T...> {
-    static_assert(sizeof...(ps) > 0, "sequence must have at least one parameter");
-    return std::tuple<T...> {std::invoke(ps, this)...};
-}
-
-template<typename S, typename ...T>
-auto parser_context::sequence(T... ps) -> S {
-    static_assert(sizeof...(ps) > 0, "sequence must have at least one parameter");
-    return S {std::invoke(ps, this)...};
-}
-
 template<typename T>
 std::vector<T> parser_context::parse_list(T (parser_context::*parse)()) {
     std::vector<T> list;

@@ -51,10 +51,10 @@ ast::for_loop parser_context::parse_for_loop() {
 }
 ast::while_loop parser_context::parse_while_loop() {
     expect(token_type::WHILE);
-    return sequence<ast::while_loop>(
-        &parser_context::parse_exp,
-        &parser_context::parse_block
-    );
+    ast::while_loop s {};
+    s.condition = parse_exp();
+    s.block = parse_block();
+    return s;
 }
 ast::case_statement parser_context::parse_case() {
     expect(token_type::CASE);
