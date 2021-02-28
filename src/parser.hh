@@ -67,7 +67,7 @@ struct parser_context {
     ast::s_return parse_return();
     ast::s_break parse_break();
     ast::s_continue parse_continue();
-    ast::block parse_block();
+    tl::expected<ast::block, std::string> parse_block();
     ast::field_access parse_field_access();
     ast::array_access parse_array_access();
     ast::access parse_access();

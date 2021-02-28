@@ -18,8 +18,8 @@ ast::program parser_context::parse_program(std::string filename) {
     program_ast.symbols_registry = lexer.symbols_registry;
     return program_ast;
 }
-ast::block parser_context::parse_block() {
-    expect(token_type::OPEN_C_BRACKET);
+tl::expected<ast::block, std::string> parser_context::parse_block() {
+    TRY(new_expect(token_type::OPEN_C_BRACKET));
     ast::block b {};
     b.statements = parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
     return b;
@@ -28,13 +28,13 @@ tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement(
     TRY(new_expect(token_type::IF));
     ast::if_statement s {};
     s.conditions.emplace_back(parse_exp());
-    s.blocks.emplace_back(parse_block());
+    s.blocks.emplace_back(must(parse_block()));
     while (accept(token_type::ELIF)) {
         s.conditions.emplace_back(parse_exp());
-        s.blocks.emplace_back(parse_block());
+        s.blocks.emplace_back(must(parse_block()));
     }
     if (accept(token_type::ELSE)) {
-        s.blocks.emplace_back(parse_block());
+        s.blocks.emplace_back(must(parse_block()));
     }
     return s;
 }
@@ -46,21 +46,21 @@ ast::for_loop parser_context::parse_for_loop() {
     s.condition = parse_exp();
     expect(token_type::SEMICOLON);
     s.step = parse_assignment();
-    s.block = parse_block();
+    s.block = must(parse_block());
     return s;
 }
 ast::while_loop parser_context::parse_while_loop() {
     expect(token_type::WHILE);
     ast::while_loop s {};
     s.condition = parse_exp();
-    s.block = parse_block();
+    s.block = must(parse_block());
     return s;
 }
 ast::case_statement parser_context::parse_case() {
     expect(token_type::CASE);
     ast::case_statement c {};
     c.cases = parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
-    c.block = parse_block();
+    c.block = must(parse_block());
     return c;
 }
 ast::switch_statement parser_context::parse_switch_statement() {
@@ -85,7 +85,7 @@ ast::function_def parser_context::parse_function_def() {
     f.identifier = parse_identifier();
     expect(token_type::OPEN_R_BRACKET);
     f.parameter_list = parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_R_BRACKET);
-    f.block = parse_block();
+    f.block = must(parse_block());
     return f;
 }
 ast::function_call parser_context::parse_function_call() {
@@ -296,7 +296,7 @@ ast::expression parser_context::parse_exp_atom() {
         case token_type::FOR:       e.expression = std::make_unique<ast::for_loop>(parse_for_loop()); break;
         case token_type::WHILE:     e.expression = std::make_unique<ast::while_loop>(parse_while_loop()); break;
         case token_type::OPEN_C_BRACKET: {
-            auto b = parse_block();
+            auto b = must(parse_block());
             auto p = std::make_unique<ast::block>(std::move(b));
             assert(p);
             e.expression = std::move(p);
