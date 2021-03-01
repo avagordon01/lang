@@ -24,9 +24,9 @@ struct parser_context {
 
     void next_token();
     bool accept(token_type t);
-    void expect(token_type t);
     tl::expected<std::monostate, std::string> new_expect(token_type t);
-    param_type expectp(token_type t);
+    template<typename T>
+    tl::expected<T, std::string> expectp(token_type t);
 
     template<typename T, typename E>
     T must(tl::expected<T, E> ex);

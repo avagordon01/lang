@@ -72,7 +72,7 @@ tl::expected<ast::switch_statement, std::string> parser_context::parse_switch_st
     return s;
 }
 tl::expected<ast::identifier, std::string> parser_context::parse_identifier() {
-    return std::get<ast::identifier>(expectp(token_type::IDENTIFIER));
+    return expectp<ast::identifier>(token_type::IDENTIFIER);
 }
 tl::expected<ast::function_def, std::string> parser_context::parse_function_def() {
     ast::function_def f {};
@@ -165,7 +165,7 @@ tl::expected<ast::access, std::string> parser_context::parse_access() {
     if (a) {
         return std::move(a.value());
     }
-    p_error(location, "parser expected accessor. got");
+    return tl::unexpected(string_error(location, "parser expected accessor. got"));
 }
 tl::expected<ast::accessor, std::string> parser_context::parse_accessor() {
     ast::accessor a {};
@@ -181,10 +181,10 @@ tl::expected<ast::named_type, std::string> parser_context::parse_named_type() {
     if (current_token == token_type::IDENTIFIER) {
         //TODO
         return ast::named_type{ast::user_type {
-            std::get<ast::identifier>(expectp(token_type::IDENTIFIER)).value
+            TRY(expectp<ast::identifier>(token_type::IDENTIFIER)).value
         }};
     }
-    p_error(location, "parser expected named type. got", current_token);
+    return tl::unexpected(string_error(location, "parser expected named type. got", current_token));
 }
 tl::expected<ast::type, std::string> parser_context::parse_type() {
     ast::type t {};
@@ -200,10 +200,10 @@ tl::expected<ast::type, std::string> parser_context::parse_type() {
     if (a) {
         return ast::type{a.value()};
     }
-    p_error(location, "parser expected type. got", current_token);
+    return tl::unexpected(string_error(location, "parser expected type. got", current_token));
 }
 tl::expected<ast::primitive_type, std::string> parser_context::parse_primitive_type() {
-    return std::get<ast::primitive_type>(expectp(token_type::PRIMITIVE_TYPE));
+    return expectp<ast::primitive_type>(token_type::PRIMITIVE_TYPE);
 }
 tl::expected<ast::named_type, std::string> parser_context::parse_primitive_type_as_named_type() {
     return ast::named_type{TRY(parse_primitive_type())};
@@ -233,24 +233,24 @@ tl::expected<ast::literal, std::string> parser_context::parse_literal() {
     ast::literal l {};
     switch (current_token) {
         case token_type::LITERAL_BOOL:
-            l.literal = std::get<bool>(expectp(current_token));
+            l.literal = TRY(expectp<bool>(current_token));
             l.explicit_type = to_optional(parse_primitive_type_as_named_type());
             break;
         case token_type::LITERAL_INTEGER:
-            l.literal = std::get<ast::literal_integer>(expectp(current_token));
+            l.literal = TRY(expectp<ast::literal_integer>(current_token));
             l.explicit_type = to_optional(parse_primitive_type_as_named_type());
             break;
         case token_type::LITERAL_FLOAT:
-            l.literal = std::get<double>(expectp(current_token));
+            l.literal = TRY(expectp<double>(current_token));
             l.explicit_type = to_optional(parse_primitive_type_as_named_type());
             break;
         default:
-            p_error(location, "parser expected literal. got", current_token);
+            return tl::unexpected(string_error(location, "parser expected literal. got", current_token));
     }
     return l;
 }
 tl::expected<ast::literal, std::string> parser_context::parse_literal_integer() {
-    return ast::literal{std::get<ast::literal_integer>(expectp(token_type::LITERAL_INTEGER))};
+    return ast::literal{TRY(expectp<ast::literal_integer>(token_type::LITERAL_INTEGER))};
 }
 tl::expected<ast::statement, std::string> parser_context::parse_top_level_statement() {
     ast::statement s;
@@ -259,7 +259,7 @@ tl::expected<ast::statement, std::string> parser_context::parse_top_level_statem
         case token_type::FUNCTION:  s.statement = TRY(parse_function_def()); break;
         case token_type::TYPE:      s.statement = TRY(parse_type_def()); break;
         case token_type::VAR:       s.statement = TRY(parse_variable_def()); break;
-        default: p_error(location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token);
+        default: return tl::unexpected(string_error(location, "parser expected top level statement: one of function def, type def, or variable def. got", current_token));
     }
     return s;
 }
@@ -305,7 +305,7 @@ tl::expected<ast::statement, std::string> parser_context::parse_statement() {
         s.statement = std::move(c.value());
         return s;
     }
-    p_error(location, "parser expected statement. got", current_token);
+    return tl::unexpected(string_error(location, "parser expected statement. got", current_token));
 }
 tl::expected<ast::expression, std::string> parser_context::parse_exp() {
     return parse_exp_at_precedence(0);
@@ -338,7 +338,7 @@ tl::expected<ast::expression, std::string> parser_context::parse_exp_atom() {
                 if (a) {
                     e.expression = std::make_unique<ast::accessor>(std::move(a.value()));
                 } else {
-                    p_error(location, "parser expected function call or accessor after token", current_token);
+                    return tl::unexpected(string_error(location, "parser expected function call or accessor after token", current_token));
                 }
             }
             break;
@@ -351,7 +351,7 @@ tl::expected<ast::expression, std::string> parser_context::parse_exp_atom() {
             break;
             }
         default:
-            p_error(location, "parser expected expression atom. got", current_token);
+            return tl::unexpected(string_error(location, "parser expected expression atom. got", current_token));
     }
     return e;
 }

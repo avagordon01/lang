@@ -10,12 +10,6 @@ struct parse_error : std::runtime_error {
 };
 
 template<typename... Ts>
-[[noreturn]] void p_error(Ts... args) {
-    std::stringstream ss{};
-    ((ss << args << " "), ...);
-    throw parse_error(ss.str());
-}
-template<typename... Ts>
 std::string string_error(Ts... args) {
     std::stringstream ss{};
     ((ss << args << " "), ...);
@@ -45,15 +39,14 @@ tl::expected<std::monostate, std::string> parser_context::new_expect(token_type 
     }
     return {};
 }
-void parser_context::expect(token_type t) {
-    if (!accept(t)) {
-        p_error(location, "parser expected", t, "got", current_token);
-    }
-}
-param_type parser_context::expectp(token_type t) {
+
+#define TRY(X) ({ auto&& e = (X); if (!e) return tl::unexpected(e.error()); std::move(*e); })
+
+template<typename T>
+tl::expected<T, std::string> parser_context::expectp(token_type t) {
     auto p = lexer.current_param;
-    expect(t);
-    return p;
+    TRY(new_expect(t));
+    return std::get<T>(p);
 }
 
 template<typename T, typename E>
@@ -64,8 +57,6 @@ T parser_context::must(tl::expected<T, E> ex) {
         error(ex.error());
     }
 }
-
-#define TRY(X) ({ auto&& e = (X); if (!e) return tl::unexpected(e.error()); std::move(*e); })
 
 template<typename T, typename E>
 std::optional<T> to_optional(tl::expected<T, E> ex) {
@@ -169,7 +160,8 @@ std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*p
         } else if (accept(delim)) {
             break;
         } else {
-            p_error(location, "parser expected", sep, "or", delim, "got", current_token);
+            //TODO
+            //string_error(location, "parser expected", sep, "or", delim, "got", current_token);
         }
     }
     return list;
