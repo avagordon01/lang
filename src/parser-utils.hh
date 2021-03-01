@@ -67,6 +67,14 @@ T parser_context::must(tl::expected<T, E> ex) {
 
 #define TRY(X) ({ auto&& e = (X); if (!e) return tl::unexpected(e.error()); std::move(*e); })
 
+template<typename T, typename E>
+std::optional<T> to_optional(tl::expected<T, E> ex) {
+    if (ex) {
+        return std::optional{std::move(ex.value())};
+    } else {
+        return std::nullopt;
+    }
+}
 template<typename T>
 auto parser_context::maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))> {
     size_t buffer_stop = buffer_loc;
@@ -106,11 +114,11 @@ auto parser_context::choose(T... parse) -> std::optional<std::variant<decltype(s
     return choose(maybe(parse)...);
 }
 
-template<typename T>
-std::vector<T> parser_context::parse_list(T (parser_context::*parse)()) {
+template<typename T, typename E>
+std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)()) {
     std::vector<T> list;
     while (true) {
-        auto res = std::move(maybe(parse));
+        auto res = std::move(std::invoke(parse, this));
         if (res) {
             list.emplace_back(std::move(res.value()));
         } else {
@@ -118,11 +126,11 @@ std::vector<T> parser_context::parse_list(T (parser_context::*parse)()) {
         }
     }
 }
-template<typename T>
-std::vector<T> parser_context::parse_list_sep(T (parser_context::*parse)(), token_type sep) {
+template<typename T, typename E>
+std::vector<T> parser_context::parse_list_sep(tl::expected<T, E> (parser_context::*parse)(), token_type sep) {
     std::vector<T> list;
     while (true) {
-        auto res = std::move(maybe(parse));
+        auto res = std::move((std::invoke(parse, this)));
         if (!res) {
             break;
         }
@@ -133,27 +141,27 @@ std::vector<T> parser_context::parse_list_sep(T (parser_context::*parse)(), toke
     }
     return list;
 }
-template<typename T>
-std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_type delim) {
+template<typename T, typename E>
+std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type delim) {
     std::vector<T> list;
     while (true) {
         auto res = std::move(std::invoke(parse, this));
-        list.emplace_back(std::move(res));
+        list.emplace_back(std::move(res.value()));
         if (accept(delim)) {
             break;
         }
     }
     return list;
 }
-template<typename T>
-std::vector<T> parser_context::parse_list(T (parser_context::*parse)(), token_type sep, token_type delim) {
+template<typename T, typename E>
+std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type sep, token_type delim) {
     std::vector<T> list;
     while (true) {
         if (accept(delim)) {
             break;
         }
         auto res = std::move(std::invoke(parse, this));
-        list.emplace_back(std::move(res));
+        list.emplace_back(std::move(res.value()));
         if (accept(sep)) {
             if (accept(delim)) {
                 break;
