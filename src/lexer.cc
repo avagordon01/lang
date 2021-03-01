@@ -6,33 +6,33 @@
 #include "ast.hh"
 #include "tokens.hh"
 
-bool lexer_context::lex_string(std::string s, bool word_boundary) {
+tl::expected<std::monostate, std::string> lexer_context::lex_string(std::string s, bool word_boundary) {
     backtrack_point bp(in);
     if (!std::equal(
         s.begin(), s.end(),
         std::istreambuf_iterator<char>(in)
     )) {
-        return false;
+        return tl::unexpected(string_error("expected", s));
     }
     char c = in.peek();
     if (word_boundary && (std::isalnum(c) || c == '_')) {
-        return false;
+        return tl::unexpected(string_error("expected", s));
     }
     bp.disable();
-    return true;
+    return {};
 }
-std::optional<std::string> lexer_context::lex_word() {
+tl::expected<std::string, std::string> lexer_context::lex_word() {
     if (!std::isalpha(in.peek())) {
-        return std::nullopt;
+        return tl::unexpected(string_error("expected word got", in.peek()));
     }
     std::string s;
     for (char c = in.peek(); std::isalnum(c) || c == '_'; c = in.peek()) {
         in.get();
         s += c;
     }
-    return {s};
+    return s;
 }
-bool lexer_context::lex_keyword(std::string keyword) {
+tl::expected<std::monostate, std::string> lexer_context::lex_keyword(std::string keyword) {
     return lex_string(keyword, true);
 }
 std::optional<token_type> lexer_context::lex_any_keyword() {
@@ -101,7 +101,7 @@ void lexer_context::lex_reserved_keyword() {
         error("error, use of reserved keyword f8");
     }
 }
-std::optional<std::string> lexer_context::lex_identifier() {
+tl::expected<std::string, std::string> lexer_context::lex_identifier() {
     return lex_word();
 }
 std::optional<ast::primitive_type> lexer_context::lex_primitive_type() {
@@ -324,7 +324,7 @@ void lexer_context::lex_space() {
     while (lex_whitespace() || lex_comment()) {}
 }
 token_type lexer_context::yylex() {
-    std::optional<std::string> s;
+    tl::expected<std::string, std::string> s;
     std::optional<ast::primitive_type> type;
     std::optional<bool> literal_bool;
     std::optional<ast::literal_integer> literal_integer;

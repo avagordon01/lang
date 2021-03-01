@@ -9,18 +9,32 @@ ast::program parser_context::parse_program(std::string filename) {
     location.initialize(&filename);
     ast::program program_ast {};
     next_token();
-    program_ast.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
+    auto r = parse_list_fn<ast::statement>(
+        [this]() { return parse_top_level_statement(); },
+        [this]() { return lexer.lex_string(";"); }
+    );
+    if (r) {
+        program_ast.statements = std::move(r.value());
+    } else {
+        //TODO
+        exit(1);
+    }
     program_ast.symbols_registry = lexer.symbols_registry;
     return program_ast;
 }
 tl::expected<ast::block, std::string> parser_context::parse_block() {
-    TRY(expect(token_type::OPEN_C_BRACKET));
     ast::block b {};
-    b.statements = parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
+    auto s = parse_list_fn<ast::statement>(
+        [this](){ return lexer.lex_string("{"); },
+        [this](){ return parse_statement(); },
+        [this](){ return lexer.lex_string(";"); },
+        [this](){ return lexer.lex_string("}"); }
+    );
+    b.statements = TRY(s);
     return b;
 }
 tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement() {
-    TRY(expect(token_type::IF));
+    TRY(lexer.lex_string("if"));
     ast::if_statement s {};
     s.conditions.emplace_back(TRY(parse_exp()));
     s.blocks.emplace_back(TRY(parse_block()));
@@ -34,36 +48,44 @@ tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement(
     return s;
 }
 tl::expected<ast::for_loop, std::string> parser_context::parse_for_loop() {
-    TRY(expect(token_type::FOR));
+    TRY(lexer.lex_string("for"));
     ast::for_loop s {};
     s.initial = TRY(parse_variable_def());
-    TRY(expect(token_type::SEMICOLON));
+    TRY(lexer.lex_string(";"));
     s.condition = TRY(parse_exp());
-    TRY(expect(token_type::SEMICOLON));
+    TRY(lexer.lex_string(";"));
     s.step = TRY(parse_assignment());
     s.block = TRY(parse_block());
     return s;
 }
 tl::expected<ast::while_loop, std::string> parser_context::parse_while_loop() {
-    TRY(expect(token_type::WHILE));
+    TRY(lexer.lex_string("while"));
     ast::while_loop s {};
     s.condition = TRY(parse_exp());
     s.block = TRY(parse_block());
     return s;
 }
 tl::expected<ast::case_statement, std::string> parser_context::parse_case() {
-    TRY(expect(token_type::CASE));
+    TRY(lexer.lex_string("case"));
     ast::case_statement c {};
-    c.cases = parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
+    auto r = parse_list_fn<ast::literal>(
+        [this]() { return parse_literal_integer(); },
+        [this]() { return lexer.lex_string(","); }
+    );
+    c.cases = TRY(r);
     c.block = TRY(parse_block());
     return c;
 }
 tl::expected<ast::switch_statement, std::string> parser_context::parse_switch_statement() {
-    TRY(expect(token_type::SWITCH));
+    TRY(lexer.lex_string("switch"));
     ast::switch_statement s {};
     s.expression = TRY(parse_exp());
-    TRY(expect(token_type::OPEN_C_BRACKET));
-    s.cases = parse_list(&parser_context::parse_case, token_type::CLOSE_C_BRACKET);
+    auto r = parse_list_fn<ast::case_statement>(
+        [this]() { return lexer.lex_string("{"); },
+        [this]() { return parse_case(); },
+        [this]() { return lexer.lex_string("}"); }
+    );
+    s.cases = TRY(r);
     return s;
 }
 tl::expected<ast::identifier, std::string> parser_context::parse_identifier() {
@@ -72,42 +94,52 @@ tl::expected<ast::identifier, std::string> parser_context::parse_identifier() {
 tl::expected<ast::function_def, std::string> parser_context::parse_function_def() {
     ast::function_def f {};
     f.to_export = accept(token_type::EXPORT);
-    TRY(expect(token_type::FUNCTION));
+    TRY(lexer.lex_string("fn"));
     auto t = parse_primitive_type();
     if (t) {
         f.returntype = {std::move(t.value())};
     }
     f.identifier = TRY(parse_identifier());
-    TRY(expect(token_type::OPEN_R_BRACKET));
-    f.parameter_list = parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_R_BRACKET);
+    auto r = parse_list_fn<ast::field>(
+        [this]() { return lexer.lex_string("("); },
+        [this]() { return parse_field(); },
+        [this]() { return lexer.lex_string(","); },
+        [this]() { return lexer.lex_string(")"); }
+    );
+    f.parameter_list = TRY(r);
     f.block = TRY(parse_block());
     return f;
 }
 tl::expected<ast::function_call, std::string> parser_context::parse_function_call() {
     ast::function_call f {};
     f.identifier = TRY(parse_identifier());
-    TRY(expect(token_type::OPEN_R_BRACKET));
-    f.arguments = parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_R_BRACKET);
+    auto r = parse_list_fn<ast::expression>(
+        [this]() { return lexer.lex_string("("); },
+        [this]() { return parse_exp(); },
+        [this]() { return lexer.lex_string(","); },
+        [this]() { return lexer.lex_string(")"); }
+    );
+    f.arguments = TRY(r);
     return f;
 }
 tl::expected<ast::type_def, std::string> parser_context::parse_type_def() {
     ast::type_def t {};
-    TRY(expect(token_type::TYPE));
+    TRY(lexer.lex_keyword("type"));
     TRY(parse_identifier());
-    TRY(expect(token_type::OP_ASSIGN));
+    TRY(lexer.lex_string("="));
     t.type = TRY(parse_type());
     return t;
 }
 tl::expected<ast::assignment, std::string> parser_context::parse_assignment() {
     ast::assignment a {};
     a.accessor = TRY(parse_accessor());
-    TRY(expect(token_type::OP_ASSIGN));
+    TRY(lexer.lex_string("="));
     a.expression = TRY(parse_exp());
     return a;
 }
 tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def() {
     ast::variable_def v {};
-    TRY(expect(token_type::VAR));
+    TRY(lexer.lex_string("var"));
     //TODO
     //maybe
     {
@@ -122,37 +154,37 @@ tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def(
         v.identifier = TRY(parse_identifier());
     }
     //FIXME
-    TRY(expect(token_type::OP_ASSIGN));
+    TRY(lexer.lex_string("="));
     v.expression = TRY(parse_exp());
     return v;
 }
 tl::expected<ast::s_return, std::string> parser_context::parse_return() {
     ast::s_return r {};
-    TRY(expect(token_type::RETURN));
+    TRY(lexer.lex_string("return"));
     r.expression = to_optional(parse_exp());
     return r;
 }
 tl::expected<ast::s_break, std::string> parser_context::parse_break() {
     ast::s_break b {};
-    TRY(expect(token_type::BREAK));
+    TRY(lexer.lex_string("break"));
     return b;
 }
 tl::expected<ast::s_continue, std::string> parser_context::parse_continue() {
     ast::s_continue c {};
-    TRY(expect(token_type::CONTINUE));
+    TRY(lexer.lex_string("continue"));
     return c;
 }
 tl::expected<ast::field_access, std::string> parser_context::parse_field_access() {
     ast::field_access f {};
-    TRY(expect(token_type::OP_ACCESS));
+    TRY(lexer.lex_string("="));
     f = TRY(parse_identifier());
     return f;
 }
 tl::expected<ast::array_access, std::string> parser_context::parse_array_access() {
     ast::array_access a {};
-    TRY(expect(token_type::OPEN_S_BRACKET));
+    TRY(lexer.lex_string("["));
     a = TRY(parse_exp());
-    TRY(expect(token_type::CLOSE_S_BRACKET));
+    TRY(lexer.lex_string("]"));
     return a;
 }
 tl::expected<ast::access, std::string> parser_context::parse_access() {
@@ -169,7 +201,10 @@ tl::expected<ast::access, std::string> parser_context::parse_access() {
 tl::expected<ast::accessor, std::string> parser_context::parse_accessor() {
     ast::accessor a {};
     a.identifier = TRY(parse_identifier());
-    a.fields = parse_list(&parser_context::parse_access);
+    auto r = parse_list_fn<ast::access>(
+        [this]() { return parse_access(); }
+    );
+    a.fields = TRY(r);
     return a;
 }
 tl::expected<ast::named_type, std::string> parser_context::parse_named_type() {
@@ -215,17 +250,22 @@ tl::expected<ast::field, std::string> parser_context::parse_field() {
 }
 tl::expected<ast::struct_type, std::string> parser_context::parse_struct_type() {
     ast::struct_type s;
-    TRY(expect(token_type::STRUCT));
-    TRY(expect(token_type::OPEN_C_BRACKET));
-    s.fields = parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_C_BRACKET);
+    TRY(lexer.lex_string("struct"));
+    auto r = parse_list_fn<ast::field>(
+        [this]() { return lexer.lex_string("{"); },
+        [this]() { return parse_field(); },
+        [this]() { return lexer.lex_string(","); },
+        [this]() { return lexer.lex_string("}"); }
+    );
+    s.fields = TRY(r);
     return s;
 }
 tl::expected<ast::array_type, std::string> parser_context::parse_array_type() {
-    TRY(expect(token_type::OPEN_S_BRACKET));
+    TRY(lexer.lex_string("["));
     ast::array_type a;
     a.element_type = TRY(parse_named_type());
     a.length = std::get<ast::literal_integer>(TRY(parse_literal_integer()).literal).data;
-    TRY(expect(token_type::CLOSE_S_BRACKET));
+    TRY(lexer.lex_string("]"));
     return a;
 }
 tl::expected<ast::literal, std::string> parser_context::parse_literal() {
@@ -344,9 +384,9 @@ tl::expected<ast::expression, std::string> parser_context::parse_exp_atom() {
             }
         case token_type::OPEN_R_BRACKET:
             {
-            TRY(expect(token_type::OPEN_R_BRACKET));
+            TRY(lexer.lex_string("("));
             e.expression = std::move(TRY(parse_exp()).expression);
-            TRY(expect(token_type::CLOSE_R_BRACKET));
+            TRY(lexer.lex_string(")"));
             break;
             }
         default:

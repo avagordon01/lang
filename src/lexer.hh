@@ -40,12 +40,12 @@ struct lexer_context {
         in.exceptions(std::istream::badbit);
     }
 
-    bool lex_string(std::string s, bool word_boundary = false);
-    std::optional<std::string> lex_word();
-    bool lex_keyword(std::string keyword);
+    tl::expected<std::monostate, std::string> lex_string(std::string s, bool word_boundary = false);
+    tl::expected<std::string, std::string> lex_word();
+    tl::expected<std::monostate, std::string> lex_keyword(std::string keyword);
     std::optional<token_type> lex_any_keyword();
     void lex_reserved_keyword();
-    std::optional<std::string> lex_identifier();
+    tl::expected<std::string, std::string> lex_identifier();
     std::optional<ast::primitive_type> lex_primitive_type();
     std::optional<bool> lex_literal_bool();
     std::optional<ast::literal_integer> lex_literal_integer();

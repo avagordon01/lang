@@ -26,14 +26,14 @@ struct parser_context {
     template<typename T>
     tl::expected<T, std::string> expectp(token_type t);
 
-    template<typename T, typename E>
-    std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)());
-    template<typename T, typename E>
-    std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type delim);
-    template<typename T, typename E>
-    std::vector<T> parse_list_sep(tl::expected<T, E> (parser_context::*parse)(), token_type sep);
-    template<typename T, typename E>
-    std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type sep, token_type delim);
+    template<typename T, typename B>
+    tl::expected<std::vector<T>, std::string> parse_list_fn(B body);
+    template<typename T, typename B, typename C>
+    tl::expected<std::vector<T>, std::string> parse_list_fn(B body, C sep);
+    template<typename T, typename A, typename B, typename D>
+    tl::expected<std::vector<T>, std::string> parse_list_fn(A begin, B body, D delim);
+    template<typename T, typename A, typename B, typename C, typename D>
+    tl::expected<std::vector<T>, std::string> parse_list_fn(A begin, B body, C sep, D delim);
 
     ast::program parse_program(std::string filename);
     tl::expected<ast::if_statement, std::string> parse_if_statement();

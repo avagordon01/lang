@@ -1,21 +1,8 @@
 #pragma once
 
-#include <sstream>
 #include <tl/expected.hpp>
 
 #include "parser.hh"
-
-template<typename... Ts>
-std::string string_error(Ts... args) {
-    std::stringstream ss{};
-    ((ss << args << " "), ...);
-    return ss.str();
-}
-
-[[noreturn]] void fatal_error(std::string e) {
-    std::cerr << e << std::endl;
-    exit(1);
-}
 
 void parser_context::next_token() {
     current_token = lexer.yylex();
@@ -55,63 +42,62 @@ std::optional<T> to_optional(tl::expected<T, E> ex) {
     }
 }
 
-template<typename T, typename E>
-std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)()) {
+using namespace std::string_literals;
+
+template<typename T, typename B>
+tl::expected<std::vector<T>, std::string> parser_context::parse_list_fn(B body) {
     std::vector<T> list;
     while (true) {
-        auto res = std::move(std::invoke(parse, this));
-        if (res) {
-            list.emplace_back(std::move(res.value()));
+        auto r = body();
+        if (r) {
+            list.emplace_back(std::move(r.value()));
         } else {
             return list;
         }
     }
 }
-template<typename T, typename E>
-std::vector<T> parser_context::parse_list_sep(tl::expected<T, E> (parser_context::*parse)(), token_type sep) {
+
+template<typename T, typename B, typename C>
+tl::expected<std::vector<T>, std::string> parser_context::parse_list_fn(B body, C sep) {
     std::vector<T> list;
     while (true) {
-        auto res = std::move((std::invoke(parse, this)));
-        if (!res) {
-            break;
-        }
-        list.emplace_back(std::move(res.value()));
-        if (!accept(sep)) {
-            break;
+        auto r = body();
+        if (r) {
+            list.emplace_back(std::move(r.value()));
+            TRY(sep());
+        } else {
+            return list;
         }
     }
-    return list;
 }
-template<typename T, typename E>
-std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type delim) {
+
+template<typename T, typename A, typename B, typename C, typename D>
+tl::expected<std::vector<T>, std::string> parser_context::parse_list_fn(A begin, B body, C sep, D delim) {
     std::vector<T> list;
+    TRY(begin());
     while (true) {
-        auto res = std::move(std::invoke(parse, this));
-        list.emplace_back(std::move(res.value()));
-        if (accept(delim)) {
-            break;
-        }
-    }
-    return list;
-}
-template<typename T, typename E>
-std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type sep, token_type delim) {
-    std::vector<T> list;
-    while (true) {
-        if (accept(delim)) {
-            break;
-        }
-        auto res = std::move(std::invoke(parse, this));
-        list.emplace_back(std::move(res.value()));
-        if (accept(sep)) {
-            if (accept(delim)) {
+        list.emplace_back(TRY(body()));
+        if (sep()) {
+            if (delim()) {
                 break;
             }
-        } else if (accept(delim)) {
+        } else if (delim()) {
             break;
         } else {
-            //TODO
-            //string_error(location, "parser expected", sep, "or", delim, "got", current_token);
+            return tl::unexpected("error"s);
+        }
+    }
+    return list;
+}
+
+template<typename T, typename A, typename B, typename D>
+tl::expected<std::vector<T>, std::string> parser_context::parse_list_fn(A begin, B body, D delim) {
+    std::vector<T> list;
+    TRY(begin());
+    while (true) {
+        list.emplace_back(TRY(body()));
+        if (delim()) {
+            break;
         }
     }
     return list;
