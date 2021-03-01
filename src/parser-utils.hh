@@ -18,13 +18,9 @@ std::string string_error(Ts... args) {
 }
 
 void parser_context::next_token() {
-    buffer_loc++;
-    if (buffer_loc >= buffer.size()) {
-        buffer.push_back({lexer.yylex(), lexer.current_param});
-        std::cerr << buffer[buffer_loc].first << std::endl;
-    }
-    current_token = buffer[buffer_loc].first;
-    lexer.current_param = buffer[buffer_loc].second;
+    current_token = lexer.yylex();
+    lexer.current_param = lexer.current_param;
+    std::cerr << current_token << std::endl;
 }
 bool parser_context::accept(token_type t) {
     if (current_token == t) {

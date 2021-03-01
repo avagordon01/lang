@@ -16,8 +16,6 @@ struct parser_context {
     yy::location location;
     lexer_context& lexer;
 
-    size_t buffer_loc = -1;
-    std::deque<std::pair<token_type, param_type>> buffer {};
     token_type current_token {};
 
     parser_context(lexer_context& lexer_): lexer(lexer_) {}
