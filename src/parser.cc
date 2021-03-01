@@ -14,13 +14,13 @@ ast::program parser_context::parse_program(std::string filename) {
     return program_ast;
 }
 tl::expected<ast::block, std::string> parser_context::parse_block() {
-    TRY(new_expect(token_type::OPEN_C_BRACKET));
+    TRY(expect(token_type::OPEN_C_BRACKET));
     ast::block b {};
     b.statements = parse_list(&parser_context::parse_statement, token_type::SEMICOLON, token_type::CLOSE_C_BRACKET);
     return b;
 }
 tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement() {
-    TRY(new_expect(token_type::IF));
+    TRY(expect(token_type::IF));
     ast::if_statement s {};
     s.conditions.emplace_back(TRY(parse_exp()));
     s.blocks.emplace_back(TRY(parse_block()));
@@ -34,35 +34,35 @@ tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement(
     return s;
 }
 tl::expected<ast::for_loop, std::string> parser_context::parse_for_loop() {
-    TRY(new_expect(token_type::FOR));
+    TRY(expect(token_type::FOR));
     ast::for_loop s {};
     s.initial = TRY(parse_variable_def());
-    TRY(new_expect(token_type::SEMICOLON));
+    TRY(expect(token_type::SEMICOLON));
     s.condition = TRY(parse_exp());
-    TRY(new_expect(token_type::SEMICOLON));
+    TRY(expect(token_type::SEMICOLON));
     s.step = TRY(parse_assignment());
     s.block = TRY(parse_block());
     return s;
 }
 tl::expected<ast::while_loop, std::string> parser_context::parse_while_loop() {
-    TRY(new_expect(token_type::WHILE));
+    TRY(expect(token_type::WHILE));
     ast::while_loop s {};
     s.condition = TRY(parse_exp());
     s.block = TRY(parse_block());
     return s;
 }
 tl::expected<ast::case_statement, std::string> parser_context::parse_case() {
-    TRY(new_expect(token_type::CASE));
+    TRY(expect(token_type::CASE));
     ast::case_statement c {};
     c.cases = parse_list_sep(&parser_context::parse_literal_integer, token_type::COMMA);
     c.block = TRY(parse_block());
     return c;
 }
 tl::expected<ast::switch_statement, std::string> parser_context::parse_switch_statement() {
-    TRY(new_expect(token_type::SWITCH));
+    TRY(expect(token_type::SWITCH));
     ast::switch_statement s {};
     s.expression = TRY(parse_exp());
-    TRY(new_expect(token_type::OPEN_C_BRACKET));
+    TRY(expect(token_type::OPEN_C_BRACKET));
     s.cases = parse_list(&parser_context::parse_case, token_type::CLOSE_C_BRACKET);
     return s;
 }
@@ -72,13 +72,13 @@ tl::expected<ast::identifier, std::string> parser_context::parse_identifier() {
 tl::expected<ast::function_def, std::string> parser_context::parse_function_def() {
     ast::function_def f {};
     f.to_export = accept(token_type::EXPORT);
-    TRY(new_expect(token_type::FUNCTION));
+    TRY(expect(token_type::FUNCTION));
     auto t = parse_primitive_type();
     if (t) {
         f.returntype = {std::move(t.value())};
     }
     f.identifier = TRY(parse_identifier());
-    TRY(new_expect(token_type::OPEN_R_BRACKET));
+    TRY(expect(token_type::OPEN_R_BRACKET));
     f.parameter_list = parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_R_BRACKET);
     f.block = TRY(parse_block());
     return f;
@@ -86,28 +86,28 @@ tl::expected<ast::function_def, std::string> parser_context::parse_function_def(
 tl::expected<ast::function_call, std::string> parser_context::parse_function_call() {
     ast::function_call f {};
     f.identifier = TRY(parse_identifier());
-    TRY(new_expect(token_type::OPEN_R_BRACKET));
+    TRY(expect(token_type::OPEN_R_BRACKET));
     f.arguments = parse_list(&parser_context::parse_exp, token_type::COMMA, token_type::CLOSE_R_BRACKET);
     return f;
 }
 tl::expected<ast::type_def, std::string> parser_context::parse_type_def() {
     ast::type_def t {};
-    TRY(new_expect(token_type::TYPE));
+    TRY(expect(token_type::TYPE));
     TRY(parse_identifier());
-    TRY(new_expect(token_type::OP_ASSIGN));
+    TRY(expect(token_type::OP_ASSIGN));
     t.type = TRY(parse_type());
     return t;
 }
 tl::expected<ast::assignment, std::string> parser_context::parse_assignment() {
     ast::assignment a {};
     a.accessor = TRY(parse_accessor());
-    TRY(new_expect(token_type::OP_ASSIGN));
+    TRY(expect(token_type::OP_ASSIGN));
     a.expression = TRY(parse_exp());
     return a;
 }
 tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def() {
     ast::variable_def v {};
-    TRY(new_expect(token_type::VAR));
+    TRY(expect(token_type::VAR));
     //TODO
     //maybe
     {
@@ -122,37 +122,37 @@ tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def(
         v.identifier = TRY(parse_identifier());
     }
     //FIXME
-    TRY(new_expect(token_type::OP_ASSIGN));
+    TRY(expect(token_type::OP_ASSIGN));
     v.expression = TRY(parse_exp());
     return v;
 }
 tl::expected<ast::s_return, std::string> parser_context::parse_return() {
     ast::s_return r {};
-    TRY(new_expect(token_type::RETURN));
+    TRY(expect(token_type::RETURN));
     r.expression = to_optional(parse_exp());
     return r;
 }
 tl::expected<ast::s_break, std::string> parser_context::parse_break() {
     ast::s_break b {};
-    TRY(new_expect(token_type::BREAK));
+    TRY(expect(token_type::BREAK));
     return b;
 }
 tl::expected<ast::s_continue, std::string> parser_context::parse_continue() {
     ast::s_continue c {};
-    TRY(new_expect(token_type::CONTINUE));
+    TRY(expect(token_type::CONTINUE));
     return c;
 }
 tl::expected<ast::field_access, std::string> parser_context::parse_field_access() {
     ast::field_access f {};
-    TRY(new_expect(token_type::OP_ACCESS));
+    TRY(expect(token_type::OP_ACCESS));
     f = TRY(parse_identifier());
     return f;
 }
 tl::expected<ast::array_access, std::string> parser_context::parse_array_access() {
     ast::array_access a {};
-    TRY(new_expect(token_type::OPEN_S_BRACKET));
+    TRY(expect(token_type::OPEN_S_BRACKET));
     a = TRY(parse_exp());
-    TRY(new_expect(token_type::CLOSE_S_BRACKET));
+    TRY(expect(token_type::CLOSE_S_BRACKET));
     return a;
 }
 tl::expected<ast::access, std::string> parser_context::parse_access() {
@@ -215,17 +215,17 @@ tl::expected<ast::field, std::string> parser_context::parse_field() {
 }
 tl::expected<ast::struct_type, std::string> parser_context::parse_struct_type() {
     ast::struct_type s;
-    TRY(new_expect(token_type::STRUCT));
-    TRY(new_expect(token_type::OPEN_C_BRACKET));
+    TRY(expect(token_type::STRUCT));
+    TRY(expect(token_type::OPEN_C_BRACKET));
     s.fields = parse_list(&parser_context::parse_field, token_type::COMMA, token_type::CLOSE_C_BRACKET);
     return s;
 }
 tl::expected<ast::array_type, std::string> parser_context::parse_array_type() {
-    TRY(new_expect(token_type::OPEN_S_BRACKET));
+    TRY(expect(token_type::OPEN_S_BRACKET));
     ast::array_type a;
     a.element_type = TRY(parse_named_type());
     a.length = std::get<ast::literal_integer>(TRY(parse_literal_integer()).literal).data;
-    TRY(new_expect(token_type::CLOSE_S_BRACKET));
+    TRY(expect(token_type::CLOSE_S_BRACKET));
     return a;
 }
 tl::expected<ast::literal, std::string> parser_context::parse_literal() {
@@ -344,9 +344,9 @@ tl::expected<ast::expression, std::string> parser_context::parse_exp_atom() {
             }
         case token_type::OPEN_R_BRACKET:
             {
-            TRY(new_expect(token_type::OPEN_R_BRACKET));
+            TRY(expect(token_type::OPEN_R_BRACKET));
             e.expression = std::move(TRY(parse_exp()).expression);
-            TRY(new_expect(token_type::CLOSE_R_BRACKET));
+            TRY(expect(token_type::CLOSE_R_BRACKET));
             break;
             }
         default:
