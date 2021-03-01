@@ -66,44 +66,6 @@ std::optional<T> to_optional(tl::expected<T, E> ex) {
         return std::nullopt;
     }
 }
-template<typename T>
-auto parser_context::maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))> {
-    size_t buffer_stop = buffer_loc;
-    try {
-        return std::optional<decltype(std::invoke(parse, this))>{std::move(std::invoke(parse, this))};
-    } catch (parse_error& e) {
-        buffer_loc = buffer_stop;
-        current_token = buffer[buffer_loc].first;
-        lexer.current_param = buffer[buffer_loc].second;
-        return std::nullopt;
-    }
-}
-template<typename T>
-auto parser_context::maybe_void(T parse) {
-    size_t buffer_stop = buffer_loc;
-    try {
-        std::invoke(parse);
-    } catch (parse_error& e) {
-        buffer_loc = buffer_stop;
-        current_token = buffer[buffer_loc].first;
-        lexer.current_param = buffer[buffer_loc].second;
-    }
-}
-
-template<typename ...T>
-auto parser_context::choose(std::optional<T>... os) -> std::optional<std::variant<T...>> {
-    static_assert(sizeof...(os) > 0, "choose must have at least one parameter");
-    std::variant<T...> v;
-    if (!((os ? v = std::move(os.value()), true : false) || ...)) {
-        return std::nullopt;
-    }
-    return {std::move(v)};
-}
-
-template<typename ...T>
-auto parser_context::choose(T... parse) -> std::optional<std::variant<decltype(std::invoke(parse, this))...>> {
-    return choose(maybe(parse)...);
-}
 
 template<typename T, typename E>
 std::vector<T> parser_context::parse_list(tl::expected<T, E> (parser_context::*parse)()) {

@@ -31,18 +31,6 @@ struct parser_context {
     template<typename T, typename E>
     T must(tl::expected<T, E> ex);
 
-    template<typename T>
-    auto maybe(T parse) -> std::optional<decltype(std::invoke(parse, this))>;
-    template<typename T>
-    auto maybe_void(T parse);
-    template<typename ...T>
-    auto choose(std::optional<T>... opts) -> std::optional<std::variant<T...>>;
-    template<typename ...T>
-    auto choose(T... parse) -> std::optional<std::variant<decltype(std::invoke(parse, this))...>>;
-    template<typename ...T>
-    auto sequence(T... ps) -> std::tuple<T...>;
-    template<typename S, typename ...T>
-    auto sequence(T... ps) -> S;
     template<typename T, typename E>
     std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)());
     template<typename T, typename E>

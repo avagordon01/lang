@@ -113,15 +113,19 @@ tl::expected<ast::assignment, std::string> parser_context::parse_assignment() {
 tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def() {
     ast::variable_def v {};
     TRY(new_expect(token_type::VAR));
-    maybe_void([&v, this]() {
+    //TODO
+    //maybe
+    {
         auto t = must(parse_named_type());
         auto i = must(parse_identifier());
         v.explicit_type = t;
         v.identifier = i;
-    });
-    maybe_void([&v, this]() {
+    }
+    //TODO
+    //maybe
+    {
         v.identifier = must(parse_identifier());
-    });
+    }
     //FIXME
     TRY(new_expect(token_type::OP_ASSIGN));
     v.expression = TRY(parse_exp());
