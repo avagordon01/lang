@@ -9,12 +9,7 @@ ast::program parser_context::parse_program(std::string filename) {
     location.initialize(&filename);
     ast::program program_ast {};
     next_token();
-    try {
-        program_ast.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
-    } catch (parse_error& e) {
-        std::cerr << e.what() << std::endl;
-        exit(1);
-    }
+    program_ast.statements = parse_list(&parser_context::parse_top_level_statement, token_type::SEMICOLON, token_type::T_EOF);
     program_ast.symbols_registry = lexer.symbols_registry;
     return program_ast;
 }

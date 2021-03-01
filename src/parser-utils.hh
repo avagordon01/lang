@@ -5,15 +5,16 @@
 
 #include "parser.hh"
 
-struct parse_error : std::runtime_error {
-    using std::runtime_error::runtime_error;
-};
-
 template<typename... Ts>
 std::string string_error(Ts... args) {
     std::stringstream ss{};
     ((ss << args << " "), ...);
     return ss.str();
+}
+
+[[noreturn]] void fatal_error(std::string e) {
+    std::cerr << e << std::endl;
+    exit(1);
 }
 
 void parser_context::next_token() {
