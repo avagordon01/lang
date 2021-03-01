@@ -28,13 +28,13 @@ tl::expected<ast::if_statement, std::string> parser_context::parse_if_statement(
     TRY(new_expect(token_type::IF));
     ast::if_statement s {};
     s.conditions.emplace_back(TRY(parse_exp()));
-    s.blocks.emplace_back(must(parse_block()));
+    s.blocks.emplace_back(TRY(parse_block()));
     while (accept(token_type::ELIF)) {
         s.conditions.emplace_back(TRY(parse_exp()));
-        s.blocks.emplace_back(must(parse_block()));
+        s.blocks.emplace_back(TRY(parse_block()));
     }
     if (accept(token_type::ELSE)) {
-        s.blocks.emplace_back(must(parse_block()));
+        s.blocks.emplace_back(TRY(parse_block()));
     }
     return s;
 }
@@ -116,15 +116,15 @@ tl::expected<ast::variable_def, std::string> parser_context::parse_variable_def(
     //TODO
     //maybe
     {
-        auto t = must(parse_named_type());
-        auto i = must(parse_identifier());
+        auto t = TRY(parse_named_type());
+        auto i = TRY(parse_identifier());
         v.explicit_type = t;
         v.identifier = i;
     }
     //TODO
     //maybe
     {
-        v.identifier = must(parse_identifier());
+        v.identifier = TRY(parse_identifier());
     }
     //FIXME
     TRY(new_expect(token_type::OP_ASSIGN));
@@ -326,7 +326,7 @@ tl::expected<ast::expression, std::string> parser_context::parse_exp_atom() {
         case token_type::FOR:       e.expression = std::make_unique<ast::for_loop>(TRY(parse_for_loop())); break;
         case token_type::WHILE:     e.expression = std::make_unique<ast::while_loop>(TRY(parse_while_loop())); break;
         case token_type::OPEN_C_BRACKET: {
-            auto b = must(parse_block());
+            auto b = TRY(parse_block());
             auto p = std::make_unique<ast::block>(std::move(b));
             assert(p);
             e.expression = std::move(p);

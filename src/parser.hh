@@ -29,9 +29,6 @@ struct parser_context {
     tl::expected<T, std::string> expectp(token_type t);
 
     template<typename T, typename E>
-    T must(tl::expected<T, E> ex);
-
-    template<typename T, typename E>
     std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)());
     template<typename T, typename E>
     std::vector<T> parse_list(tl::expected<T, E> (parser_context::*parse)(), token_type delim);

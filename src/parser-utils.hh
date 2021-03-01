@@ -50,15 +50,6 @@ tl::expected<T, std::string> parser_context::expectp(token_type t) {
 }
 
 template<typename T, typename E>
-T parser_context::must(tl::expected<T, E> ex) {
-    if (ex) {
-        return std::move(ex.value());
-    } else {
-        error(ex.error());
-    }
-}
-
-template<typename T, typename E>
 std::optional<T> to_optional(tl::expected<T, E> ex) {
     if (ex) {
         return std::optional{std::move(ex.value())};
