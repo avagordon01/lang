@@ -14,6 +14,7 @@ add_global_arguments(
   '-Wno-unused-function',
   '-Wno-missing-field-initializers',
   '-Wno-pedantic',
+  '-fmax-errors=1',
   language: 'cpp'
 )
 

@@ -40,10 +40,15 @@ $ ninja test
     - [ ] advanced bitwise
   - [ ] memory
     - [ ] heap backed variables
+    - [ ] lifetime specification, lexical (stack, default), always (program data), dynamic (heap)
     - [ ] compiler knows all aliasing (or no aliasing)
     - [ ] pointers like C++ references and unique_ptrs
     - [ ] initialisation?
     - [ ] custom allocators
+  - [ ] effect system
+    - [ ] maybe something like zig, where types are values at compile time, assert and prove things without a separate language
+    - [ ] every failure should be possible, no panic/abort, no out-of-memory, timeout from cross-machine network, gpu driver failure
+    - [ ] and either opaquely handled with retries or exposed to the user with an effect system
   - [ ] modules
     - [ ] import/export definitions from/to other kl files
     - [ ] import/export definitions from/to C files

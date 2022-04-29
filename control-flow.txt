@@ -1,0 +1,27 @@
+std::optional
+    have to manually propagate or make a macro to return on failure
+    #define must(X) (X) ? X.value() : return std::nullopt;
+    no way to pass error reason string
+
+expected/result
+    need a library for it
+    pass error string
+    manual propagation
+
+exceptions
+    slow for control flow
+    pass error string
+    automatic propagation
+
+block is a big parse than can be either must or maybe
+with std::optional, the block could return nullopt, then in e.g. a for loop you'd error if you got nullopt
+the error information wouldn't be super detailed, just that you couldn't parse a block, not why
+
+having a separate lex step is better for processing comments and whitespace
+rules that can appear _anywhere_ in the grammar
+handwritten is better for rules that are basically LL(1)
+maybe we can create a layered approach, lowest layer checks for comments/whitespace
+    I guess separate token/parse steps are a bit like this
+    how does seeking work with multiple layered istreams
+
+having a single parser/lexer means we don't have to buffer tokens, just seek around in the file

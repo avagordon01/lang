@@ -17,19 +17,15 @@ bool parser_context::accept(token_type t) {
         return false;
     }
 }
-tl::expected<std::monostate, std::string> parser_context::expect(token_type t) {
-    if (!accept(t)) {
-        return tl::unexpected(string_error(location, "parser expected", t, "got", current_token));
-    }
-    return {};
-}
 
 #define TRY(X) ({ auto&& e = (X); if (!e) return tl::unexpected(e.error()); std::move(*e); })
 
 template<typename T>
 tl::expected<T, std::string> parser_context::expectp(token_type t) {
     auto p = lexer.current_param;
-    TRY(expect(t));
+    if (!accept(t)) {
+        return tl::unexpected(string_error(location, "parser expected", t, "got", current_token));
+    }
     return std::get<T>(p);
 }
 
